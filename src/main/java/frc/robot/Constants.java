@@ -21,6 +21,7 @@ public final class Constants {
         public static final int ShooterRight = 16;
         public static final int IntakeLeft = 19;
         public static final int IntakeRight = 20;
+        public static final int IntakeMotor = 21;
     }
 
     public static final class PHConstants {

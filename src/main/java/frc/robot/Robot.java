@@ -21,7 +21,10 @@ public class Robot extends TimedRobot {
 
         m_robotContainer.m_drivetrain.getDaqThread().setThreadPriority(99);
 
-        SignalLogger.start();
+        // This is the CTRE SignalLogger. It requires a USB drive in the RoboRIO
+        // https://v6.docs.ctr-electronics.com/en/stable/docs/api-reference/api-usage/signal-logging.html
+        // Don't use it for now
+        // SignalLogger.start();
     }
 
     @Override

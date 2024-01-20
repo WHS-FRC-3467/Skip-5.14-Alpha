@@ -16,6 +16,18 @@
           "data": {
             "pathName": "Right to 2 Preshot"
           }
+        },
+        {
+          "type": "wait",
+          "data": {
+            "waitTime": 3.0
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "Right to 2 Preshot"
+          }
         }
       ]
     }

@@ -25,7 +25,7 @@ import edu.wpi.first.wpilibj2.command.button.Trigger;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
 import frc.robot.Subsystems.Drivetrain.CommandSwerveDrivetrain;
 import frc.robot.Subsystems.Drivetrain.Telemetry;
-import frc.robot.Subsystems.Intake.IntakeSubsystem;
+import frc.robot.Subsystems.Intake.OBIntakeSubsystem;
 import frc.robot.Subsystems.Shooter.ShooterSubsystem;
 import frc.robot.Util.CommandXboxPS5Controller;
 import frc.robot.Vision.Limelight;
@@ -92,7 +92,7 @@ public class RobotContainer {
 
     // Instantiate other Subsystems
     ShooterSubsystem m_shooterSubsystem = new ShooterSubsystem();
-    IntakeSubsystem m_intakeSubsystem = new IntakeSubsystem();
+    OBIntakeSubsystem m_intakeSubsystem = new OBIntakeSubsystem();
 
     // Setup Limelight periodic query (defaults to disabled)
     Limelight m_vision = new Limelight(m_drivetrain);
@@ -130,8 +130,6 @@ public class RobotContainer {
     private void registerNamedCommands() {
         
         // Register Named Commands for use in PathPlanner autos
-        NamedCommands.registerCommand("Deploy Intake", m_intakeSubsystem.deployIntakeCommand());
-        NamedCommands.registerCommand("Retract Intake", m_intakeSubsystem.retractIntakeCommand());
         //NamedCommands.registerCommand("exampleCommand", exampleSubsystem.exampleCommand());
         //NamedCommands.registerCommand("someOtherCommand", new SomeOtherCommand());
 
@@ -203,12 +201,13 @@ public class RobotContainer {
                 .andThen(() -> m_AngularRate = m_MaxAngularRate));
 
         // Driver: Use Left and Right Triggers to run Intake at variable speed (left = in, right = out)
-        m_driverCtrl.leftTrigger(0.1).onTrue(m_intakeSubsystem.runIntakeCommand(m_driverCtrl.getLeftTriggerAxis()));   
-        m_driverCtrl.rightTrigger(0.1).onTrue(m_intakeSubsystem.runIntakeCommand((-1.0) * m_driverCtrl.getRightTriggerAxis()));   
+        m_driverCtrl.leftTrigger(0.1).onTrue(m_intakeSubsystem.runIntakeCommand(() -> m_driverCtrl.getLeftTriggerAxis()));   
+        //m_driverCtrl.rightTrigger(0.1).onTrue(m_intakeSubsystem.runIntakeCommand(() -> (-1.0) * m_driverCtrl.getRightTriggerAxis()));   
 
         // Driver: Use Right Bumper to toggle intake position
         m_driverCtrl.rightBumper().onTrue(m_intakeSubsystem.toggleIntakeCommand());
 
+        m_driverCtrl.rightTrigger(0.1).whileTrue(m_shooterSubsystem.runShooterCommand());   
 
         /*
          * Put Commands on Shuffleboard
