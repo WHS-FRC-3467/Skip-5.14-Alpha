@@ -29,7 +29,7 @@ public class OBIntakeSubsystem extends SubsystemBase {
     // Initializes solenoid and talons
     DoubleSolenoid m_intakePiston = new DoubleSolenoid(PneumaticsModuleType.REVPH, PHConstants.IntakeForwardSolenoid,
             PHConstants.IntakeReverseSolenoid);
-    TalonSRX m_motorLead = new TalonSRX(CanConstants.IntakeLeft);
+    TalonSRX m_motorLead = new TalonSRX(CanConstants.IntakeMotor);
     TalonSRX m_motorFollow = new TalonSRX(CanConstants.IntakeRight);
 
     /** Creates a new IntakeSubsystem. */

@@ -1,15 +1,43 @@
 {
+  "HALProvider": {
+    "Other Devices": {
+      "Talon FX (v6)[15]": {
+        "header": {
+          "open": true
+        }
+      },
+      "Talon FX (v6)[16]": {
+        "header": {
+          "open": true
+        }
+      },
+      "Talon FX (v6)[17]": {
+        "header": {
+          "open": true
+        }
+      },
+      "Talon FX (v6)[18]": {
+        "header": {
+          "open": true
+        }
+      }
+    }
+  },
   "NTProvider": {
     "types": {
       "/FMSInfo": "FMSInfo",
       "/Pose": "Field2d",
       "/SmartDashboard/Auto Chooser": "String Chooser",
       "/SmartDashboard/Control Chooser": "String Chooser",
+      "/SmartDashboard/Control Style Chooser": "String Chooser",
       "/SmartDashboard/Module 0": "Mechanism2d",
       "/SmartDashboard/Module 1": "Mechanism2d",
       "/SmartDashboard/Module 2": "Mechanism2d",
       "/SmartDashboard/Module 3": "Mechanism2d",
-      "/SmartDashboard/Speed Limit": "String Chooser"
+      "/SmartDashboard/Run Shooter": "Command",
+      "/SmartDashboard/Speed Limit": "String Chooser",
+      "/SmartDashboard/Stop Shooter": "Command",
+      "/SmartDashboard/Update Shooter Gains": "Command"
     },
     "windows": {
       "/Pose": {
@@ -34,7 +62,17 @@
           "visible": true
         }
       },
+      "/SmartDashboard/Run Shooter": {
+        "window": {
+          "visible": true
+        }
+      },
       "/SmartDashboard/Speed Limit": {
+        "window": {
+          "visible": true
+        }
+      },
+      "/SmartDashboard/Stop Shooter": {
         "window": {
           "visible": true
         }

@@ -6,6 +6,7 @@ import com.ctre.phoenix6.controls.Follower;
 import com.ctre.phoenix6.controls.NeutralOut;
 import com.ctre.phoenix6.controls.VelocityVoltage;
 import com.ctre.phoenix6.hardware.TalonFX;
+import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
@@ -22,8 +23,10 @@ public class ShooterSubsystem extends SubsystemBase {
     double m_setPoint = 0.0;
 
     /* Hardware */
-    TalonFX m_motorLeader = new TalonFX(CanConstants.ShooterLeft);
-    TalonFX m_motorFollower = new TalonFX(CanConstants.ShooterRight);
+    TalonFX m_motorLeftLeader = new TalonFX(CanConstants.ID_ShooterLeftLeader);
+    TalonFX m_motorLeftFollower = new TalonFX(CanConstants.ID_ShooterLeftFollower);
+    TalonFX m_motorRightLeader = new TalonFX(CanConstants.ID_ShooterRightLeader);
+    TalonFX m_motorRightFollower = new TalonFX(CanConstants.ID_ShooterRightFollower);
 
     /*
      * Gains for shooter tuning
@@ -45,7 +48,8 @@ public class ShooterSubsystem extends SubsystemBase {
     /*
      * Setup the Velocity PID control object Start at velocity 0, disable FOC, no feed forward, use slot 0
      */
-    private final VelocityVoltage m_voltageVelocity = new VelocityVoltage(0.0, 0.0, false, 0.0, 0, false, false, false);
+    private final VelocityVoltage m_voltageVelocityLeft = new VelocityVoltage(0.0, 0.0, false, 0.0, 0, false, false, false);
+    private final VelocityVoltage m_voltageVelocityRight = new VelocityVoltage(0.0, 0.0, false, 0.0, 0, false, false, false);
 
     /* Neutral output control for disabling the Shooter */
     private final NeutralOut m_brake = new NeutralOut();
@@ -60,7 +64,11 @@ public class ShooterSubsystem extends SubsystemBase {
         leadConfiguration.MotorOutput.NeutralMode = NeutralModeValue.Coast;
         followConfiguration.MotorOutput.NeutralMode = NeutralModeValue.Coast;
 
-        /* Configure the lead Talon to use a supply limit of 5 amps IF we exceed 10 amps for over 1 second */
+        leadConfiguration.MotorOutput.Inverted = InvertedValue.Clockwise_Positive;
+
+
+/*
+        // Configure the lead Talon to use a supply limit of 5 amps IF we exceed 10 amps for over 1 second
         m_currentLimits.SupplyCurrentLimit = 5; // Limit to 5 amps
         m_currentLimits.SupplyCurrentThreshold = 10; // If we exceed 10 amps
         m_currentLimits.SupplyTimeThreshold = 1.0; // For at least 1 second
@@ -69,9 +77,10 @@ public class ShooterSubsystem extends SubsystemBase {
         m_currentLimits.StatorCurrentLimit = 20; // Limit stator to 20 amps
         m_currentLimits.StatorCurrentLimitEnable = true; // And enable it
         leadConfiguration.CurrentLimits = m_currentLimits;
+*/
 
         /* Config the peak outputs */
-        leadConfiguration.Voltage.PeakForwardVoltage = 8.0;
+        leadConfiguration.Voltage.PeakForwardVoltage = 12.0;
         leadConfiguration.Voltage.PeakReverseVoltage = 0.0; // Don't go in reverse
 
         /* Update Shooter Gains from TunableNumbers */
@@ -81,13 +90,17 @@ public class ShooterSubsystem extends SubsystemBase {
         leadConfiguration.Slot0.kV = m_kV.get();
 
         /* Apply configs */
-        m_motorLeader.getConfigurator().apply(leadConfiguration);
-        m_motorFollower.getConfigurator().apply(followConfiguration);
+        leadConfiguration.MotorOutput.Inverted = InvertedValue.Clockwise_Positive;
+        m_motorLeftLeader.getConfigurator().apply(leadConfiguration);
+        leadConfiguration.MotorOutput.Inverted = InvertedValue.CounterClockwise_Positive;
+        m_motorRightLeader.getConfigurator().apply(leadConfiguration);
+        m_motorLeftFollower.getConfigurator().apply(followConfiguration);
+        m_motorRightFollower.getConfigurator().apply(followConfiguration);
 
-        /* Set up follower to follow leader but in the opposite direction */
-        m_motorFollower.setControl(new Follower(m_motorLeader.getDeviceID(), true));
+        /* Set up followers to follow leaders but in the opposite direction */
+        m_motorLeftFollower.setControl(new Follower(m_motorLeftLeader.getDeviceID(), true));
+        m_motorRightFollower.setControl(new Follower(m_motorRightLeader.getDeviceID(), true));
 
-        m_motorLeader.setSafetyEnabled(true);
     }
 
     @Override
@@ -107,7 +120,8 @@ public class ShooterSubsystem extends SubsystemBase {
         leadConfiguration.Slot0.kD = m_kD.get();
         leadConfiguration.Slot0.kV = m_kV.get();
 
-        m_motorLeader.getConfigurator().apply(leadConfiguration);
+        m_motorLeftLeader.getConfigurator().apply(leadConfiguration);
+        m_motorRightLeader.getConfigurator().apply(leadConfiguration);
     }
 
     /**
@@ -116,24 +130,28 @@ public class ShooterSubsystem extends SubsystemBase {
     public void runShooter(double targetVelocity) {
         // Set Velocity setpoint
         m_setPoint = targetVelocity;
-        m_motorLeader.setControl(m_voltageVelocity.withVelocity(m_setPoint));
+        m_motorLeftLeader.setControl(m_voltageVelocityLeft.withVelocity(m_setPoint));
+        m_motorRightLeader.setControl(m_voltageVelocityRight.withVelocity(m_setPoint));
     }
 
     public void runShooter() {
         // Get Velocity setpoint from TunableNumber
         m_setPoint = m_ShooterSetpoint.get();
-        m_motorLeader.setControl(m_voltageVelocity.withVelocity(m_setPoint));
+        SmartDashboard.putNumber("Setpoint Request", m_setPoint);
+        m_motorLeftLeader.setControl(m_voltageVelocityLeft.withVelocity(m_setPoint));
+        m_motorRightLeader.setControl(m_voltageVelocityRight.withVelocity(m_setPoint));
     }
 
     public void stopShooter() {
-        m_motorLeader.setControl(m_brake);
+        m_motorLeftLeader.setControl(m_brake);
+        m_motorRightLeader.setControl(m_brake);
     }
 
     /**
      * @return the velocity of the shooter in RPS
      */
     public double getShooterVelocity() {
-        return m_motorLeader.getVelocity().getValueAsDouble();
+        return m_motorLeftLeader.getVelocity().getValueAsDouble();
     }
 
     /**
@@ -151,7 +169,7 @@ public class ShooterSubsystem extends SubsystemBase {
     }
 
     public Command runShooterCommand() {
-        return new InstantCommand(()->this.runShooter(), this);
+        return new StartEndCommand(()->this.runShooter(), ()->this.stopShooter(), this);
     }
 
     public Command stopShooterCommand() {

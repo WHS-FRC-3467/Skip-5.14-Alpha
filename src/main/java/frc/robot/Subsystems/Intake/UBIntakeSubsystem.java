@@ -5,31 +5,19 @@
 
 package frc.robot.Subsystems.Intake;
 
-import java.util.function.DoubleSupplier;
-
-import com.ctre.phoenix.motorcontrol.ControlMode;
-import com.ctre.phoenix.motorcontrol.NeutralMode;
-import com.ctre.phoenix.motorcontrol.StatusFrame;
-import com.ctre.phoenix.motorcontrol.SupplyCurrentLimitConfiguration;
-import com.ctre.phoenix.motorcontrol.can.TalonSRX;
 import com.ctre.phoenix6.configs.CurrentLimitsConfigs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.DutyCycleOut;
 import com.ctre.phoenix6.controls.NeutralOut;
-import com.ctre.phoenix6.controls.VelocityVoltage;
 import com.ctre.phoenix6.hardware.TalonFX;
+import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 
-import edu.wpi.first.wpilibj.DoubleSolenoid;
-import edu.wpi.first.wpilibj.PneumaticsModuleType;
-import edu.wpi.first.wpilibj.DoubleSolenoid.Value;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.StartEndCommand;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants.CanConstants;
-import frc.robot.Constants.PHConstants;
 
 public class UBIntakeSubsystem extends SubsystemBase {
 
@@ -37,6 +25,8 @@ public class UBIntakeSubsystem extends SubsystemBase {
 
     /* Current Limits config */
     private final CurrentLimitsConfigs m_currentLimits = new CurrentLimitsConfigs();
+
+    private final DutyCycleOut m_speed = new DutyCycleOut(0);
 
     /* Neutral output control for stopping the Intake */
     private final NeutralOut m_brake = new NeutralOut();
@@ -49,8 +39,11 @@ public class UBIntakeSubsystem extends SubsystemBase {
 
         /* Set motor to Brake */
         m_configuration.MotorOutput.NeutralMode = NeutralModeValue.Brake;
-
-        /* Configure the motor to use a supply limit of 5 amps IF we exceed 10 amps for over 1 second */
+        
+        /* Set the motor direction */
+        m_configuration.MotorOutput.Inverted = InvertedValue.Clockwise_Positive;
+/*
+        // Configure the motor to use a supply limit of 5 amps IF we exceed 10 amps for over 1 second
         m_currentLimits.SupplyCurrentLimit = 5; // Limit to 5 amps
         m_currentLimits.SupplyCurrentThreshold = 10; // If we exceed 10 amps
         m_currentLimits.SupplyTimeThreshold = 1.0; // For at least 1 second
@@ -59,10 +52,12 @@ public class UBIntakeSubsystem extends SubsystemBase {
         m_currentLimits.StatorCurrentLimit = 30; // Limit stator to 30 amps
         m_currentLimits.StatorCurrentLimitEnable = true; // And enable it
         m_configuration.CurrentLimits = m_currentLimits;
+*/
 
         /* Config the peak outputs */
-        m_configuration.Voltage.PeakForwardVoltage = 10.0;
-        m_configuration.Voltage.PeakReverseVoltage = -10.0;
+        m_configuration.Voltage.PeakForwardVoltage = 12.0;
+        m_configuration.Voltage.PeakReverseVoltage = -12.0;
+
 
         /* Apply configs */
         m_motor.getConfigurator().apply(m_configuration);
@@ -79,16 +74,20 @@ public class UBIntakeSubsystem extends SubsystemBase {
      * 
      * @param speed speed to set intake motor at
      */
-    public void driveIntake(double speed) {
-        m_motor.setControl(new DutyCycleOut(speed));
+    public void runIntake(double speed) {
+        m_motor.setControl(m_speed.withOutput(speed));
+    }
+
+    public void stopIntake() {
+        m_motor.setControl(m_brake);
     }
 
     
     /*
      * Command Factories
      */
-    public Command runIntakeCommand(DoubleSupplier speed_Supplier) {
-        return new StartEndCommand(()->this.driveIntake(speed_Supplier.getAsDouble()), ()->this.driveIntake(0.0), this);
+    public Command runIntakeCommand(double speed) {
+        return new StartEndCommand(()->this.runIntake(speed), ()->this.stopIntake(), this);
     }
 
 }
