@@ -21,6 +21,7 @@ import frc.robot.Util.TunableNumber;
 public class ShooterSubsystem extends SubsystemBase {
     // Shooter Velocity setpoint (in RPS)
     double m_setPoint = 0.0;
+    double m_setPointL = 0.0;
 
     /* Hardware */
     TalonFX m_motorLeftLeader = new TalonFX(CanConstants.ID_ShooterLeftLeader);
@@ -42,6 +43,7 @@ public class ShooterSubsystem extends SubsystemBase {
     private static TunableNumber m_kV = new TunableNumber("Shooter kV", 0.12);
 
     private static TunableNumber m_ShooterSetpoint = new TunableNumber("Shooter Setpoint", 0.0);
+    private static TunableNumber m_ShooterSetpointL = new TunableNumber("Shooter Setpoint L", 0.0);
 
     private final CurrentLimitsConfigs m_currentLimits = new CurrentLimitsConfigs();
 
@@ -107,6 +109,7 @@ public class ShooterSubsystem extends SubsystemBase {
     public void periodic() {
         // Puts numbers to smart dashboard
         SmartDashboard.putNumber("Shooter Velocity", getShooterVelocity());
+        SmartDashboard.putNumber("Shooter Velocity L", getShooterVelocityL());
     }
 
     /**
@@ -125,20 +128,24 @@ public class ShooterSubsystem extends SubsystemBase {
     }
 
     /**
-     * @param targetVelocity the velocity in RPS of the shooter
+     * @param targetVelocity the velocity in RPS of the shooter Right
+     * @param targetVelocityL the velocity in RPS of the shooter Left
      */
-    public void runShooter(double targetVelocity) {
+    public void runShooter(double targetVelocity, double targetVelocityL) {
         // Set Velocity setpoint
         m_setPoint = targetVelocity;
-        m_motorLeftLeader.setControl(m_voltageVelocityLeft.withVelocity(m_setPoint));
+        m_setPointL = targetVelocityL;
+        m_motorLeftLeader.setControl(m_voltageVelocityLeft.withVelocity(m_setPointL));
         m_motorRightLeader.setControl(m_voltageVelocityRight.withVelocity(m_setPoint));
     }
 
     public void runShooter() {
         // Get Velocity setpoint from TunableNumber
         m_setPoint = m_ShooterSetpoint.get();
-        SmartDashboard.putNumber("Setpoint Request", m_setPoint);
-        m_motorLeftLeader.setControl(m_voltageVelocityLeft.withVelocity(m_setPoint));
+        m_setPointL = m_ShooterSetpointL.get();
+        SmartDashboard.putNumber("Setpoint Right Request", m_setPoint);
+        SmartDashboard.putNumber("Setpoint Left Request", m_setPointL);
+        m_motorLeftLeader.setControl(m_voltageVelocityLeft.withVelocity(m_setPointL));
         m_motorRightLeader.setControl(m_voltageVelocityRight.withVelocity(m_setPoint));
     }
 
@@ -148,9 +155,16 @@ public class ShooterSubsystem extends SubsystemBase {
     }
 
     /**
-     * @return the velocity of the shooter in RPS
+     * @return the velocity of the shooter in RPS Right
      */
     public double getShooterVelocity() {
+        return m_motorRightLeader.getVelocity().getValueAsDouble();
+    }
+
+    /**
+     * @return the velocity of the shooter in RPS Left
+     */
+    public double getShooterVelocityL() {
         return m_motorLeftLeader.getVelocity().getValueAsDouble();
     }
 
@@ -164,8 +178,8 @@ public class ShooterSubsystem extends SubsystemBase {
     /*
      * Command Factories
      */
-    public Command runShooterCommand(double velocity) {
-        return new StartEndCommand(()->this.runShooter(velocity), ()->this.stopShooter(), this);
+    public Command runShooterCommand(double velocityR, double velocityL) {
+        return new StartEndCommand(()->this.runShooter(velocityR, velocityL), ()->this.stopShooter(), this);
     }
 
     public Command runShooterCommand() {
