@@ -61,7 +61,11 @@ public class TunableNumber {
      * Publishes a new value. Note that the value will not be returned by {@link #get()} until the next cycle.
      */
     public void set(double value) {
-        SmartDashboard.putNumber(m_key, value);
+        if (RobotConstants.tuningMode) {
+            SmartDashboard.putNumber(m_key, value);
+        } else {
+            m_defaultValue = value;
+        }
     }
 
     /**

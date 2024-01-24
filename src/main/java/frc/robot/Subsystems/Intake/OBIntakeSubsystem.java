@@ -5,6 +5,8 @@
 
 package frc.robot.Subsystems.Intake;
 
+import java.util.function.DoubleSupplier;
+
 import com.ctre.phoenix.motorcontrol.ControlMode;
 import com.ctre.phoenix.motorcontrol.NeutralMode;
 import com.ctre.phoenix.motorcontrol.StatusFrame;
@@ -22,16 +24,16 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants.CanConstants;
 import frc.robot.Constants.PHConstants;
 
-public class IntakeSubsystem extends SubsystemBase {
+public class OBIntakeSubsystem extends SubsystemBase {
 
     // Initializes solenoid and talons
     DoubleSolenoid m_intakePiston = new DoubleSolenoid(PneumaticsModuleType.REVPH, PHConstants.IntakeForwardSolenoid,
             PHConstants.IntakeReverseSolenoid);
-    TalonSRX m_motorLead = new TalonSRX(CanConstants.IntakeLeft);
+    TalonSRX m_motorLead = new TalonSRX(CanConstants.IntakeMotor);
     TalonSRX m_motorFollow = new TalonSRX(CanConstants.IntakeRight);
 
     /** Creates a new IntakeSubsystem. */
-    public IntakeSubsystem() {
+    public OBIntakeSubsystem() {
 
         // Set motors to factory defaults
         m_motorLead.configFactoryDefault();
@@ -104,8 +106,8 @@ public class IntakeSubsystem extends SubsystemBase {
     /*
      * Command Factories
      */
-    public Command runIntakeCommand(double speed) {
-        return new StartEndCommand(()->this.driveIntake(speed), ()->this.driveIntake(0.0), this);
+    public Command runIntakeCommand(DoubleSupplier speed_Supplier) {
+        return new StartEndCommand(()->this.driveIntake(speed_Supplier.getAsDouble()), ()->this.driveIntake(0.0), this);
     }
 
     public Command deployIntakeCommand() {

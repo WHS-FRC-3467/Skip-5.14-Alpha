@@ -1,24 +1,41 @@
 {
+  "HALProvider": {
+    "Other Devices": {
+      "Talon FX (v6)[15]": {
+        "header": {
+          "open": true
+        }
+      },
+      "Talon FX (v6)[17]": {
+        "header": {
+          "open": true
+        }
+      }
+    }
+  },
   "NTProvider": {
     "types": {
       "/FMSInfo": "FMSInfo",
       "/Pose": "Field2d",
       "/SmartDashboard/Auto Chooser": "String Chooser",
       "/SmartDashboard/Control Chooser": "String Chooser",
+      "/SmartDashboard/Control Style Chooser": "String Chooser",
       "/SmartDashboard/Module 0": "Mechanism2d",
       "/SmartDashboard/Module 1": "Mechanism2d",
       "/SmartDashboard/Module 2": "Mechanism2d",
       "/SmartDashboard/Module 3": "Mechanism2d",
-      "/SmartDashboard/Speed Limit": "String Chooser"
+      "/SmartDashboard/Run Shooter": "Command",
+      "/SmartDashboard/Speed Limit": "String Chooser",
+      "/SmartDashboard/Stop Shooter": "Command",
+      "/SmartDashboard/Update Shooter Gains": "Command"
     },
     "windows": {
       "/Pose": {
-        "bottom": 544,
-        "builtin": "2024 Crescendo",
-        "height": 8.013679504394531,
-        "left": 46,
-        "right": 1088,
-        "top": 36,
+        "bottom": 1476,
+        "height": 8.210550308227539,
+        "left": 150,
+        "right": 2961,
+        "top": 79,
         "width": 16.541748046875,
         "window": {
           "visible": true
@@ -34,7 +51,17 @@
           "visible": true
         }
       },
+      "/SmartDashboard/Run Shooter": {
+        "window": {
+          "visible": true
+        }
+      },
       "/SmartDashboard/Speed Limit": {
+        "window": {
+          "visible": true
+        }
+      },
+      "/SmartDashboard/Stop Shooter": {
         "window": {
           "visible": true
         }
@@ -61,6 +88,12 @@
         "double[]##v_/Pose/robotPose": {
           "open": true
         }
+      },
+      "SmartDashboard": {
+        "TunableNumbers": {
+          "open": true
+        },
+        "open": true
       }
     }
   },

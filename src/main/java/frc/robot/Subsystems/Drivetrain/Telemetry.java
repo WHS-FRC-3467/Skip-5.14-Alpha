@@ -1,6 +1,6 @@
 package frc.robot.Subsystems.Drivetrain;
 
-import com.ctre.phoenix6.SignalLogger;
+//import com.ctre.phoenix6.SignalLogger;
 import com.ctre.phoenix6.Utils;
 import com.ctre.phoenix6.mechanisms.swerve.SwerveDrivetrain.SwerveDriveState;
 
@@ -33,7 +33,9 @@ public class Telemetry {
 
         // Start publishing an array of module states with the "/SwerveStates" key
         publisher = NetworkTableInstance.getDefault().getStructArrayTopic("/SwerveStates", SwerveModuleState.struct).publish();
-        SignalLogger.start();
+        
+        // Don't write to SignalLogger for now
+        // SignalLogger.start();
     }
 
     /* What to publish over networktables for telemetry */
@@ -108,7 +110,8 @@ public class Telemetry {
         // Periodically send a set of module states
         publisher.set(state.ModuleStates);
 
-        SignalLogger.writeDoubleArray("odometry", new double[] { pose.getX(), pose.getY(), pose.getRotation().getDegrees() });
-        SignalLogger.writeDouble("odom period", state.OdometryPeriod, "seconds");
+        // Don't write to SignalLogger for now
+        // SignalLogger.writeDoubleArray("odometry", new double[] { pose.getX(), pose.getY(), pose.getRotation().getDegrees() });
+        // SignalLogger.writeDouble("odom period", state.OdometryPeriod, "seconds");
     }
 }

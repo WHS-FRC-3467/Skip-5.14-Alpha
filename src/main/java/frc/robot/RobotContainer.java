@@ -12,7 +12,7 @@ import com.ctre.phoenix6.Utils;
 import com.ctre.phoenix6.mechanisms.swerve.SwerveRequest;
 import com.ctre.phoenix6.mechanisms.swerve.SwerveModule.DriveRequestType;
 import com.pathplanner.lib.auto.AutoBuilder;
-import com.pathplanner.lib.auto.NamedCommands;
+//import com.pathplanner.lib.auto.NamedCommands;
 
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -25,7 +25,8 @@ import edu.wpi.first.wpilibj2.command.button.Trigger;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
 import frc.robot.Subsystems.Drivetrain.CommandSwerveDrivetrain;
 import frc.robot.Subsystems.Drivetrain.Telemetry;
-import frc.robot.Subsystems.Intake.IntakeSubsystem;
+import frc.robot.Subsystems.Intake.IntakeDefault;
+import frc.robot.Subsystems.Intake.UBIntakeSubsystem;
 import frc.robot.Subsystems.Shooter.ShooterSubsystem;
 import frc.robot.Util.CommandXboxPS5Controller;
 import frc.robot.Vision.Limelight;
@@ -92,7 +93,7 @@ public class RobotContainer {
 
     // Instantiate other Subsystems
     ShooterSubsystem m_shooterSubsystem = new ShooterSubsystem();
-    IntakeSubsystem m_intakeSubsystem = new IntakeSubsystem();
+    UBIntakeSubsystem m_intakeSubsystem = new UBIntakeSubsystem();
 
     // Setup Limelight periodic query (defaults to disabled)
     Limelight m_vision = new Limelight(m_drivetrain);
@@ -130,8 +131,6 @@ public class RobotContainer {
     private void registerNamedCommands() {
         
         // Register Named Commands for use in PathPlanner autos
-        NamedCommands.registerCommand("Deploy Intake", m_intakeSubsystem.deployIntakeCommand());
-        NamedCommands.registerCommand("Retract Intake", m_intakeSubsystem.retractIntakeCommand());
         //NamedCommands.registerCommand("exampleCommand", exampleSubsystem.exampleCommand());
         //NamedCommands.registerCommand("someOtherCommand", new SomeOtherCommand());
 
@@ -203,21 +202,23 @@ public class RobotContainer {
                 .andThen(() -> m_AngularRate = m_MaxAngularRate));
 
         // Driver: Use Left and Right Triggers to run Intake at variable speed (left = in, right = out)
-        m_driverCtrl.leftTrigger(0.1).onTrue(m_intakeSubsystem.runIntakeCommand(m_driverCtrl.getLeftTriggerAxis()));   
-        m_driverCtrl.rightTrigger(0.1).onTrue(m_intakeSubsystem.runIntakeCommand((-1.0) * m_driverCtrl.getRightTriggerAxis()));   
+        m_intakeSubsystem.setDefaultCommand(new IntakeDefault(m_intakeSubsystem,
+                                            ()-> m_driverCtrl.getLeftTriggerAxis(),
+                                            () -> m_driverCtrl.getRightTriggerAxis()));
 
-        // Driver: Use Right Bumper to toggle intake position
-        m_driverCtrl.rightBumper().onTrue(m_intakeSubsystem.toggleIntakeCommand());
+        // Driver: While X button is held, run Intake at fixed speed
+        m_driverCtrl.x().whileTrue(m_intakeSubsystem.runIntakeCommand(0.5));   
 
+        // Driver: While Y button is held, run Shooter at fixed speed
+        m_driverCtrl.y().whileTrue(m_shooterSubsystem.runShooterCommand());   
 
         /*
          * Put Commands on Shuffleboard
          */
-        SmartDashboard.putData("Deploy Intake", m_intakeSubsystem.deployIntakeCommand());
-        SmartDashboard.putData("Retract Intake", m_intakeSubsystem.retractIntakeCommand());
-        SmartDashboard.putData("Toggle Intake", m_intakeSubsystem.toggleIntakeCommand());
         SmartDashboard.putData("Update Shooter Gains", m_shooterSubsystem.updateShooterGainsCommand());
         SmartDashboard.putData("Run Shooter", m_shooterSubsystem.runShooterCommand());
+        SmartDashboard.putData("Stop Shooter", m_shooterSubsystem.stopShooterCommand());
+
 
     }
 

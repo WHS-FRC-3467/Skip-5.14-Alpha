@@ -17,10 +17,14 @@ public final class Constants {
     public static final class CanConstants {
 
         // non drivebase CAN IDs
-        public static final int ShooterLeft = 15;
-        public static final int ShooterRight = 16;
-        public static final int IntakeLeft = 19;
-        public static final int IntakeRight = 20;
+        public static final int ID_ShooterLeftLeader = 15;
+        public static final int ID_ShooterLeftFollower = 16;
+        public static final int ID_ShooterRightLeader = 17;
+        public static final int ID_ShooterRightFollower = 18;
+
+        public static final int IntakeMotor = 19;
+        public static final int IntakeLeft = 20;
+        public static final int IntakeRight = 21;
     }
 
     public static final class PHConstants {
@@ -43,9 +47,9 @@ public final class Constants {
 
     public static final class ShooterConstants {
 
-        public static final double kSubwooferVelocity = 975.0;
-        public static final double kPodiumVelocity = 1960.0;
-        public static final int kShooterTolerance = 100;
+        public static final double kSubwooferVelocity = 50.0;
+        public static final double kPodiumVelocity = 70.0;
+        public static final double kShooterTolerance = 10.0;
 
 
     }
