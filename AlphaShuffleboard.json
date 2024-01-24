@@ -675,20 +675,7 @@
         "vgap": 16.0,
         "titleType": 0,
         "tiles": {
-          "3,1": {
-            "size": [
-              1,
-              1
-            ],
-            "content": {
-              "_type": "Text View",
-              "_source0": "network_table:///SmartDashboard/Shooter Velocity",
-              "_title": "SmartDashboard/Shooter Velocity",
-              "_glyph": 148,
-              "_showGlyph": false
-            }
-          },
-          "2,0": {
+          "0,2": {
             "size": [
               1,
               1
@@ -701,7 +688,7 @@
               "_showGlyph": false
             }
           },
-          "2,1": {
+          "1,2": {
             "size": [
               1,
               1
@@ -734,26 +721,13 @@
             ],
             "content": {
               "_type": "Text View",
-              "_source0": "network_table:///SmartDashboard/TunableNumbers/Shooter Setpoint",
-              "_title": "SmartDashboard/TunableNumbers/Shooter Setpoint",
-              "_glyph": 148,
-              "_showGlyph": false
-            }
-          },
-          "0,2": {
-            "size": [
-              1,
-              1
-            ],
-            "content": {
-              "_type": "Text View",
               "_source0": "network_table:///SmartDashboard/TunableNumbers/Shooter kP",
               "_title": "SmartDashboard/TunableNumbers/Shooter kP",
               "_glyph": 148,
               "_showGlyph": false
             }
           },
-          "1,2": {
+          "3,1": {
             "size": [
               1,
               1
@@ -766,7 +740,7 @@
               "_showGlyph": false
             }
           },
-          "2,2": {
+          "4,0": {
             "size": [
               1,
               1
@@ -779,7 +753,7 @@
               "_showGlyph": false
             }
           },
-          "4,2": {
+          "2,2": {
             "size": [
               1,
               1
@@ -792,7 +766,7 @@
               "_showGlyph": false
             }
           },
-          "3,2": {
+          "4,1": {
             "size": [
               1,
               1
@@ -804,15 +778,41 @@
               "_glyph": 148,
               "_showGlyph": false
             }
+          },
+          "3,2": {
+            "size": [
+              1,
+              1
+            ],
+            "content": {
+              "_type": "Text View",
+              "_source0": "network_table:///SmartDashboard/TunableNumbers/Shooter Setpoint L",
+              "_title": "/SmartDashboard/TunableNumbers/Shooter Setpoint L",
+              "_glyph": 148,
+              "_showGlyph": false
+            }
+          },
+          "4,2": {
+            "size": [
+              1,
+              1
+            ],
+            "content": {
+              "_type": "Text View",
+              "_source0": "network_table:///SmartDashboard/TunableNumbers/Shooter Setpoint R",
+              "_title": "/SmartDashboard/TunableNumbers/Shooter Setpoint R",
+              "_glyph": 148,
+              "_showGlyph": false
+            }
           }
         }
       }
     }
   ],
   "windowGeometry": {
-    "x": 37.0,
-    "y": 0.0,
-    "width": 865.0,
+    "x": 53.599998474121094,
+    "y": 40.0,
+    "width": 865.5999755859375,
     "height": 620.0
   }
 }

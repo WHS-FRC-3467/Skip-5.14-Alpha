@@ -5,7 +5,7 @@
 
 package frc.robot.Subsystems.Intake;
 
-import com.ctre.phoenix6.configs.CurrentLimitsConfigs;
+//import com.ctre.phoenix6.configs.CurrentLimitsConfigs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.DutyCycleOut;
 import com.ctre.phoenix6.controls.NeutralOut;
@@ -24,7 +24,7 @@ public class UBIntakeSubsystem extends SubsystemBase {
     TalonFX m_motor = new TalonFX(CanConstants.IntakeMotor);
 
     /* Current Limits config */
-    private final CurrentLimitsConfigs m_currentLimits = new CurrentLimitsConfigs();
+    //private final CurrentLimitsConfigs m_currentLimits = new CurrentLimitsConfigs();
 
     private final DutyCycleOut m_speed = new DutyCycleOut(0);
 

@@ -47,9 +47,9 @@ public final class Constants {
 
     public static final class ShooterConstants {
 
-        public static final double kSubwooferVelocity = 975.0;
-        public static final double kPodiumVelocity = 1960.0;
-        public static final int kShooterTolerance = 100;
+        public static final double kSubwooferVelocity = 50.0;
+        public static final double kPodiumVelocity = 70.0;
+        public static final double kShooterTolerance = 10.0;
 
 
     }

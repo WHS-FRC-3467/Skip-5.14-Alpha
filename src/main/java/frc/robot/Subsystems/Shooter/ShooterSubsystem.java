@@ -1,6 +1,8 @@
 package frc.robot.Subsystems.Shooter;
 
-import com.ctre.phoenix6.configs.CurrentLimitsConfigs;
+import com.ctre.phoenix6.Utils;
+//import com.ctre.phoenix6.configs.CurrentLimitsConfigs;
+import com.ctre.phoenix6.configs.Slot0Configs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.Follower;
 import com.ctre.phoenix6.controls.NeutralOut;
@@ -17,11 +19,9 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants.CanConstants;
 import frc.robot.Constants.ShooterConstants;
 import frc.robot.Util.TunableNumber;
+import frc.robot.sim.PhysicsSim;
 
 public class ShooterSubsystem extends SubsystemBase {
-    // Shooter Velocity setpoint (in RPS)
-    double m_setPoint = 0.0;
-    double m_setPointL = 0.0;
 
     /* Hardware */
     TalonFX m_motorLeftLeader = new TalonFX(CanConstants.ID_ShooterLeftLeader);
@@ -33,19 +33,21 @@ public class ShooterSubsystem extends SubsystemBase {
      * Gains for shooter tuning
      */
     // An error of 1 rotation per second results in 2V output
-    private static TunableNumber m_kP = new TunableNumber("Shooter kP", 0.11);
+    private static TunableNumber m_kP = new TunableNumber("Shooter kP", 0.05);
     // An error of 1 rotation per second increases output by 0.5V every second
-    private static TunableNumber m_kI = new TunableNumber("Shooter kI", 0.5);
+    private static TunableNumber m_kI = new TunableNumber("Shooter kI", 0.0);
     // A change of 1 rotation per second squared results in 0.01 volts output
-    private static TunableNumber m_kD = new TunableNumber("Shooter kD", 0.0001);
+    private static TunableNumber m_kD = new TunableNumber("Shooter kD", 0.0);
     // Voltage-based velocity requires a velocity feed forward to account for the back-emf of the motor
     // Falcon 500 is a 500kV motor, 500rpm per V = 8.333 rps per V, 1/8.33 = 0.12 volts/RPS
-    private static TunableNumber m_kV = new TunableNumber("Shooter kV", 0.12);
+    private static TunableNumber m_kV = new TunableNumber("Shooter kV", 0.113);
 
-    private static TunableNumber m_ShooterSetpoint = new TunableNumber("Shooter Setpoint", 0.0);
+    // Shooter Velocity setpoints (in RPS)
     private static TunableNumber m_ShooterSetpointL = new TunableNumber("Shooter Setpoint L", 0.0);
+    private static TunableNumber m_ShooterSetpointR = new TunableNumber("Shooter Setpoint R", 0.0);
 
-    private final CurrentLimitsConfigs m_currentLimits = new CurrentLimitsConfigs();
+    // Current Limits
+    // private final CurrentLimitsConfigs m_currentLimits = new CurrentLimitsConfigs();
 
     /*
      * Setup the Velocity PID control object Start at velocity 0, disable FOC, no feed forward, use slot 0
@@ -56,7 +58,19 @@ public class ShooterSubsystem extends SubsystemBase {
     /* Neutral output control for disabling the Shooter */
     private final NeutralOut m_brake = new NeutralOut();
 
+    // Which side of the shooter?
+    public enum kShooterSide {
+        kLEFT,
+        kRIGHT
+    };
+
     public ShooterSubsystem() {
+
+        /* If running in Simulation, setup simulated Falcons */
+        if (Utils.isSimulation()) {
+            PhysicsSim.getInstance().addTalonFX(m_motorLeftLeader, 0.001);
+            PhysicsSim.getInstance().addTalonFX(m_motorRightLeader, 0.001);
+        }
 
         /* Configure the devices */
         var leadConfiguration = new TalonFXConfiguration();
@@ -67,7 +81,6 @@ public class ShooterSubsystem extends SubsystemBase {
         followConfiguration.MotorOutput.NeutralMode = NeutralModeValue.Coast;
 
         leadConfiguration.MotorOutput.Inverted = InvertedValue.Clockwise_Positive;
-
 
 /*
         // Configure the lead Talon to use a supply limit of 5 amps IF we exceed 10 amps for over 1 second
@@ -107,46 +120,48 @@ public class ShooterSubsystem extends SubsystemBase {
 
     @Override
     public void periodic() {
-        // Puts numbers to smart dashboard
-        SmartDashboard.putNumber("Shooter Velocity", getShooterVelocity());
-        SmartDashboard.putNumber("Shooter Velocity L", getShooterVelocityL());
+ 
+        // If running in simulation, update the sims
+        if (Utils.isSimulation()) {
+            PhysicsSim.getInstance().run();
+        }
+
+        // Put actual velocities to smart dashboard
+        SmartDashboard.putNumber("Shooter Velocity L", getShooterVelocity(kShooterSide.kLEFT));
+        SmartDashboard.putNumber("Shooter Velocity R", getShooterVelocity(kShooterSide.kRIGHT));
     }
 
     /**
      * Update Shooter Gains from TunableNumbers
      */
     public void updateGains() {
-        var leadConfiguration = new TalonFXConfiguration();
+        var slot0 = new Slot0Configs();
 
-        leadConfiguration.Slot0.kP = m_kP.get();
-        leadConfiguration.Slot0.kI = m_kI.get();
-        leadConfiguration.Slot0.kD = m_kD.get();
-        leadConfiguration.Slot0.kV = m_kV.get();
+        slot0.kP = m_kP.get();
+        slot0.kI = m_kI.get();
+        slot0.kD = m_kD.get();
+        slot0.kV = m_kV.get();
 
-        m_motorLeftLeader.getConfigurator().apply(leadConfiguration);
-        m_motorRightLeader.getConfigurator().apply(leadConfiguration);
+        m_motorLeftLeader.getConfigurator().apply(slot0);
+        m_motorRightLeader.getConfigurator().apply(slot0);
     }
 
     /**
      * @param targetVelocity the velocity in RPS of the shooter Right
      * @param targetVelocityL the velocity in RPS of the shooter Left
      */
-    public void runShooter(double targetVelocity, double targetVelocityL) {
-        // Set Velocity setpoint
-        m_setPoint = targetVelocity;
-        m_setPointL = targetVelocityL;
-        m_motorLeftLeader.setControl(m_voltageVelocityLeft.withVelocity(m_setPointL));
-        m_motorRightLeader.setControl(m_voltageVelocityRight.withVelocity(m_setPoint));
+    public void runShooter(double targetVelocityL, double targetVelocityR) {
+        // Save Velocity setpoints
+        m_ShooterSetpointL.set(targetVelocityL);
+        m_ShooterSetpointR.set(targetVelocityR);
+        m_motorLeftLeader.setControl(m_voltageVelocityLeft.withVelocity(targetVelocityL));
+        m_motorRightLeader.setControl(m_voltageVelocityRight.withVelocity(targetVelocityR));
     }
 
     public void runShooter() {
         // Get Velocity setpoint from TunableNumber
-        m_setPoint = m_ShooterSetpoint.get();
-        m_setPointL = m_ShooterSetpointL.get();
-        SmartDashboard.putNumber("Setpoint Right Request", m_setPoint);
-        SmartDashboard.putNumber("Setpoint Left Request", m_setPointL);
-        m_motorLeftLeader.setControl(m_voltageVelocityLeft.withVelocity(m_setPointL));
-        m_motorRightLeader.setControl(m_voltageVelocityRight.withVelocity(m_setPoint));
+        m_motorLeftLeader.setControl(m_voltageVelocityLeft.withVelocity(m_ShooterSetpointL.get()));
+        m_motorRightLeader.setControl(m_voltageVelocityRight.withVelocity(m_ShooterSetpointR.get()));
     }
 
     public void stopShooter() {
@@ -155,31 +170,35 @@ public class ShooterSubsystem extends SubsystemBase {
     }
 
     /**
-     * @return the velocity of the shooter in RPS Right
+     * @param int side - the side of the shooter to query (0 = left, 1 = right)
+     * @return the velocity of the specified shooter side in RPS
      */
-    public double getShooterVelocity() {
-        return m_motorRightLeader.getVelocity().getValueAsDouble();
-    }
-
-    /**
-     * @return the velocity of the shooter in RPS Left
-     */
-    public double getShooterVelocityL() {
-        return m_motorLeftLeader.getVelocity().getValueAsDouble();
+    public double getShooterVelocity(kShooterSide side) {
+        switch(side) {
+        case kLEFT:
+            return m_motorLeftLeader.getVelocity().getValueAsDouble();
+        case kRIGHT:
+            return m_motorRightLeader.getVelocity().getValueAsDouble();
+        default:
+            return 0.0;
+        }
     }
 
     /**
      * @return true if the error of the shooter is within the tolerance
      */
-    public boolean isWheelAtSpeed() {
-        return Math.abs(m_setPoint - getShooterVelocity()) < ShooterConstants.kShooterTolerance;
+    public boolean areWheelsAtSpeed() {
+        double leftErr = Math.abs(m_ShooterSetpointL.get() - getShooterVelocity(kShooterSide.kLEFT));
+        double rightErr = Math.abs(m_ShooterSetpointR.get() - getShooterVelocity(kShooterSide.kRIGHT));
+        return (leftErr + rightErr / 2.0) < ShooterConstants.kShooterTolerance;
+
     }
 
     /*
      * Command Factories
      */
-    public Command runShooterCommand(double velocityR, double velocityL) {
-        return new StartEndCommand(()->this.runShooter(velocityR, velocityL), ()->this.stopShooter(), this);
+    public Command runShooterCommand(double velocityL, double velocityR) {
+        return new StartEndCommand(()->this.runShooter(velocityL, velocityR), ()->this.stopShooter(), this);
     }
 
     public Command runShooterCommand() {
