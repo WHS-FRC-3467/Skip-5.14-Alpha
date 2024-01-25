@@ -23,6 +23,8 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
+import frc.robot.Constants.StageConstants;
+import frc.robot.Subsystems.Arm.ArmSubsystem;
 import frc.robot.Subsystems.Drivetrain.CommandSwerveDrivetrain;
 import frc.robot.Subsystems.Drivetrain.Telemetry;
 import frc.robot.Subsystems.Intake.IntakeSubsystem;
@@ -101,6 +103,7 @@ public class RobotContainer {
     ShooterSubsystem m_shooterSubsystem = new ShooterSubsystem();
     IntakeSubsystem m_intakeSubsystem = new IntakeSubsystem();
     StageSubsystem m_stageSubsystem = new StageSubsystem();
+    ArmSubsystem m_armSubsystem = new ArmSubsystem();
 
     // Setup Limelight periodic query (defaults to disabled)
     Limelight m_vision = new Limelight(m_drivetrain);
@@ -230,6 +233,9 @@ public class RobotContainer {
         SmartDashboard.putData("Toggle Intake", m_intakeSubsystem.toggleIntakeCommand());
         SmartDashboard.putData("Update Shooter Gains", m_shooterSubsystem.updateShooterGainsCommand());
         SmartDashboard.putData("Run Shooter", m_shooterSubsystem.runShooterCommand());
+        SmartDashboard.putData("Run Stage", m_stageSubsystem.ejectFrontCommand(StageConstants.kStageSpeed));
+        SmartDashboard.putData("Run Stage", m_stageSubsystem.ejectBackCommand(StageConstants.kStageSpeed));
+        SmartDashboard.putData("Stop Stage", m_stageSubsystem.stopStageCommand());
 
     }
 

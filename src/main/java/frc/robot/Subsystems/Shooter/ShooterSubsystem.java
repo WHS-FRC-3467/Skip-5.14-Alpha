@@ -34,8 +34,10 @@ public class ShooterSubsystem extends SubsystemBase {
     private static TunableNumber m_kI = new TunableNumber("Shooter kI", 0.5);
     // A change of 1 rotation per second squared results in 0.01 volts output
     private static TunableNumber m_kD = new TunableNumber("Shooter kD", 0.0001);
-    // Voltage-based velocity requires a velocity feed forward to account for the back-emf of the motor
-    // Falcon 500 is a 500kV motor, 500rpm per V = 8.333 rps per V, 1/8.33 = 0.12 volts/RPS
+    // Voltage-based velocity requires a velocity feed forward to account for the
+    // back-emf of the motor
+    // Falcon 500 is a 500kV motor, 500rpm per V = 8.333 rps per V, 1/8.33 = 0.12
+    // volts/RPS
     private static TunableNumber m_kV = new TunableNumber("Shooter kV", 0.12);
 
     private static TunableNumber m_ShooterSetpoint = new TunableNumber("Shooter Setpoint", 0.0);
@@ -43,7 +45,8 @@ public class ShooterSubsystem extends SubsystemBase {
     private final CurrentLimitsConfigs m_currentLimits = new CurrentLimitsConfigs();
 
     /*
-     * Setup the Velocity PID control object Start at velocity 0, disable FOC, no feed forward, use slot 0
+     * Setup the Velocity PID control object Start at velocity 0, disable FOC, no
+     * feed forward, use slot 0
      */
     private final VelocityVoltage m_voltageVelocity = new VelocityVoltage(0.0, 0.0, false, 0.0, 0, false, false, false);
 
@@ -60,7 +63,10 @@ public class ShooterSubsystem extends SubsystemBase {
         leadConfiguration.MotorOutput.NeutralMode = NeutralModeValue.Coast;
         followConfiguration.MotorOutput.NeutralMode = NeutralModeValue.Coast;
 
-        /* Configure the lead Talon to use a supply limit of 5 amps IF we exceed 10 amps for over 1 second */
+        /*
+         * Configure the lead Talon to use a supply limit of 5 amps IF we exceed 10 amps
+         * for over 1 second
+         */
         m_currentLimits.SupplyCurrentLimit = 5; // Limit to 5 amps
         m_currentLimits.SupplyCurrentThreshold = 10; // If we exceed 10 amps
         m_currentLimits.SupplyTimeThreshold = 1.0; // For at least 1 second
@@ -147,18 +153,18 @@ public class ShooterSubsystem extends SubsystemBase {
      * Command Factories
      */
     public Command runShooterCommand(double velocity) {
-        return new StartEndCommand(()->this.runShooter(velocity), ()->this.stopShooter(), this);
+        return new StartEndCommand(() -> this.runShooter(velocity), () -> this.stopShooter(), this);
     }
 
     public Command runShooterCommand() {
-        return new InstantCommand(()->this.runShooter(), this);
+        return new InstantCommand(() -> this.runShooter(), this);
     }
 
     public Command stopShooterCommand() {
-        return new InstantCommand(()->this.stopShooter(), this);
+        return new InstantCommand(() -> this.stopShooter(), this);
     }
 
     public Command updateShooterGainsCommand() {
-        return new InstantCommand(()->this.updateGains(), this);
+        return new InstantCommand(() -> this.updateGains(), this);
     }
 }

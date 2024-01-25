@@ -1,7 +1,5 @@
 package frc.robot.Subsystems.Stage;
 
-import frc.robot.Subsystems.Shooter.ShooterSubsystem;
-
 import com.ctre.phoenix.motorcontrol.ControlMode;
 import com.ctre.phoenix.motorcontrol.NeutralMode;
 import com.ctre.phoenix.motorcontrol.StatusFrame;
@@ -22,7 +20,6 @@ public class StageSubsystem extends SubsystemBase {
     TalonSRX m_stageLead = new TalonSRX(CanConstants.StageLeft);
     TalonSRX m_stageFollow = new TalonSRX(CanConstants.StageRight);
     DigitalInput stageBeamBreak = new DigitalInput(DIOConstants.StageBeamBreak);
-    ShooterSubsystem ready = new ShooterSubsystem();
     boolean noteInStage = false;
 
     /** Creates a new IntakeSubsystem. */
@@ -37,7 +34,7 @@ public class StageSubsystem extends SubsystemBase {
         m_stageFollow.setInverted(false);
         m_stageLead.setInverted(true);
 
-        // Set motors to Coast --> should they be on brake or coast mode?
+        // Set motors to Brake
         m_stageLead.setNeutralMode(NeutralMode.Brake);
         m_stageFollow.setNeutralMode(NeutralMode.Brake);
 
@@ -86,17 +83,28 @@ public class StageSubsystem extends SubsystemBase {
         m_stageLead.set(ControlMode.PercentOutput, 0.0);
     }
 
-    public void passToShoot(double speed) {
-        if (ready.isWheelAtSpeed() && noteInStage) {
+    // Do not use if the shooter's target velocity is zero.
+    public void ejectFront(double speed) {
+        if (noteInStage) {
             this.driveStage(speed);
+        }
+    }
+
+    public void ejectBack(double speed) {
+        if (noteInStage) {
+            this.driveStage(-speed);
         }
     }
 
     /*
      * Command Factories
      */
-    public Command runStageCommand(double speed) {
-        return new StartEndCommand(() -> this.driveStage(speed), () -> this.stopStage());
+
+    // Pass the note to the shooter
+    // Still need to prevent this from running if shooter is not ready (do this in
+    // RobotContainer or a Command Class)
+    public Command ejectFrontCommand(double speed) {
+        return new StartEndCommand(() -> this.ejectFront(speed), () -> this.stopStage());
     }
 
     // Command that holds note in place
@@ -104,6 +112,11 @@ public class StageSubsystem extends SubsystemBase {
         return new InstantCommand(() -> this.stopStage());
     }
 
-    // Still need to add operator controls and smart dashboard buttons on
-    // RobotContainer
+    // Discard the note or Score in Trap
+    public Command ejectBackCommand(double speed) {
+        return new StartEndCommand(() -> this.ejectBack(speed), () -> this.stopStage());
+    }
+
+    // Still need to add operator controls on Robot Container, will wait for the
+    // operator xbox controller to be set up
 }

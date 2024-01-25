@@ -19,13 +19,20 @@ public final class Constants {
     public static final class CanConstants {
 
         // non drivebase CAN IDs
-        public static final int ShooterLeft = 15;
-        public static final int ShooterRight = 16;
-        public static final int IntakeLeft = 19;
-        public static final int IntakeRight = 20;
-        public static final int StageLeft = 17;
-        public static final int StageRight = 18;
-        public static final int ArmMotor = 21;
+        public static final int ID_ShooterLeftLeader = 15;
+        public static final int ID_ShooterLeftFollower = 16;
+        public static final int ID_ShooterRightLeader = 17;
+        public static final int ID_ShooterRightFollower = 18;
+        public static final int IntakeMotor = 19;
+        public static final int StageLeft = 23;
+        public static final int StageRight = 14;
+        public static final int ArmLeft = 21;
+        public static final int ArmRight = 22;
+        // Delete these when merging with Wilk Branch
+        public static final int ShooterLeft = 23;
+        public static final int ShooterRight = 24;
+        public static final int IntakeLeft = 25;
+        public static final int IntakeRight = 26;
     }
 
     public static final class PHConstants {
@@ -56,8 +63,34 @@ public final class Constants {
 
     public static final class ArmConstants {
 
+        /*
+         * Constants for moveArmCommand(maxVelocity, maxAccel, goalRotations) - what the
+         * max velocity, max acceleration and the # of desired motor rotations are
+         */
+        public static final double maxVelocity = 4.0;
+        public static final double maxAccel = 3.0;
+        public static final double goalRotationsDown = 30;
+        public static final double goalRotationsUp = -30;
+
+        // Noah has the below constants just in case we need them later, otherwise
+        // unused
         public static final double kArmDownOffset = 0.0;
         public static final double kArmUpOffset = 0.0;
+
+        public static final double kSVolts = 1.0;
+        public static final double kAVoltSecondSquaredPerRad = 1.0;
+        public static final double kMaxAccelerationRadPerSecSquared = 4.0;
+        public static final double kMaxVelocityRadPerSecond = 10000.0;
+        public static final double kGVolts = 1.0;
+        public static final double kVVoltSecondPerRad = 1.0;
+        public static final double kP = 1.0;
+        public static final double kArmOffsetRads = 0.0;
+
+    }
+
+    public static final class StageConstants {
+
+        public static final double kStageSpeed = 1.0;
 
     }
 }
