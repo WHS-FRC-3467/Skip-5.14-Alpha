@@ -18,6 +18,7 @@ import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -89,11 +90,11 @@ public class RobotContainer {
 
     // Set up Drivetrain Telemetry
     Telemetry m_logger = new Telemetry(m_MaxSpeed);
-    // Pose2d m_odomStart = new Pose2d(0, 0, new Rotation2d(0, 0));
+    Pose2d m_odomStart = new Pose2d(0, 0, new Rotation2d(0, 0));
 
     // Instantiate other Subsystems
-    ShooterSubsystem m_shooterSubsystem = new ShooterSubsystem();
-    UBIntakeSubsystem m_intakeSubsystem = new UBIntakeSubsystem();
+    //ShooterSubsystem m_shooterSubsystem = new ShooterSubsystem();
+    //UBIntakeSubsystem m_intakeSubsystem = new UBIntakeSubsystem();
 
     // Setup Limelight periodic query (defaults to disabled)
     Limelight m_vision = new Limelight(m_drivetrain);
@@ -104,7 +105,9 @@ public class RobotContainer {
         DriverStation.silenceJoystickConnectionWarning(true);
 
         // Change this to specify Limelight is in use
-        m_vision.useLimelight(false);
+        m_vision.useLimelight(true);
+        m_vision.setAlliance(Alliance.Blue);
+        m_vision.trustLL(true);
 
         // Register NamedCommands for use in PathPlanner autos
         registerNamedCommands();
@@ -202,22 +205,24 @@ public class RobotContainer {
                 .andThen(() -> m_AngularRate = m_MaxAngularRate));
 
         // Driver: Use Left and Right Triggers to run Intake at variable speed (left = in, right = out)
+        /*
         m_intakeSubsystem.setDefaultCommand(new IntakeDefault(m_intakeSubsystem,
                                             ()-> m_driverCtrl.getLeftTriggerAxis(),
                                             () -> m_driverCtrl.getRightTriggerAxis()));
-
+        */
+        
         // Driver: While X button is held, run Intake at fixed speed
-        m_driverCtrl.x().whileTrue(m_intakeSubsystem.runIntakeCommand(0.5));   
+        // m_driverCtrl.x().whileTrue(m_intakeSubsystem.runIntakeCommand(0.5));   
 
         // Driver: While Y button is held, run Shooter at fixed speed
-        m_driverCtrl.y().whileTrue(m_shooterSubsystem.runShooterCommand());   
+        //m_driverCtrl.y().whileTrue(m_shooterSubsystem.runShooterCommand());   
 
         /*
          * Put Commands on Shuffleboard
          */
-        SmartDashboard.putData("Update Shooter Gains", m_shooterSubsystem.updateShooterGainsCommand());
-        SmartDashboard.putData("Run Shooter", m_shooterSubsystem.runShooterCommand());
-        SmartDashboard.putData("Stop Shooter", m_shooterSubsystem.stopShooterCommand());
+        //SmartDashboard.putData("Update Shooter Gains", m_shooterSubsystem.updateShooterGainsCommand());
+        //SmartDashboard.putData("Run Shooter", m_shooterSubsystem.runShooterCommand());
+        //SmartDashboard.putData("Stop Shooter", m_shooterSubsystem.stopShooterCommand());
 
 
     }
@@ -244,7 +249,7 @@ public class RobotContainer {
     }
 
     public Command getAutonomousCommand() {
-
+        
         /* First put the drivetrain into auto run mode, then run the auto */
         return autoChooser.getSelected();
     }
