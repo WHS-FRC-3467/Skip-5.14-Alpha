@@ -16,15 +16,27 @@ public final class Constants {
 
     public static final class CanConstants {
 
-        // non drivebase CAN IDs
+        // Drivebase CAN IDs are 1 -> 13
+        // See generated/TunerConstants.java
+
+        // Shooter CAN IDs
         public static final int ID_ShooterLeftLeader = 15;
         public static final int ID_ShooterLeftFollower = 16;
         public static final int ID_ShooterRightLeader = 17;
         public static final int ID_ShooterRightFollower = 18;
 
-        public static final int IntakeMotor = 19;
-        public static final int IntakeLeft = 20;
-        public static final int IntakeRight = 21;
+        // Intake CAN IDs
+        public static final int ID_IntakeMotor = 19;
+        public static final int ID_IntakeLeft = 20;
+        public static final int ID_IntakeRight = 21;
+
+        // Stage CAN IDs
+
+        // Arm CAN IDs
+        public static final int ID_ArmLeader = 25;
+        public static final int ID_ArmFollower = 26;
+
+
     }
 
     public static final class PHConstants {

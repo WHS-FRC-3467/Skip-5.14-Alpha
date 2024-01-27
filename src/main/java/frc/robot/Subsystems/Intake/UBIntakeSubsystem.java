@@ -21,7 +21,7 @@ import frc.robot.Constants.CanConstants;
 
 public class UBIntakeSubsystem extends SubsystemBase {
 
-    TalonFX m_motor = new TalonFX(CanConstants.IntakeMotor);
+    TalonFX m_motor = new TalonFX(CanConstants.ID_IntakeMotor);
 
     /* Current Limits config */
     //private final CurrentLimitsConfigs m_currentLimits = new CurrentLimitsConfigs();
