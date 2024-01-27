@@ -804,15 +804,41 @@
               "_glyph": 148,
               "_showGlyph": false
             }
+          },
+          "5,2": {
+            "size": [
+              1,
+              1
+            ],
+            "content": {
+              "_type": "Text View",
+              "_source0": "network_table:///SmartDashboard/Shooter Velocity L",
+              "_title": "SmartDashboard/Shooter Velocity L",
+              "_glyph": 148,
+              "_showGlyph": false
+            }
+          },
+          "6,2": {
+            "size": [
+              1,
+              1
+            ],
+            "content": {
+              "_type": "Text View",
+              "_source0": "network_table:///SmartDashboard/Shooter Velocity R",
+              "_title": "SmartDashboard/Shooter Velocity R",
+              "_glyph": 148,
+              "_showGlyph": false
+            }
           }
         }
       }
     }
   ],
   "windowGeometry": {
-    "x": 53.599998474121094,
-    "y": 40.0,
-    "width": 865.5999755859375,
+    "x": 52.0,
+    "y": 250.0,
+    "width": 1103.0,
     "height": 620.0
   }
 }

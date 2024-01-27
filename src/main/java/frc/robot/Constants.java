@@ -27,10 +27,12 @@ public final class Constants {
 
         // Intake CAN IDs
         public static final int ID_IntakeMotor = 19;
-        public static final int ID_IntakeLeft = 20;
-        public static final int ID_IntakeRight = 21;
+        public static final int ID_IntakeLeftRoller = 20;
+        public static final int ID_IntakeRightRoller = 21;
 
         // Stage CAN IDs
+        public static final int ID_StageLeft = 23;
+        public static final int ID_StageRight = 24;
 
         // Arm CAN IDs
         public static final int ID_ArmLeader = 25;
