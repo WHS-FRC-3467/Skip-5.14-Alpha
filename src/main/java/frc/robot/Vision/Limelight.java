@@ -38,6 +38,8 @@ public class Limelight extends SubsystemBase {
     public void periodic() {
         if (DriverStation.isEnabled()) {
             trust = false;
+        } else {
+            trust = true;
         }
 
         if (enable) {

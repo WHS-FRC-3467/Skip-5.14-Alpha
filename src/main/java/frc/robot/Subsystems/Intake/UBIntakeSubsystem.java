@@ -15,6 +15,7 @@ import com.ctre.phoenix6.signals.NeutralModeValue;
 
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.StartEndCommand;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants.CanConstants;
@@ -41,7 +42,7 @@ public class UBIntakeSubsystem extends SubsystemBase {
         m_configuration.MotorOutput.NeutralMode = NeutralModeValue.Brake;
         
         /* Set the motor direction */
-        m_configuration.MotorOutput.Inverted = InvertedValue.Clockwise_Positive;
+        m_configuration.MotorOutput.Inverted = InvertedValue.CounterClockwise_Positive;
 /*
         // Configure the motor to use a supply limit of 5 amps IF we exceed 10 amps for over 1 second
         m_currentLimits.SupplyCurrentLimit = 5; // Limit to 5 amps
@@ -87,7 +88,8 @@ public class UBIntakeSubsystem extends SubsystemBase {
      * Command Factories
      */
     public Command runIntakeCommand(double speed) {
-        return new StartEndCommand(()->this.runIntake(speed), ()->this.stopIntake(), this);
+//        return new StartEndCommand(()->this.runIntake(speed), ()->this.stopIntake(), this);
+        return new InstantCommand(()->this.runIntake(speed), this).repeatedly();
     }
 
 }

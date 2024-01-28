@@ -12,7 +12,7 @@ import com.ctre.phoenix6.Utils;
 import com.ctre.phoenix6.mechanisms.swerve.SwerveRequest;
 import com.ctre.phoenix6.mechanisms.swerve.SwerveModule.DriveRequestType;
 import com.pathplanner.lib.auto.AutoBuilder;
-//import com.pathplanner.lib.auto.NamedCommands;
+import com.pathplanner.lib.auto.NamedCommands;
 
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -94,7 +94,7 @@ public class RobotContainer {
 
     // Instantiate other Subsystems
     //ShooterSubsystem m_shooterSubsystem = new ShooterSubsystem();
-    //UBIntakeSubsystem m_intakeSubsystem = new UBIntakeSubsystem();
+    UBIntakeSubsystem m_intakeSubsystem = new UBIntakeSubsystem();
 
     // Setup Limelight periodic query (defaults to disabled)
     Limelight m_vision = new Limelight(m_drivetrain);
@@ -134,6 +134,10 @@ public class RobotContainer {
     private void registerNamedCommands() {
         
         // Register Named Commands for use in PathPlanner autos
+        NamedCommands.registerCommand("RunIntake", m_intakeSubsystem.runIntakeCommand(1.0));
+        NamedCommands.registerCommand("StopIntake", m_intakeSubsystem.runIntakeCommand(0.0));
+
+
         //NamedCommands.registerCommand("exampleCommand", exampleSubsystem.exampleCommand());
         //NamedCommands.registerCommand("someOtherCommand", new SomeOtherCommand());
 
@@ -205,14 +209,12 @@ public class RobotContainer {
                 .andThen(() -> m_AngularRate = m_MaxAngularRate));
 
         // Driver: Use Left and Right Triggers to run Intake at variable speed (left = in, right = out)
-        /*
         m_intakeSubsystem.setDefaultCommand(new IntakeDefault(m_intakeSubsystem,
                                             ()-> m_driverCtrl.getLeftTriggerAxis(),
                                             () -> m_driverCtrl.getRightTriggerAxis()));
-        */
         
         // Driver: While X button is held, run Intake at fixed speed
-        // m_driverCtrl.x().whileTrue(m_intakeSubsystem.runIntakeCommand(0.5));   
+        m_driverCtrl.x().whileTrue(m_intakeSubsystem.runIntakeCommand(0.5));   
 
         // Driver: While Y button is held, run Shooter at fixed speed
         //m_driverCtrl.y().whileTrue(m_shooterSubsystem.runShooterCommand());   
