@@ -135,11 +135,7 @@ public class RobotContainer {
         
         // Register Named Commands for use in PathPlanner autos
         NamedCommands.registerCommand("RunIntake", m_intakeSubsystem.runIntakeCommand(1.0));
-        NamedCommands.registerCommand("StopIntake", m_intakeSubsystem.runIntakeCommand(0.0));
-
-
-        //NamedCommands.registerCommand("exampleCommand", exampleSubsystem.exampleCommand());
-        //NamedCommands.registerCommand("someOtherCommand", new SomeOtherCommand());
+        NamedCommands.registerCommand("StopIntake", m_intakeSubsystem.stopIntakeCommand());
 
     }
     
@@ -225,7 +221,6 @@ public class RobotContainer {
         //SmartDashboard.putData("Update Shooter Gains", m_shooterSubsystem.updateShooterGainsCommand());
         //SmartDashboard.putData("Run Shooter", m_shooterSubsystem.runShooterCommand());
         //SmartDashboard.putData("Stop Shooter", m_shooterSubsystem.stopShooterCommand());
-
 
     }
 
