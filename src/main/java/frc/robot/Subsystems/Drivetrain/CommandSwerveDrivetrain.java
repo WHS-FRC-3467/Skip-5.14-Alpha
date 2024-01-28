@@ -76,7 +76,7 @@ public class CommandSwerveDrivetrain extends SwerveDrivetrain implements Subsyst
             (speeds) -> this.setControl(autoRequest.withSpeeds(speeds)),
 
             // Method for configuring the path following commands
-            new HolonomicPathFollowerConfig(new PIDConstants(10, 0, 0), new PIDConstants(10, 0, 0), TunerConstants.kSpeedAt12VoltsMps,
+            new HolonomicPathFollowerConfig(new PIDConstants(1.3, 0, 0), new PIDConstants(2, 0, 0), TunerConstants.kSpeedAt12VoltsMps,
                     driveBaseRadius, new ReplanningConfig()),
 
             // Boolean supplier that controls when the path will be mirrored for the red alliance

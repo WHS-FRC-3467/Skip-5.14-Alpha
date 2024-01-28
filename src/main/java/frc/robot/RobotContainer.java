@@ -12,22 +12,26 @@ import com.ctre.phoenix6.Utils;
 import com.ctre.phoenix6.mechanisms.swerve.SwerveRequest;
 import com.ctre.phoenix6.mechanisms.swerve.SwerveModule.DriveRequestType;
 import com.pathplanner.lib.auto.AutoBuilder;
-//import com.pathplanner.lib.auto.NamedCommands;
+import com.pathplanner.lib.auto.NamedCommands;
 
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
+import frc.robot.Constants.StageConstants;
+import frc.robot.Subsystems.Arm.ArmSubsystem;
 import frc.robot.Subsystems.Drivetrain.CommandSwerveDrivetrain;
 import frc.robot.Subsystems.Drivetrain.Telemetry;
 import frc.robot.Subsystems.Intake.IntakeDefault;
 import frc.robot.Subsystems.Intake.UBIntakeSubsystem;
 import frc.robot.Subsystems.Shooter.ShooterSubsystem;
+import frc.robot.Subsystems.Stage.StageSubsystem;
 import frc.robot.Util.CommandXboxPS5Controller;
 import frc.robot.Vision.Limelight;
 import frc.robot.generated.TunerConstants;
@@ -89,11 +93,13 @@ public class RobotContainer {
 
     // Set up Drivetrain Telemetry
     Telemetry m_logger = new Telemetry(m_MaxSpeed);
-    // Pose2d m_odomStart = new Pose2d(0, 0, new Rotation2d(0, 0));
+    Pose2d m_odomStart = new Pose2d(0, 0, new Rotation2d(0, 0));
 
     // Instantiate other Subsystems
-    ShooterSubsystem m_shooterSubsystem = new ShooterSubsystem();
+    //ShooterSubsystem m_shooterSubsystem = new ShooterSubsystem();
     UBIntakeSubsystem m_intakeSubsystem = new UBIntakeSubsystem();
+    StageSubsystem m_stageSubsystem = new StageSubsystem();
+    ArmSubsystem m_armSubsystem = new ArmSubsystem();
 
     // Setup Limelight periodic query (defaults to disabled)
     Limelight m_vision = new Limelight(m_drivetrain);
@@ -104,7 +110,9 @@ public class RobotContainer {
         DriverStation.silenceJoystickConnectionWarning(true);
 
         // Change this to specify Limelight is in use
-        m_vision.useLimelight(false);
+        m_vision.useLimelight(true);
+        m_vision.setAlliance(Alliance.Blue);
+        m_vision.trustLL(true);
 
         // Register NamedCommands for use in PathPlanner autos
         registerNamedCommands();
@@ -131,8 +139,8 @@ public class RobotContainer {
     private void registerNamedCommands() {
         
         // Register Named Commands for use in PathPlanner autos
-        //NamedCommands.registerCommand("exampleCommand", exampleSubsystem.exampleCommand());
-        //NamedCommands.registerCommand("someOtherCommand", new SomeOtherCommand());
+        NamedCommands.registerCommand("RunIntake", m_intakeSubsystem.runIntakeCommand(1.0));
+        NamedCommands.registerCommand("StopIntake", m_intakeSubsystem.stopIntakeCommand());
 
     }
     
@@ -205,20 +213,22 @@ public class RobotContainer {
         m_intakeSubsystem.setDefaultCommand(new IntakeDefault(m_intakeSubsystem,
                                             ()-> m_driverCtrl.getLeftTriggerAxis(),
                                             () -> m_driverCtrl.getRightTriggerAxis()));
-
+        
         // Driver: While X button is held, run Intake at fixed speed
         m_driverCtrl.x().whileTrue(m_intakeSubsystem.runIntakeCommand(0.5));   
 
         // Driver: While Y button is held, run Shooter at fixed speed
-        m_driverCtrl.y().whileTrue(m_shooterSubsystem.runShooterCommand());   
+        //m_driverCtrl.y().whileTrue(m_shooterSubsystem.runShooterCommand());   
 
         /*
          * Put Commands on Shuffleboard
          */
-        SmartDashboard.putData("Update Shooter Gains", m_shooterSubsystem.updateShooterGainsCommand());
-        SmartDashboard.putData("Run Shooter", m_shooterSubsystem.runShooterCommand());
-        SmartDashboard.putData("Stop Shooter", m_shooterSubsystem.stopShooterCommand());
-
+        //SmartDashboard.putData("Update Shooter Gains", m_shooterSubsystem.updateShooterGainsCommand());
+        //SmartDashboard.putData("Run Shooter", m_shooterSubsystem.runShooterCommand());
+        //SmartDashboard.putData("Stop Shooter", m_shooterSubsystem.stopShooterCommand());
+        SmartDashboard.putData("Run Stage", m_stageSubsystem.ejectFrontCommand(StageConstants.kStageSpeed));
+        SmartDashboard.putData("Run Stage", m_stageSubsystem.ejectBackCommand(StageConstants.kStageSpeed));
+        SmartDashboard.putData("Stop Stage", m_stageSubsystem.stopStageCommand());
 
     }
 
@@ -244,7 +254,7 @@ public class RobotContainer {
     }
 
     public Command getAutonomousCommand() {
-
+        
         /* First put the drivetrain into auto run mode, then run the auto */
         return autoChooser.getSelected();
     }

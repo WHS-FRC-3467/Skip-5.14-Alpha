@@ -6,38 +6,83 @@ package frc.robot.Subsystems.Arm;
 
 import com.ctre.phoenix6.StatusCode;
 import com.ctre.phoenix6.Utils;
-import com.ctre.phoenix6.configs.FeedbackConfigs;
-import com.ctre.phoenix6.configs.MotionMagicConfigs;
+import com.ctre.phoenix6.configs.CurrentLimitsConfigs;
+import com.ctre.phoenix6.configs.MotorOutputConfigs;
 import com.ctre.phoenix6.configs.Slot0Configs;
+import com.ctre.phoenix6.configs.SoftwareLimitSwitchConfigs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
+import com.ctre.phoenix6.configs.VoltageConfigs;
+
 import com.ctre.phoenix6.controls.Follower;
 import com.ctre.phoenix6.controls.MotionMagicVoltage;
+//import com.ctre.phoenix6.controls.NeutralOut;
+import com.ctre.phoenix6.controls.PositionVoltage;
+//import com.ctre.phoenix6.controls.VelocityVoltage;
+
 import com.ctre.phoenix6.hardware.TalonFX;
+import com.ctre.phoenix.motorcontrol.FeedbackDevice;
+import com.ctre.phoenix6.StatusCode;
+
 import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
+import com.ctre.phoenix6.configs.MotionMagicConfigs;
+import com.ctre.phoenix6.configs.FeedbackConfigs;
 
+//import edu.wpi.first.math.VecBuilder;
+//import edu.wpi.first.math.Vector;
+import edu.wpi.first.math.controller.ArmFeedforward;
+import edu.wpi.first.math.controller.ProfiledPIDController;
+//import edu.wpi.first.math.numbers.N2;
+import edu.wpi.first.math.trajectory.TrapezoidProfile;
+import edu.wpi.first.wpilibj.TimedRobot;
+import edu.wpi.first.wpilibj.Timer;
+import edu.wpi.first.wpilibj.XboxController;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+//import edu.wpi.first.wpilibj2.command.Commands;
+import edu.wpi.first.wpilibj2.command.InstantCommand;
+import edu.wpi.first.wpilibj2.command.StartEndCommand;
+
 import frc.robot.Constants;
+import frc.robot.Constants.ArmConstants;
+import frc.robot.Constants.ArmConstants.ArmState;
+import frc.robot.Constants.CanConstants;
+import frc.robot.Constants.DIOConstants;
+import frc.robot.Util.TunableNumber;
 import frc.robot.sim.PhysicsSim;
 
 /** Creates a new ArmSubsystem. */
 public class ArmSubsystem extends SubsystemBase {
 
-    private final TalonFX m_fxLeader = new TalonFX(Constants.CanConstants.ID_ArmLeader);
-    private final TalonFX m_fxFollower = new TalonFX(Constants.CanConstants.ID_ArmFollower);
+    private final TalonFX m_armLeader = new TalonFX(CanConstants.ID_ArmLeader);
+    private final TalonFX m_armFollower = new TalonFX(CanConstants.ID_ArmFollower);
+
     private final MotionMagicVoltage m_mmReq = new MotionMagicVoltage(0);
 
-    public ArmSubsystem() {
+    private FeedbackConfigs FeedbackSensorSource;
+    private FeedbackConfigs FeedbackRotorOffset;
+    private final FeedbackConfigs sensorConfiguration = new FeedbackConfigs();
 
-        /* If running in Simulation, setup simulated Falcons */
-        if (Utils.isSimulation()) {
-            PhysicsSim.getInstance().addTalonFX(m_fxLeader, 0.001);
-            PhysicsSim.getInstance().addTalonFX(m_fxFollower, 0.001);
-        }
+    private TrapezoidProfile.Constraints armConstraints;
 
-        /* Configure the devices */
-        var leadConfiguration = new TalonFXConfiguration();
-        var followConfiguration = new TalonFXConfiguration();
+    private JointConfig joint_Arm = new JointConfig(ArmConstants.UPPER_MASS, ArmConstants.UPPER_LENGTH,
+      ArmConstants.UPPER_MOI, ArmConstants.UPPER_CGRADIUS, ArmConstants.UPPER_MOTOR);
+      
+    private final ArmFeedforward m_feedforward =
+        new ArmFeedforward(
+            ArmConstants.kSVolts, ArmConstants.kGVolts,
+            ArmConstants.kVVoltSecondPerRad, ArmConstants.kAVoltSecondSquaredPerRad);
+
+    private ArmState m_armState;
+    private double m_upperSetpoint;
+
+    private final CurrentLimitsConfigs m_currentLimits = new CurrentLimitsConfigs();
+
+  public ArmSubsystem() {
+    // From the Motion Magic example
+    TalonFXConfiguration leadConfiguration = new TalonFXConfiguration();
+    TalonFXConfiguration followConfiguration = new TalonFXConfiguration();
 
         /* set motors to Brake */
         leadConfiguration.MotorOutput.NeutralMode = NeutralModeValue.Brake;
@@ -54,15 +99,15 @@ public class ArmSubsystem extends SubsystemBase {
         // Take approximately 0.2 seconds to reach max accel
         mm.MotionMagicJerk = 50;
 
-        Slot0Configs slot0 = cfg.Slot0;
+    	Slot0Configs slot0 = leadConfiguration.Slot0;
         slot0.kP = 60;
         slot0.kI = 0;
         slot0.kD = 0.1;
         slot0.kV = 0.12;
         slot0.kS = 0.25; // Approximately 0.25V to get the mechanism moving
 
-        FeedbackConfigs fdb = cfg.Feedback;
-        fdb.SensorToMechanismRatio = 12.8;
+    	FeedbackConfigs fdb = leadConfiguration.Feedback;
+    	fdb.SensorToMechanismRatio = 144.0;
 
 
 /*
@@ -102,18 +147,122 @@ public class ArmSubsystem extends SubsystemBase {
     public void periodic() {
         // This method will be called once per scheduler run
 
-        // If running in simulation, update the sims
-        if (Utils.isSimulation()) {
-            PhysicsSim.getInstance().run();
-        }
-    }
+    SmartDashboard.putBoolean("Arm at Setpoint", getUpperAtSetpoint());
+    SmartDashboard.putNumber("Arm Angle", getUpperJointDegrees());
 
-    public void positionArm(double position) {
-        m_fxLeader.setControl(m_mmReq.withPosition(position).withSlot(0));
-    }
+    if (Constants.tuningMode) {
+      SmartDashboard.putNumber("Arm Angle Uncorrected", dutyCycleToDegrees(getUpperJointPos()));
+      SmartDashboard.putNumber("Arm Error", getUpperError());
+      SmartDashboard.putNumber("Arm Setpoint", m_upperSetpoint);
+    } 
+      // From the Motion Magic example
+    if (m_printCount++ > 10) {
+        m_printCount = 0;
+        System.out.println("Pos: " + m_armLeader.getPosition());
+        System.out.println("Vel: " + m_armLeader.getVelocity());
+        System.out.println();
+      }
+      m_mechanisms.update(m_armLeader.getPosition(), m_armLeader.getVelocity());
 
-    public void returnArm() {
-        m_fxLeader.setPosition(1);
+    /* Deadband the joystick */
+    double leftY = m_joystick.getLeftY();
+    if(leftY > -0.1 && leftY < 0.1) leftY = 0;
+
+    m_armLeader.setControl(m_mmReq.withPosition(leftY * 10).withSlot(0));
+    if(m_joystick.getBButton()) {
+      armDown();
     }
+  }
+
+  /*public void reset() {
+    m_upperSetpoint = getUpperJointDegrees();
+    m_controllerArm.reset(getUpperJointDegrees());
+    m_setpoint = new Setpoint(m_lowerSetpoint, m_upperSetpoint, false, ClawState.IN, 
+                              m_lowerSetpoint, m_upperSetpoint, false, ClawState.OUT, ArmState.OTHER);
+  }*/
+
+  public void updateUpperSetpoint(double setpoint) {
+    if (m_upperSetpoint != setpoint) {
+      if (setpoint < 360 && setpoint > 0) {
+        m_upperSetpoint = setpoint;
+      }
+    }
+  }
+
+    // System.out.println("Upper PID" + pidOutput);
+    // if(Math.abs(pidOutput) > 0.01 && Math.abs(pidOutput)<0.045){
+    //   pidOutput = Math.copySign(0.045, pidOutput);
+    // }
+    //m_armLeader.set(pidOutput + ff); // may need to negate ff voltage to get desired output }
+
+    // if(Math.abs(pidOutput) > 0.01 && Math.abs(pidOutput)<0.04){
+    //   pidOutput = Math.copySign(0.04, pidOutput);
+    // }
+    // System.out.println("Lower PID" + pidOutput);
+  
+  
+  public double getUpperError(){
+    return Math.abs(m_upperSetpoint - getUpperJointDegrees());
+  }
+
+  public boolean getUpperAtSetpoint() {
+    return getUpperError() < ArmConstants.TOLERANCE_POS;
+  }
+
+  
+  /* public Setpoint getSetpoint() {
+    if(m_setpoint.equals(null)){
+      reset();
+      return m_setpoint;
+    }
+    else{
+      return m_setpoint;
+    }
+  }*/
+
+  public void setPercentOutputUpper(double speed) {
+    m_armLeader.set(speed);
+  }
+
+
+  public void neutralUpper() {
+    //m_armLeader.neutralOutput();
+  }
+
+  public double getUpperJointPos() {
+    //return m_armSensor.getAbsolutePosition();
+  }
+
+  public double getUpperJointDegrees() {
+    return dutyCycleToDegrees(getUpperJointPos()) + ArmConstants.ANGLE_OFFSET;
+  }
+
+  public double dutyCycleToCTREUnits(double dutyCyclePos) {
+    // 4096 units per rotation = raw sensor units for Pulse width encoder
+    return dutyCyclePos * 4096;
+  }
+
+  public double dutyCycleToDegrees(double dutyCyclePos) {
+    return dutyCyclePos * 360;
+  }
+
+  public void armDown() {
+      // From the Motion Magic example
+    m_armLeader.setPosition(0);
+  }
+
+    public void armSubwoofer() {
+      // From the Motion Magic example
+    m_armLeader.setPosition(0.25);
+  }
+    public void armAmp() {
+      // From the Motion Magic example
+    m_armLeader.setPosition(0.4);
+  }
+
+  public void armPodium() {
+      // From the Motion Magic example
+    m_armLeader.setPosition(0.3);
+  }
 
 }
