@@ -115,7 +115,8 @@ public class ArmSubsystem extends SubsystemBase {
     leadConfiguration.MotorOutputConfigs.NeutralMode = NeutralModeValue.Brake;
     followConfiguration.MotorOutputConfigs.NeutralMode = NeutralModeValue.Brake;
     
-    
+    m_armFollower.setControl(new Follower(m_armLeader.getDeviceID(), true));
+
     /*
      * Configure the lead Talon to use a supply limit of 5 amps IF we exceed 10 amps
      * for over 1 second

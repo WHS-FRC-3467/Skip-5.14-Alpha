@@ -124,12 +124,36 @@ public final class Constants {
 
         //Measured when the lower angle is vertical using 1x1
         public static final double ANGLE_OFFSET = 12.4 - VERTICAL_ANGLE_UPPER;
-
-
-        public enum ArmState{
-            STOWED, DOWN, AMP, SUBWOOFER, PODIUM, HALF_COURT, SUBSTATION, INTERMEDIATE, OTHER
-        }
         
+        
+        // Implement Arm level encoder values here
+        public enum ArmState {
+            INTAKE(0, "INTAKE - DEFAULT POSITION"),
+            SUBWOOFER(60, "SHOOT FROM SUBWOOFER"),
+            PODIUM(120, "SHOOT FROM PODIUM"),
+            AMP(150, "POSITION TO AMP SCORE"),
+            CLIMB(120,  "FINISH CLIMBING ROBOT ON CHAIN"),
+            HALF_COURT(130,  "SHOOT FROM HALF COURT "),
+            INTERMEDIATE(130, "PART ONE OF CLIMBING");
+
+
+
+            private final int setpoint;
+            private final String name;
+
+            private ArmState(int position, String name) {
+                this.setpoint = position;
+                this.name = name;
+            }
+
+            public int getSetpoint() {
+                return this.setpoint;
+            }
+
+            public String getName() {
+                return this.name;
+            }
+        }
         
         /*
          * Constants for moveArmCommand(maxVelocity, maxAccel, goalRotations) - what the
