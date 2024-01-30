@@ -3,6 +3,7 @@ package frc.robot.Subsystems.Shooter;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.Constants.ArmConstants.ArmState;
 import frc.robot.Subsystems.Arm.ArmSubsystem;
+import frc.robot.Subsystems.Arm.ArmSubsystem.armState;
 import frc.robot.Constants.ShooterConstants;
 
 public class PrepareToShoot extends Command {
@@ -18,9 +19,10 @@ public class PrepareToShoot extends Command {
         m_arm = Arm;
         m_shooter = Shooter;
         // m_armState keeps track of where the arm SHOULD go to
-        m_armState = ArmState;
-        if (m_armState.getSetpoint() = PODIUM) { 
+        if (m_armState.getSetpoint() == 120) { 
             shooterSpeed = ShooterConstants.kPodiumVelocity;
+        } else if (m_armState.getSetpoint() == 60) {
+            shooterSpeed = ShooterConstants.kSubwooferVelocity;
         }
         //If else armState = subwoofer{ shooterSpeed = kSubwooferVelocity}
     }

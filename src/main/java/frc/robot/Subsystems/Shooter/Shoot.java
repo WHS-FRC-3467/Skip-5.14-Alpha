@@ -11,7 +11,7 @@ public class Shoot extends Command {
     StageSubsystem m_stage;
     ShooterSubsystem m_shooter;
     boolean m_end;
-    public ArmState m_armState;
+    public ArmState m_currentPos;
     boolean m_ready;
     double shooterSpeed;
     
@@ -47,8 +47,9 @@ public class Shoot extends Command {
     public void end(boolean interrupted) {
         // Stop shooting and have the arm drop to intake position.
         m_shooter.stopShooterCommand();
-        m_armState = ArmState.DOWN;
         m_arm.armDown();
+        m_currentPos = ArmState.INTAKE;
+
     }
 
     // Returns true when the command should end.

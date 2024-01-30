@@ -9,7 +9,7 @@ import com.ctre.phoenix6.configs.VoltageConfigs;
 
 import com.ctre.phoenix6.controls.Follower;
 import com.ctre.phoenix6.controls.MotionMagicVoltage;
-//import com.ctre.phoenix6.controls.NeutralOut;
+import com.ctre.phoenix6.controls.NeutralOut;
 import com.ctre.phoenix6.controls.PositionVoltage;
 //import com.ctre.phoenix6.controls.VelocityVoltage;
 
@@ -28,6 +28,7 @@ import edu.wpi.first.math.controller.ArmFeedforward;
 import edu.wpi.first.math.controller.ProfiledPIDController;
 //import edu.wpi.first.math.numbers.N2;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
+import edu.wpi.first.wpilibj.DutyCycleEncoder;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.XboxController;
@@ -41,6 +42,7 @@ import edu.wpi.first.wpilibj2.command.StartEndCommand;
 import frc.robot.Constants;
 import frc.robot.Constants.ArmConstants;
 import frc.robot.Constants.ArmConstants.ArmState;
+//import frc.robot.Constants.ArmConstants.ArmState;
 import frc.robot.Constants.CanConstants;
 import frc.robot.Constants.DIOConstants;
 import frc.robot.Constants.PHConstants;
@@ -49,12 +51,46 @@ import frc.robot.Util.TunableNumber;
 
 public class ArmSubsystem extends SubsystemBase {
     
+    // Armstate enum
+    public enum armState {
+        armIntake(0, "INTAKE - DEFAULT POSITION"),
+        armAmp(60, "SCORE IN AMP"),
+        armSubwoofer(120, "SHOOT FROM SUBWOOFER"),
+        armPodium(120, "SHOOT FROM PODIUM"),
+        armClimb(150, "CLIMB"),
+        armHalfCourt(120,  "SHOOT FROM HALF COURT"),
+        armNoneOfTheAbove(130, "Not in any of the postition");
+
+        private final int setpoint;
+        private final String name;
+
+        private armState(int position, String name) {
+            this.setpoint = position;
+            this.name = name;
+        }
+        
+        public int getSetpoint() {
+            return this.setpoint;
+        }
+
+        public String getName() {
+            return this.name;
+        }
+    }
+
     // Declare Motors
     private final TalonFX m_armLeader = new TalonFX(CanConstants.ArmLeft);
     private final TalonFX m_armFollower = new TalonFX(CanConstants.ArmRight);
     private final MotionMagicVoltage m_mmReq = new MotionMagicVoltage(0);
     private final XboxController m_joystick = new XboxController(0);
 
+    // Declare external arm encoder - this is the start of the degree measuring
+    private DutyCycleEncoder m_armEncoder = new DutyCycleEncoder(DIOConstants.ENCODER_ARM);
+
+
+    // Declare Enumerator
+    public armState m_currentPos;
+    public armState m_desiredPos;
 
     private FeedbackConfigs FeedbackSensorSource;
     private FeedbackConfigs FeedbackRotorOffset;
@@ -72,15 +108,24 @@ public class ArmSubsystem extends SubsystemBase {
             ArmConstants.kSVolts, ArmConstants.kGVolts,
             ArmConstants.kVVoltSecondPerRad, ArmConstants.kAVoltSecondSquaredPerRad);
 
-    private ArmState m_armState;
     private double m_upperSetpoint;
 
     private final CurrentLimitsConfigs m_currentLimits = new CurrentLimitsConfigs();
 
+    private final NeutralOut m_brake = new NeutralOut();
+
   public ArmSubsystem() {
-    // From the Motion Magic example
-    TalonFXConfiguration leadConfiguration = new TalonFXConfiguration();
-    TalonFXConfiguration followConfiguration = new TalonFXConfiguration();
+    
+    // From the Motion Magic example -- Configuration
+    var leadConfiguration = new TalonFXConfiguration();
+    var followConfiguration = new TalonFXConfiguration();
+
+    /* set motors to Brake */
+    leadConfiguration.MotorOutput.NeutralMode = NeutralModeValue.Brake;
+    followConfiguration.MotorOutput.NeutralMode = NeutralModeValue.Brake;
+
+    /* Make the right motor follow the other */
+    m_armFollower.setControl(new Follower(m_armLeader.getDeviceID(), true));
 
     /* Configure current limits */
     MotionMagicConfigs mm = leadConfiguration.MotionMagic;
@@ -104,18 +149,12 @@ public class ArmSubsystem extends SubsystemBase {
       status = m_armLeader.getConfigurator().apply(leadConfiguration);
       if (status.isOK()) break;
     }
+    
     if (!status.isOK()) {
       System.out.println("Could not configure device. Error: " + status.toString());}
     }
     private int m_printCount = 0;
     private final Mechanisms m_mechanisms = new Mechanisms();
-
-
-    /* set motors to Brake */
-    leadConfiguration.MotorOutputConfigs.NeutralMode = NeutralModeValue.Brake;
-    followConfiguration.MotorOutputConfigs.NeutralMode = NeutralModeValue.Brake;
-    
-    m_armFollower.setControl(new Follower(m_armLeader.getDeviceID(), true));
 
     /*
      * Configure the lead Talon to use a supply limit of 5 amps IF we exceed 10 amps
@@ -129,6 +168,7 @@ public class ArmSubsystem extends SubsystemBase {
     m_currentLimits.StatorCurrentLimit = 20; // Limit stator to 20 amps
     m_currentLimits.StatorCurrentLimitEnable = true; // And enable it
     leadConfiguration.CurrentLimits = m_currentLimits; */
+
 
     
   @Override
@@ -170,13 +210,13 @@ public class ArmSubsystem extends SubsystemBase {
                               m_lowerSetpoint, m_upperSetpoint, false, ClawState.OUT, ArmState.OTHER);
   }*/
 
-  public void updateUpperSetpoint(double setpoint) {
+  /*public void updateUpperSetpoint(double setpoint) {
     if (m_upperSetpoint != setpoint) {
       if (setpoint < 360 && setpoint > 0) {
         m_upperSetpoint = setpoint;
       }
     }
-  }
+  }*/
 
     // System.out.println("Upper PID" + pidOutput);
     // if(Math.abs(pidOutput) > 0.01 && Math.abs(pidOutput)<0.045){
@@ -235,23 +275,43 @@ public class ArmSubsystem extends SubsystemBase {
     return dutyCyclePos * 360;
   }
 
+  // Command methods, will get their own files
   public void armDown() {
       // From the Motion Magic example
     m_armLeader.setPosition(0);
+    armState m_armState = armState.armIntake;
   }
 
-    public void armSubwoofer() {
+    public void SubwooferPos() {
       // From the Motion Magic example
     m_armLeader.setPosition(0.25);
+    armState m_armState = armState.armSubwoofer;
   }
-    public void armAmp() {
+    public void armAmpPos() {
       // From the Motion Magic example
     m_armLeader.setPosition(0.4);
+    armState m_armState = armState.armAmp;
+
   }
 
-  public void armPodium() {
+  public void armPodiumPos() {
       // From the Motion Magic example
     m_armLeader.setPosition(0.3);
+    armState m_armState = armState.armPodium;
+
   }
+
+  public void armHalfCourtPos() {
+      // From the Motion Magic example
+    m_armLeader.setPosition(0.25);
+    armState m_armState = armState.armHalfCourt;
+
+  }
+  public armState returnArmstate() {
+    
+    return m_armState.getSetpoint();
+    
+  }
+
 
 }
