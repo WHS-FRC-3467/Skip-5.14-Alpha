@@ -174,13 +174,13 @@ public class ArmSubsystem extends SubsystemBase {
   @Override
   public void periodic() {
     // This method will be called once per scheduler run
-    // m_armLeader.setSelectedSensorPosition(dutyCycleToCTREUnits(getUpperJointPos()), 0, ArmConstants.TIMEOUT);
+    // m_armLeader.setSelectedSensorPosition(dutyCycleToCTREUnits(getArmPos()), 0, ArmConstants.TIMEOUT);
 
     SmartDashboard.putBoolean("Arm at Setpoint", getUpperAtSetpoint());
-    SmartDashboard.putNumber("Arm Angle", getUpperJointDegrees());
+    SmartDashboard.putNumber("Arm Angle", getArmJointDegrees());
 
     if (Constants.tuningMode) {
-      SmartDashboard.putNumber("Arm Angle Uncorrected", dutyCycleToDegrees(getUpperJointPos()));
+      SmartDashboard.putNumber("Arm Angle Uncorrected", dutyCycleToDegrees(getArmPos()));
       SmartDashboard.putNumber("Arm Error", getUpperError());
       SmartDashboard.putNumber("Arm Setpoint", m_upperSetpoint);
     } 
@@ -204,8 +204,8 @@ public class ArmSubsystem extends SubsystemBase {
   }
 
   /*public void reset() {
-    m_upperSetpoint = getUpperJointDegrees();
-    m_controllerArm.reset(getUpperJointDegrees());
+    m_upperSetpoint = getArmJointDegrees();
+    m_controllerArm.reset(getArmJointDegrees());
     m_setpoint = new Setpoint(m_lowerSetpoint, m_upperSetpoint, false, ClawState.IN, 
                               m_lowerSetpoint, m_upperSetpoint, false, ClawState.OUT, ArmState.OTHER);
   }*/
@@ -231,7 +231,7 @@ public class ArmSubsystem extends SubsystemBase {
   
   
   public double getUpperError(){
-    return Math.abs(m_upperSetpoint - getUpperJointDegrees());
+    return Math.abs(m_upperSetpoint - getArmJointDegrees());
   }
 
   public boolean getUpperAtSetpoint() {
@@ -258,12 +258,12 @@ public class ArmSubsystem extends SubsystemBase {
     //m_armLeader.neutralOutput();
   }
 
-  public double getUpperJointPos() {
-    //return m_armSensor.getAbsolutePosition();
+  public double getArmPos() {
+    return m_armEncoder.getAbsolutePosition();
   }
 
-  public double getUpperJointDegrees() {
-    return dutyCycleToDegrees(getUpperJointPos()) + ArmConstants.ANGLE_OFFSET;
+  public double getArmJointDegrees() {
+    return dutyCycleToDegrees(getArmPos()) + ArmConstants.ANGLE_OFFSET;
   }
 
   public double dutyCycleToCTREUnits(double dutyCyclePos) {
