@@ -79,7 +79,14 @@ public class UBIntakeSubsystem extends SubsystemBase {
         m_centeringMotor.setNeutralMode(NeutralMode.Coast);
 
         // Config centering motor current limit
-        m_centeringMotor.configSupplyCurrentLimit(new SupplyCurrentLimitConfiguration(true, 15, 20, 0.10));
+        m_centeringMotor.configSupplyCurrentLimit(
+            new SupplyCurrentLimitConfiguration(
+                true,
+                15,
+                20,
+                0.10
+            )
+        );
 
         /* Config the peak and nominal outputs */
         m_centeringMotor.configNominalOutputForward(0.0, 30);

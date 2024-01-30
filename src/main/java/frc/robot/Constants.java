@@ -4,7 +4,6 @@
 
 package frc.robot;
 
-
 /**
  * The Constants class provides a convenient place for teams to hold robot-wide numerical or boolean constants. This class should not be
  * used for any other purpose. All constants should be declared globally (i.e. public static). Do not put anything functional in this class.
@@ -30,32 +29,33 @@ public final class Constants {
         public static final int ID_IntakeCtrRoller = 20;
 
         // Stage CAN IDs
-        public static final int ID_StageLeft = 23;
-        public static final int ID_StageRight = 24;
+        public static final int ID_StageMotor = 23;
 
         // Arm CAN IDs
         public static final int ID_ArmLeader = 25;
         public static final int ID_ArmFollower = 26;
-
-
-    }
-
-    public static final class PHConstants {
-
-        public static final int IntakeForwardSolenoid = 0;
-        public static final int IntakeReverseSolenoid = 1;
-    }
-
-    public static final class DIOConstants {
-        public static final int StageBeamBreak = 0;
-        public static final int MidTowerBeamBreak = 1;
-        public static final int UpperTowerBeamBreak = 2;
     }
 
     public static final class RobotConstants {
 
-        public static final boolean tuningMode = true;
+        public static final boolean kIsTuningMode = true;
+    }
 
+    public static final class DIOConstants {
+
+        public static final int kStageBeamBreak = 0;
+    }
+
+    public static final class StageConstants {
+
+        public static final double kIntakeSpeed = 1.0;
+        public static final double kFeedToShooterSpeed = 1.0;
+        public static final double kFeedToAmpSpeed = 0.7;
+        public static final double kFeedToTrapSpeed = 0.5;
+
+        public static final double kFeedToShooterTime = 5.0;
+        public static final double kFeedToAmpTime = 5.0;
+        public static final double kFeedToTrapTime = 5.0;
     }
 
     public static final class ShooterConstants {
@@ -63,9 +63,6 @@ public final class Constants {
         public static final double kSubwooferVelocity = 50.0;
         public static final double kPodiumVelocity = 70.0;
         public static final double kShooterTolerance = 10.0;
-
-
     }
-
 
 }
