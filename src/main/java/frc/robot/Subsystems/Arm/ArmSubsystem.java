@@ -176,12 +176,12 @@ public class ArmSubsystem extends SubsystemBase {
     // This method will be called once per scheduler run
     // m_armLeader.setSelectedSensorPosition(dutyCycleToCTREUnits(getArmPos()), 0, ArmConstants.TIMEOUT);
 
-    SmartDashboard.putBoolean("Arm at Setpoint", getUpperAtSetpoint());
+    SmartDashboard.putBoolean("Arm at Setpoint", getArmAtDesiredSetpoint());
     SmartDashboard.putNumber("Arm Angle", getArmJointDegrees());
 
     if (Constants.tuningMode) {
       SmartDashboard.putNumber("Arm Angle Uncorrected", dutyCycleToDegrees(getArmPos()));
-      SmartDashboard.putNumber("Arm Error", getUpperError());
+      SmartDashboard.putNumber("Arm Error", getArmError());
       SmartDashboard.putNumber("Arm Setpoint", m_upperSetpoint);
     } 
       // From the Motion Magic example
@@ -230,12 +230,12 @@ public class ArmSubsystem extends SubsystemBase {
     // System.out.println("Lower PID" + pidOutput);
   
   
-  public double getUpperError(){
-    return Math.abs(m_upperSetpoint - getArmJointDegrees());
+  public double getArmError(){
+    return Math.abs(m_desiredPos.getSetpoint() - getArmJointDegrees());
   }
 
-  public boolean getUpperAtSetpoint() {
-    return getUpperError() < ArmConstants.TOLERANCE_POS;
+  public boolean getArmAtDesiredSetpoint() {
+    return getArmError() < ArmConstants.TOLERANCE_POS;
   }
 
   
@@ -249,12 +249,12 @@ public class ArmSubsystem extends SubsystemBase {
     }
   }*/
 
-  public void setPercentOutputUpper(double speed) {
+  public void setPercentOutputArm(double speed) {
     m_armLeader.set(speed);
   }
 
 
-  public void neutralUpper() {
+  public void neutralArm() {
     //m_armLeader.neutralOutput();
   }
 
