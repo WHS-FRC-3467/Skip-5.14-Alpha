@@ -4,7 +4,7 @@ import com.ctre.phoenix6.Utils;
 //import com.ctre.phoenix6.configs.CurrentLimitsConfigs;
 import com.ctre.phoenix6.configs.Slot0Configs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
-import com.ctre.phoenix6.controls.Follower;
+//import com.ctre.phoenix6.controls.Follower;
 import com.ctre.phoenix6.controls.NeutralOut;
 import com.ctre.phoenix6.controls.VelocityVoltage;
 import com.ctre.phoenix6.hardware.TalonFX;
@@ -25,9 +25,9 @@ public class ShooterSubsystem extends SubsystemBase {
 
     /* Hardware */
     TalonFX m_motorLeftLeader = new TalonFX(CanConstants.ID_ShooterLeftLeader);
-    TalonFX m_motorLeftFollower = new TalonFX(CanConstants.ID_ShooterLeftFollower);
+    //TalonFX m_motorLeftFollower = new TalonFX(CanConstants.ID_ShooterLeftFollower);
     TalonFX m_motorRightLeader = new TalonFX(CanConstants.ID_ShooterRightLeader);
-    TalonFX m_motorRightFollower = new TalonFX(CanConstants.ID_ShooterRightFollower);
+    //TalonFX m_motorRightFollower = new TalonFX(CanConstants.ID_ShooterRightFollower);
 
     /*
      * Gains for shooter tuning
@@ -74,11 +74,11 @@ public class ShooterSubsystem extends SubsystemBase {
 
         /* Configure the devices */
         var leadConfiguration = new TalonFXConfiguration();
-        var followConfiguration = new TalonFXConfiguration();
+        //var followConfiguration = new TalonFXConfiguration();
 
         /* set motors to Coast */
         leadConfiguration.MotorOutput.NeutralMode = NeutralModeValue.Coast;
-        followConfiguration.MotorOutput.NeutralMode = NeutralModeValue.Coast;
+        //followConfiguration.MotorOutput.NeutralMode = NeutralModeValue.Coast;
 
         leadConfiguration.MotorOutput.Inverted = InvertedValue.Clockwise_Positive;
 
@@ -109,12 +109,12 @@ public class ShooterSubsystem extends SubsystemBase {
         m_motorLeftLeader.getConfigurator().apply(leadConfiguration);
         leadConfiguration.MotorOutput.Inverted = InvertedValue.CounterClockwise_Positive;
         m_motorRightLeader.getConfigurator().apply(leadConfiguration);
-        m_motorLeftFollower.getConfigurator().apply(followConfiguration);
-        m_motorRightFollower.getConfigurator().apply(followConfiguration);
+        //m_motorLeftFollower.getConfigurator().apply(followConfiguration);
+        //m_motorRightFollower.getConfigurator().apply(followConfiguration);
 
         /* Set up followers to follow leaders but in the opposite direction */
-        m_motorLeftFollower.setControl(new Follower(m_motorLeftLeader.getDeviceID(), true));
-        m_motorRightFollower.setControl(new Follower(m_motorRightLeader.getDeviceID(), true));
+        //m_motorLeftFollower.setControl(new Follower(m_motorLeftLeader.getDeviceID(), true));
+        //m_motorRightFollower.setControl(new Follower(m_motorRightLeader.getDeviceID(), true));
 
     }
 
