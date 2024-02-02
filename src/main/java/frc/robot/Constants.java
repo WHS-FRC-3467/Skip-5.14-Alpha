@@ -67,8 +67,8 @@ public final class Constants {
     }
 
     public static final class IntakeConstants{
-        public static final int Blinkin1 = 28;
-        public static final int Blinkin2 = 19;
+        public static final int Blinkin1 = 2;
+        public static final int Blinkin2 = 2;
       }
 
     public static final class ShooterConstants {

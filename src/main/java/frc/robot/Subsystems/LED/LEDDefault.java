@@ -6,14 +6,14 @@ package frc.robot.Subsystems.LED;
 
 
 import edu.wpi.first.wpilibj.DriverStation;
-import edu.wpi.first.wpilibj2.command.CommandBase;
+import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.Constants;
 import frc.robot.Constants.IntakeConstants;
 import frc.robot.Subsystems.Intake.UBIntakeSubsystem;
 import frc.robot.Subsystems.Shooter.ShooterSubsystem;
 
 
-public class LEDDefault extends CommandBase {
+public class LEDDefault extends Command {
   /** Creates a new LEDDefault. */
   LEDSubsystem m_led;
   UBIntakeSubsystem m_intake;
@@ -25,6 +25,7 @@ public class LEDDefault extends CommandBase {
     addRequirements(m_led);
     // Use addRequirements() here to declare subsystem dependencies.
   }
+  
 
   // Called when the command is initially scheduled.
   @Override
@@ -44,11 +45,22 @@ public class LEDDefault extends CommandBase {
       // SmartDashboard.putBoolean("Is vision Mode", m_limelight.inVisionMode());
     }
     if(DriverStation.isDisabled()){
-      m_led.setTexasMode();
+      m_led.ledColors();
     }
-    else if(m_intake.getIntakeCurrent()>=IntakeConstants.Blinkin2 || m_shooter.shooterCurrent()>5.0){
-      m_led.setColor(255, 0, 0);
+
+    // might have to change Blinkin2 value
+    else if(m_intake.getIntakeCurrent()>=IntakeConstants.Blinkin2){
+    //flash orange
+      m_led.setColor(255, 153, 53);
+
     }
+
+    else if (m_shooter.shooterCurrent()>5){
+    // set purple
+        m_led.setColor(138, 0, 230);
+    }
+
+
     /* 
     
     else if(GamePiece.getGamePiece() == GamePieceType.Cube){
