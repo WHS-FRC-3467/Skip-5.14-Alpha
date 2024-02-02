@@ -212,4 +212,8 @@ public class ShooterSubsystem extends SubsystemBase {
     public Command updateShooterGainsCommand() {
         return new InstantCommand(()->this.updateGains(), this);
     }
+
+    public double shooterCurrent(){
+        return (m_motorRightLeader.getSupplyCurrent().getValueAsDouble() + m_motorLeftLeader.getSupplyCurrent().getValueAsDouble())/2;
+      }
 }

@@ -14,6 +14,9 @@ package frc.robot;
  */
 public final class Constants {
 
+    public static final boolean tuningMode = true;
+
+
     public static final class CanConstants {
 
         // Drivebase CAN IDs are 1 -> 13
@@ -37,8 +40,13 @@ public final class Constants {
         public static final int ID_ArmLeader = 25;
         public static final int ID_ArmFollower = 26;
 
+        public static final int LED_CANDLE = 27;
+
+
 
     }
+
+
 
     public static final class PHConstants {
 
@@ -57,6 +65,11 @@ public final class Constants {
         public static final boolean tuningMode = true;
 
     }
+
+    public static final class IntakeConstants{
+        public static final int Blinkin1 = 28;
+        public static final int Blinkin2 = 19;
+      }
 
     public static final class ShooterConstants {
 

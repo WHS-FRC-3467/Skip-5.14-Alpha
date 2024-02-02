@@ -115,6 +115,10 @@ public class UBIntakeSubsystem extends SubsystemBase {
         m_centeringMotor.set(TalonSRXControlMode.PercentOutput, 0.0);
     }
 
+    public double getIntakeCurrent(){
+        return m_intakeMotor.getSupplyCurrent().getValueAsDouble();
+      }
+
     /*
      * Command Factories
      */
