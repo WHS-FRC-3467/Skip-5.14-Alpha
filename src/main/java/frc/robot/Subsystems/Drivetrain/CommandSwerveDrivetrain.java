@@ -13,15 +13,20 @@ import com.pathplanner.lib.util.HolonomicPathFollowerConfig;
 import com.pathplanner.lib.util.PIDConstants;
 import com.pathplanner.lib.util.ReplanningConfig;
 
+import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.units.Measure;
 import edu.wpi.first.units.Voltage;
 import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.RobotController;
+import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Subsystem;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
+import frc.robot.Constants;
 import frc.robot.Util.ModifiedSignalLogger;
 import frc.robot.Util.SwerveVoltageRequest;
 import frc.robot.generated.TunerConstants;
@@ -29,10 +34,15 @@ import frc.robot.generated.TunerConstants;
 import static edu.wpi.first.units.Units.*;
 
 /**
- * Class that extends the Phoenix SwerveDrivetrain class and implements subsystem so it can be used in command-based projects easily.
+ * Class that extends the Phoenix SwerveDrivetrain class and implements
+ * subsystem so it can be used in command-based projects easily.
  */
 public class CommandSwerveDrivetrain extends SwerveDrivetrain implements Subsystem {
     private final SwerveRequest.ApplyChassisSpeeds autoRequest = new SwerveRequest.ApplyChassisSpeeds();
+    private Alliance _alliance;
+    private Pose2d _speakerPosition;
+    private Translation2d _centerOfRotation;
+    public Field2d _field;
 
     public CommandSwerveDrivetrain(SwerveDrivetrainConstants driveTrainConstants, double OdometryUpdateFrequency,
             SwerveModuleConstants... modules) {
@@ -50,7 +60,8 @@ public class CommandSwerveDrivetrain extends SwerveDrivetrain implements Subsyst
     private void configurePathPlanner() {
 
         /*
-         * Calculate drivebase radius (in meters). For swerve drive, this is the distance from the center of the robot to the furthest
+         * Calculate drivebase radius (in meters). For swerve drive, this is the
+         * distance from the center of the robot to the furthest
          * module.
          */
         double driveBaseRadius = 0;
@@ -60,36 +71,39 @@ public class CommandSwerveDrivetrain extends SwerveDrivetrain implements Subsyst
 
         /*
          * Configure the PathPlanner AutoBuilder
-         */ 
+         */
         AutoBuilder.configureHolonomic(
 
-            // Supplier of current robot pose
-            () -> this.getState().Pose,
+                // Supplier of current robot pose
+                () -> this.getState().Pose,
 
-            // Consumer for seeding pose against auto
-            this::seedFieldRelative,
+                // Consumer for seeding pose against auto
+                this::seedFieldRelative,
 
-            // A supplier for the robot's current robot relative chassis speeds
-            this::getCurrentRobotChassisSpeeds,
+                // A supplier for the robot's current robot relative chassis speeds
+                this::getCurrentRobotChassisSpeeds,
 
-            // A consumer for setting the robot's robot-relative chassis speeds
-            (speeds) -> this.setControl(autoRequest.withSpeeds(speeds)),
+                // A consumer for setting the robot's robot-relative chassis speeds
+                (speeds) -> this.setControl(autoRequest.withSpeeds(speeds)),
 
-            // Method for configuring the path following commands
-            new HolonomicPathFollowerConfig(new PIDConstants(1.3, 0, 0), new PIDConstants(2, 0, 0), TunerConstants.kSpeedAt12VoltsMps,
-                    driveBaseRadius, new ReplanningConfig()),
+                // Method for configuring the path following commands
+                new HolonomicPathFollowerConfig(new PIDConstants(1.3, 0, 0), new PIDConstants(2, 0, 0),
+                        TunerConstants.kSpeedAt12VoltsMps,
+                        driveBaseRadius, new ReplanningConfig()),
 
-            // Boolean supplier that controls when the path will be mirrored for the red alliance
-            // This will flip the path being followed to the red side of the field during auto only.
-            // THE ORIGIN WILL REMAIN ON THE BLUE SIDE
-            () -> {
-                var alliance = DriverStation.getAlliance();
-                if (alliance.isPresent()) {
-                    return alliance.get() == DriverStation.Alliance.Red & !DriverStation.isTeleop();
-                } else
-                    return false;
-            },
-            this); // Subsystem for requirements
+                // Boolean supplier that controls when the path will be mirrored for the red
+                // alliance
+                // This will flip the path being followed to the red side of the field during
+                // auto only.
+                // THE ORIGIN WILL REMAIN ON THE BLUE SIDE
+                () -> {
+                    var alliance = DriverStation.getAlliance();
+                    if (alliance.isPresent()) {
+                        return alliance.get() == DriverStation.Alliance.Red & !DriverStation.isTeleop();
+                    } else
+                        return false;
+                },
+                this); // Subsystem for requirements
     }
 
     public Command applyRequest(Supplier<SwerveRequest> requestSupplier) {
@@ -110,24 +124,123 @@ public class CommandSwerveDrivetrain extends SwerveDrivetrain implements Subsyst
         return m_kinematics.toChassisSpeeds(getState().ModuleStates);
     }
 
+    // Gets current alliance from driverstation to know which speaker to point at
+    private Alliance getAlliance() {
+        if (_alliance == null) {
+            if (DriverStation.getAlliance().isPresent()) {
+                _alliance = DriverStation.getAlliance().get();
+            }
+        }
+
+        return _alliance;
+    }
+
+    //Gets coordinates for appriopriate speaker
+    private Pose2d getSpeakerPos() {
+        if (_speakerPosition == null) {
+            if (getAlliance() != null) {
+                _speakerPosition = (getAlliance() == DriverStation.Alliance.Blue) ? Constants.BLUE_SPEAKER
+                        : Constants.RED_SPEAKER;
+            }
+        }
+
+        return _speakerPosition;
+    }
+
+    /**
+     * Returns the distance from the center of the robot to the alliance's speaker in inches
+     */
+    public double getRadiusToSpeakerInInches() {
+        return getRadiusToSpeakerInMeters(m_odometry.getEstimatedPosition(), getSpeakerPos());
+    }
+
+    // this setup lets us test the math, but when we actually run the code we don't
+    // have to give a pose estimator
+    public static double getRadiusToSpeakerInMeters(Pose2d robotPose, Pose2d speakerPos) {
+        double xDiff = robotPose.getX() - speakerPos.getX();
+        double yDiff = robotPose.getY() - speakerPos.getY();
+        double xPow = Math.pow(xDiff, 2);
+        double yPow = Math.pow(yDiff, 2);
+        // Use pythagorean thm to find hypotenuse, which is our radius
+        return Math.sqrt(xPow + yPow);
+    }
+
+    
+    public void setCenterOfRotationToSpeaker() {
+        if (getAlliance() == Alliance.Blue) {
+            setCenterOfRotation(calcSpeakerCoRForBlue(m_odometry.getEstimatedPosition(), getSpeakerPos()));
+        } else {
+            setCenterOfRotation(calcSpeakerCoRForRed(m_odometry.getEstimatedPosition(), getSpeakerPos()));
+        }
+    }
+
+    public double calcAngleToSpeaker() {
+        if (getAlliance() == Alliance.Blue) {
+            return calcAngleToSpeakerForBlue();
+        } else {
+            return calcAngleToSpeakerForRed();
+        }
+    }
+
+    private double calcAngleToSpeakerForBlue() {
+        Pose2d robotPose = m_odometry.getEstimatedPosition();
+        Pose2d speakerPos = getSpeakerPos();
+        double xDiff = robotPose.getX() - speakerPos.getX();
+        double yDiff = speakerPos.getY() - robotPose.getY();
+        return 180 - Math.toDegrees(Math.atan(yDiff / xDiff));
+    }
+
+    private double calcAngleToSpeakerForRed() {
+        Pose2d robotPose = m_odometry.getEstimatedPosition();
+        Pose2d speakerPos = getSpeakerPos();
+        double xDiff = speakerPos.getX() - robotPose.getX();
+        double yDiff = speakerPos.getY() - robotPose.getY();
+        return Math.toDegrees(Math.atan(yDiff / xDiff));
+    }
+
+    public static Translation2d calcSpeakerCoRForBlue(Pose2d robotPose, Pose2d speakerPos) {
+        double xDiff = robotPose.getX() - speakerPos.getX();
+        double yDiff = speakerPos.getY() - robotPose.getY();
+        return new Translation2d(xDiff, yDiff);
+    }
+
+    public static Translation2d calcSpeakerCoRForRed(Pose2d robotPose, Pose2d speakerPos) {
+        double xDiff = speakerPos.getX() - robotPose.getX();
+        double yDiff = speakerPos.getY() - robotPose.getY();
+        return new Translation2d(xDiff, yDiff);
+    }
+
+    public void setCenterOfRotationToRobot() {
+        setCenterOfRotation(new Translation2d());
+    }
+
+    private void setCenterOfRotation(Translation2d pos) {
+        _centerOfRotation = pos;
+    }
+
     /*
      * SysID robot drive characterization routines
-     */    
+     */
     private SwerveVoltageRequest driveVoltageRequest = new SwerveVoltageRequest(true);
 
-    private SysIdRoutine m_driveSysIdRoutine = new SysIdRoutine(new SysIdRoutine.Config(null, null, null, ModifiedSignalLogger.logState()),
-            new SysIdRoutine.Mechanism((Measure<Voltage> volts) -> setControl(driveVoltageRequest.withVoltage(volts.in(Volts))), null,
+    private SysIdRoutine m_driveSysIdRoutine = new SysIdRoutine(
+            new SysIdRoutine.Config(null, null, null, ModifiedSignalLogger.logState()),
+            new SysIdRoutine.Mechanism(
+                    (Measure<Voltage> volts) -> setControl(driveVoltageRequest.withVoltage(volts.in(Volts))), null,
                     this));
 
     private SwerveVoltageRequest steerVoltageRequest = new SwerveVoltageRequest(false);
 
-    private SysIdRoutine m_steerSysIdRoutine = new SysIdRoutine(new SysIdRoutine.Config(null, null, null, ModifiedSignalLogger.logState()),
-            new SysIdRoutine.Mechanism((Measure<Voltage> volts) -> setControl(steerVoltageRequest.withVoltage(volts.in(Volts))), null,
+    private SysIdRoutine m_steerSysIdRoutine = new SysIdRoutine(
+            new SysIdRoutine.Config(null, null, null, ModifiedSignalLogger.logState()),
+            new SysIdRoutine.Mechanism(
+                    (Measure<Voltage> volts) -> setControl(steerVoltageRequest.withVoltage(volts.in(Volts))), null,
                     this));
 
     private SysIdRoutine m_slipSysIdRoutine = new SysIdRoutine(
             new SysIdRoutine.Config(Volts.of(0.25).per(Seconds.of(1)), null, null, ModifiedSignalLogger.logState()),
-            new SysIdRoutine.Mechanism((Measure<Voltage> volts) -> setControl(driveVoltageRequest.withVoltage(volts.in(Volts))), null,
+            new SysIdRoutine.Mechanism(
+                    (Measure<Voltage> volts) -> setControl(driveVoltageRequest.withVoltage(volts.in(Volts))), null,
                     this));
 
     public Command runDriveQuasiTest(Direction direction) {
