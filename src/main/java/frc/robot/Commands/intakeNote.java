@@ -16,57 +16,64 @@ public class intakeNote extends Command {
     DoubleSupplier m_fwd, m_rev;
     UBIntakeSubsystem m_intake;
     StageSubsystem m_stage;
-    //armSubsystem m_arm;
+
+    // armSubsystem m_arm;
     /** Creates a new intakeNote. */
 
-  public intakeNote(UBIntakeSubsystem intake, StageSubsystem stage, DoubleSupplier fwd, DoubleSupplier rev) {
-    // Use addRequirements() here to declare subsystem dependencies.
-    m_intake = intake;
-    m_stage = stage;
-    //m_arm = arm;
-    m_fwd = fwd;
-    m_rev = rev;
-    
-    addRequirements(m_intake);
-    addRequirements(m_stage);
-    //addRequirements(m_arm);
-  }
+    public intakeNote(UBIntakeSubsystem intake, StageSubsystem stage) { //}, DoubleSupplier fwd, DoubleSupplier rev) {
+        // Use addRequirements() here to declare subsystem dependencies.
+        m_intake = intake;
+        m_stage = stage;
+        // m_arm = arm;
+//        m_fwd = fwd;
+//        m_rev = rev;
 
-  // Called when the command is initially scheduled.
-  @Override
-  public void initialize() {}
-
-  // Called every time the scheduler runs while the command is scheduled.
-  @Override
-  public void execute() {
-    double speed;
-
-    /* We will need to do some conditional checks before we can run the intake and the stage
-     * 1. You need to make sure that the arm is at the Home Position
-     * 2. You need to make sure that the beam break does not report 0/1 depending on the signal that states if a game piece is in the shooter
-      */
-
-    if ((speed = m_fwd.getAsDouble()) > 0.1) {
-        m_intake.runIntake(speed);
-        m_stage.runStage(speed);
-    } else if ((speed = m_rev.getAsDouble()) > 0.1) {
-        m_intake.runIntake(-speed);
-        //m_stage.runStage(-speed);
-    } else {
-        m_intake.stopIntake();
+        addRequirements(m_intake);
+        addRequirements(m_stage);
+        // addRequirements(m_arm);
     }
-  }
 
-  // Called once the command ends or is interrupted.
-  @Override
-  public void end(boolean interrupted) {
-    m_intake.stopIntake();
-    m_stage.stopStage();
-  }
+    // Called when the command is initially scheduled.
+    @Override
+    public void initialize() {
+    }
 
-  // Returns true when the command should end.
-  @Override
-  public boolean isFinished() {
-    return false;
-  }
+    // Called every time the scheduler runs while the command is scheduled.
+    @Override
+    public void execute() {
+        double speed;
+
+        /*
+         * We will need to do some conditional checks before we can run the intake and
+         * the stage
+         * 1. You need to make sure that the arm is at the Home Position
+         * 2. You need to make sure that the beam break does not report 0/1 depending on
+         * the signal that states if a game piece is in the shooter
+         */
+
+//        if (((speed = m_fwd.getAsDouble()) > 0.1) && (!m_stage.isNoteInStage())) {
+        if (!m_stage.isNoteInStage()) {
+              m_intake.runIntake(0.98);
+              m_stage.runStage(0.6);
+//        } else if ((speed = m_rev.getAsDouble()) > 0.1) {
+//            m_intake.runIntake(-speed);
+//            m_stage.runStage(-speed);
+        } else {
+            m_intake.stopIntake();
+            m_stage.stopStage();
+        }
+    }
+
+    // Called once the command ends or is interrupted.
+    @Override
+    public void end(boolean interrupted) {
+        m_intake.stopIntake();
+        m_stage.stopStage();
+    }
+
+    // Returns true when the command should end.
+    @Override
+    public boolean isFinished() {
+        return false;
+    }
 }

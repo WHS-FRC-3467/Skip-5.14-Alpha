@@ -49,7 +49,7 @@ public class UBIntakeSubsystem extends SubsystemBase {
         m_configuration.MotorOutput.NeutralMode = NeutralModeValue.Brake;
         
         /* Set the motor direction */
-        m_configuration.MotorOutput.Inverted = InvertedValue.CounterClockwise_Positive;
+        m_configuration.MotorOutput.Inverted = InvertedValue.Clockwise_Positive;
 /*
         // Configure the motor to use a supply limit of 5 amps IF we exceed 10 amps for over 1 second
         m_currentLimits.SupplyCurrentLimit = 5; // Limit to 5 amps
