@@ -88,6 +88,7 @@ public class RobotContainer {
     SwerveRequest.SwerveDriveBrake m_brake = new SwerveRequest.SwerveDriveBrake();
     SwerveRequest.RobotCentric m_forwardStraight = new SwerveRequest.RobotCentric().withDriveRequestType(DriveRequestType.OpenLoopVoltage);
     SwerveRequest.PointWheelsAt m_point = new SwerveRequest.PointWheelsAt();
+    SwerveRequest.FieldCentricFacingAngle m_head = new SwerveRequest.FieldCentricFacingAngle();
 
     // Set up Drivetrain Telemetry
     Telemetry m_logger = new Telemetry(m_MaxSpeed);
@@ -187,8 +188,11 @@ public class RobotContainer {
 
     private void configureButtonBindings() {
 
-        // Driver: While A button is held, put swerve modules in Brake mode (modules make an 'X')
-        m_driverCtrl.a().whileTrue(m_drivetrain.applyRequest(() -> m_brake));
+        // Driver: While A button is held, drive while pointing direction 0 
+        m_driverCtrl.a().whileTrue(m_drivetrain.applyRequest(
+                () -> m_head.withVelocityX(m_driverCtrl.getLeftY())
+                            .withVelocityY(m_driverCtrl.getLeftX())
+                            .withTargetDirection(new Rotation2d(m_drivetrain.calcAngleToSpeaker()))));
 
         // Driver: While B button is held, point drivetrain in the direction of the Left Joystick
         m_driverCtrl.b().whileTrue(m_drivetrain.applyRequest(

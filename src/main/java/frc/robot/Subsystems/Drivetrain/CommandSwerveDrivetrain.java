@@ -14,6 +14,7 @@ import com.pathplanner.lib.util.PIDConstants;
 import com.pathplanner.lib.util.ReplanningConfig;
 
 import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.units.Measure;
@@ -122,6 +123,11 @@ public class CommandSwerveDrivetrain extends SwerveDrivetrain implements Subsyst
 
     public ChassisSpeeds getCurrentRobotChassisSpeeds() {
         return m_kinematics.toChassisSpeeds(getState().ModuleStates);
+    }
+
+    //Gets current rotation in from Pidgeon 
+    public Rotation2d getGyroscopeRotation(){
+        return m_odometry.getEstimatedPosition().getRotation();
     }
 
     // Gets current alliance from driverstation to know which speaker to point at
