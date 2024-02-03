@@ -111,10 +111,7 @@ public final class Constants {
         //Measured when the lower angle is vertical using 1x1
         public static final double ANGLE_OFFSET = 12.4 - VERTICAL_ANGLE_UPPER;
 
-        public enum ArmState{
-            STOWED, DOWN, AMP, SUBWOOFER, PODIUM, HALF_COURT, SUBSTATION, INTERMEDIATE, OTHER
-        }
-        
+       
         
         /*
          * Constants for moveArmCommand(maxVelocity, maxAccel, goalRotations) - what the

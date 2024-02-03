@@ -15,13 +15,12 @@ import com.ctre.phoenix6.configs.VoltageConfigs;
 
 import com.ctre.phoenix6.controls.Follower;
 import com.ctre.phoenix6.controls.MotionMagicVoltage;
-//import com.ctre.phoenix6.controls.NeutralOut;
+import com.ctre.phoenix6.controls.NeutralOut;
 import com.ctre.phoenix6.controls.PositionVoltage;
 //import com.ctre.phoenix6.controls.VelocityVoltage;
 
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix.motorcontrol.FeedbackDevice;
-import com.ctre.phoenix6.StatusCode;
 
 import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
@@ -29,12 +28,10 @@ import com.ctre.phoenix6.configs.MotionMagicConfigs;
 import com.ctre.phoenix6.configs.FeedbackConfigs;
 
 import edu.wpi.first.math.VecBuilder;
-//import edu.wpi.first.math.VecBuilder;
-//import edu.wpi.first.math.Vector;
 import edu.wpi.first.math.controller.ArmFeedforward;
 import edu.wpi.first.math.controller.ProfiledPIDController;
-//import edu.wpi.first.math.numbers.N2;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
+import edu.wpi.first.wpilibj.DutyCycleEncoder;
 import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.Timer;
@@ -51,7 +48,6 @@ import edu.wpi.first.wpilibj.util.Color;
 import edu.wpi.first.wpilibj.util.Color8Bit;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-//import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.StartEndCommand;
 
@@ -65,29 +61,81 @@ import frc.robot.sim.PhysicsSim;
 
 /** Creates a new ArmSubsystem. */
 public class ArmSubsystem extends SubsystemBase {
+    
+    // armstate enum
+    public enum armState {
 
+        armIntake(0, "INTAKE - DEFAULT POSITION"),
+        armSubwoofer(0, "SHOOT FROM SUBWOOFER"),
+        armAmp(60, "SCORE IN AMP"),
+        armPodium(120, "SHOOT FROM PODIUM"),
+        armHalfCourt(120,  "SHOOT FROM HALF COURT"),
+        armClimb(150, "CLIMB");
+
+        private final int setpoint;
+        private final String name;
+
+        private armState(int position, String name) {
+            this.setpoint = position;
+            this.name = name;
+        }
+        
+        public int getSetpoint() {
+            return this.setpoint;
+        }
+
+        public String getName() {
+            return this.name;
+        }
+    }
+
+    // Declare Motors
     private final TalonFX m_armLeader = new TalonFX(CanConstants.ID_ArmLeader);
     private final TalonFX m_armFollower = new TalonFX(CanConstants.ID_ArmFollower);
 
     private final MotionMagicVoltage m_mmReq = new MotionMagicVoltage(0);
 
-    private FeedbackConfigs FeedbackSensorSource;
-    private FeedbackConfigs FeedbackRotorOffset;
-    private final FeedbackConfigs sensorConfiguration = new FeedbackConfigs();
+    // Declare external arm encoder
+    private DutyCycleEncoder m_armEncoder = new DutyCycleEncoder(DIOConstants.ENCODER_ARM);
 
-    private TrapezoidProfile.Constraints armConstraints;
+    /* Tunable Values */
+    // Arm Setpoint
+    private static TunableNumber m_armSetpoint = new TunableNumber("m_armSetpoint", 0.0);
 
-    private JointConfig joint_Arm = new JointConfig(ArmConstants.UPPER_MASS, ArmConstants.UPPER_LENGTH,
-            ArmConstants.UPPER_MOI, ArmConstants.UPPER_CGRADIUS, ArmConstants.UPPER_MOTOR);
+    // For Arm PID Controller 
+    private static TunableNumber m_kP = new TunableNumber("Arm kP", 1.00);
+    // 
+    private static TunableNumber m_kI = new TunableNumber("Arm kI", 0.00);
+    // 
+    private static TunableNumber m_kD = new TunableNumber("Arm kD", 0.00);
 
-    private final ArmFeedforward m_feedforward = new ArmFeedforward(
-            ArmConstants.kSVolts, ArmConstants.kGVolts,
-            ArmConstants.kVVoltSecondPerRad, ArmConstants.kAVoltSecondSquaredPerRad);
+    // For ArmFeedForward
+    private static TunableNumber m_kS = new TunableNumber("Arm kS", 1.0);
+    //
+    private static TunableNumber m_kG = new TunableNumber("Arm kG", 0.32); // Volts
+    // 
+    private static TunableNumber m_kV = new TunableNumber("Arm kV", 21.67); // Volts / sec / rot
+    //
+    private static TunableNumber m_kA = new TunableNumber("Arm kA", 0.09); // Volts / sec**2 / rot
 
-    private ArmState m_armState;
-    private double m_armSetpoint;
+    // For Arm Motion Magic
+    private static TunableNumber m_kMM_MaxVel = new TunableNumber("MM MaxVel", 0.00); // Rot / sec
+    //
+    private static TunableNumber m_kMM_MaxAcc = new TunableNumber("MM MaxAcc", 0.00); // Rot / sec**2
+    //
+    private static TunableNumber m_kMM_Jerk = new TunableNumber("MM Jerk", 0.00); // Acceleration Derivative
 
+    // The offset of the arm from the horizontal in its neutral position, measured from the horizontal
+    public static final double kArmOffsetRads = 0.5;
+ 
+    // Arm Feedforward
+    private final ArmFeedforward m_feedforward = new ArmFeedforward( m_kS.get(), m_kG.get(), m_kV.get(), m_kA.get());
+
+    // Current Limiting
     private final CurrentLimitsConfigs m_currentLimits = new CurrentLimitsConfigs();
+
+    // Motor braking
+    private final NeutralOut m_brake = new NeutralOut();
 
     public ArmSubsystem() {
 
@@ -96,17 +144,18 @@ public class ArmSubsystem extends SubsystemBase {
             this.simulationInit();
         }
 
-        // From the Motion Magic example
+        // Set up configurators
         TalonFXConfiguration leadConfiguration = new TalonFXConfiguration();
         TalonFXConfiguration followConfiguration = new TalonFXConfiguration();
 
-        /* set motors to Brake */
+        // Set motors to Brake
         leadConfiguration.MotorOutput.NeutralMode = NeutralModeValue.Brake;
         followConfiguration.MotorOutput.NeutralMode = NeutralModeValue.Brake;
 
+        // Motor Inversion
         leadConfiguration.MotorOutput.Inverted = InvertedValue.Clockwise_Positive;
 
-        /* Configure MotionMagic */
+        // Configure MotionMagic
         MotionMagicConfigs mm = leadConfiguration.MotionMagic;
         // 5 rotations per second cruise
         mm.MotionMagicCruiseVelocity = 5;
@@ -252,6 +301,48 @@ public class ArmSubsystem extends SubsystemBase {
         // From the Motion Magic example
         m_armLeader.setPosition(0.3);
     }
+
+
+        /* Manual Commands */
+    public void driveManual(double speed) {
+        m_motorLeader.set(speed);
+        updatePosition();
+    }
+
+    public void moveArmToExactPosition(int position) {
+        m_motorLeader.setPosition(position);
+    }
+
+    /* Closed Loop Motion Control */
+
+    public void moveArmToPosition(eArmPosition position) {
+        m_moveToPosition = position;
+        m_motorLeader.setPosition(position.getSetpoint());
+        updatePosition();
+
+        // Now that the arm has been rer-commanded to a position, turn off flag
+        m_wasRecentlyDisabled = false;
+    }
+
+    public void updatePosition() {
+        m_actualEncoderPosition = m_motorLeader.getPosition().getValueAsDouble();
+    }
+
+    public double getArmPos() {
+        return m_actualEncoderPosition;
+    }
+
+    // Use Current Position as Setpoint
+    public void holdMagically (boolean reportStats) {
+
+        // If robot was recently disabled and hasn't been re-commanded to a position, use actual encoder position
+        if (m_wasRecentlyDisabled == true) {
+            m_motorLeader.setPosition(m_actualEncoderPosition);
+        } else {
+            m_motorLeader.setPosition(m_moveToPosition.getSetpoint());
+        }
+    }
+
 
     public void simulationInit() {
 
