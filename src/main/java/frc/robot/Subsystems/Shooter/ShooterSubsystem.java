@@ -84,14 +84,14 @@ public class ShooterSubsystem extends SubsystemBase {
         //leadConfiguration.MotorOutput.Inverted = InvertedValue.Clockwise_Positive;
 
         /* Configure the lead Talon to use a supply limit of 5 amps IF we exceed 10 amps for over 1 second */
-        m_currentLimits.SupplyCurrentLimit = 5; // Limit to 5 amps
+        /* m_currentLimits.SupplyCurrentLimit = 5; // Limit to 5 amps
         m_currentLimits.SupplyCurrentThreshold = 10; // If we exceed 10 amps
         m_currentLimits.SupplyTimeThreshold = 1.0; // For at least 1 second
         m_currentLimits.SupplyCurrentLimitEnable = true; // And enable it
 
         m_currentLimits.StatorCurrentLimit = 20; // Limit stator to 20 amps
         m_currentLimits.StatorCurrentLimitEnable = true; // And enable it
-        leadConfiguration.CurrentLimits = m_currentLimits;
+        leadConfiguration.CurrentLimits = m_currentLimits; */
 */
 
         /* Config the peak outputs */
