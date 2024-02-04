@@ -64,7 +64,7 @@ public class ShooterSubsystem extends SubsystemBase {
         followConfiguration.MotorOutput.NeutralMode = NeutralModeValue.Coast;
 
         /*
-         * Configure the lead Talon to use a supply limit of 5 amps IF we exceed 10 amps
+         * Configure the lead Talon to use a  supply limit of 5 amps IF we exceed 10 amps
          * for over 1 second
          */
         m_currentLimits.SupplyCurrentLimit = 5; // Limit to 5 amps

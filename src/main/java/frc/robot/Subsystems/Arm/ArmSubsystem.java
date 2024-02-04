@@ -50,7 +50,7 @@ import frc.robot.Subsystems.Arm.Mechanisms;
 import frc.robot.Util.TunableNumber;
 
 public class ArmSubsystem extends SubsystemBase {
-    
+
     // Armstate enum
     public enum armState {
         armIntake(0, "INTAKE - DEFAULT POSITION"),
@@ -58,7 +58,7 @@ public class ArmSubsystem extends SubsystemBase {
         armSubwoofer(120, "SHOOT FROM SUBWOOFER"),
         armPodium(120, "SHOOT FROM PODIUM"),
         armClimb(150, "CLIMB"),
-        armHalfCourt(120,  "SHOOT FROM HALF COURT"),
+        armHalfCourt(120, "SHOOT FROM HALF COURT"),
         armNoneOfTheAbove(130, "Not in any of the postition");
 
         private final int setpoint;
@@ -68,7 +68,7 @@ public class ArmSubsystem extends SubsystemBase {
             this.setpoint = position;
             this.name = name;
         }
-        
+
         public int getSetpoint() {
             return this.setpoint;
         }
@@ -87,7 +87,6 @@ public class ArmSubsystem extends SubsystemBase {
     // Declare external arm encoder - this is the start of the degree measuring
     private DutyCycleEncoder m_armEncoder = new DutyCycleEncoder(DIOConstants.ENCODER_ARM);
 
-
     // Declare Enumerator
     public armState m_currentPos;
     public armState m_desiredPos;
@@ -101,10 +100,9 @@ public class ArmSubsystem extends SubsystemBase {
     private ProfiledPIDController m_controllerArm;
 
     private JointConfig joint_Arm = new JointConfig(ArmConstants.UPPER_MASS, ArmConstants.UPPER_LENGTH,
-      ArmConstants.UPPER_MOI, ArmConstants.UPPER_CGRADIUS, ArmConstants.UPPER_MOTOR);
-      
-    private final ArmFeedforward m_feedforward =
-        new ArmFeedforward(
+            ArmConstants.UPPER_MOI, ArmConstants.UPPER_CGRADIUS, ArmConstants.UPPER_MOTOR);
+
+    private final ArmFeedforward m_feedforward = new ArmFeedforward(
             ArmConstants.kSVolts, ArmConstants.kGVolts,
             ArmConstants.kVVoltSecondPerRad, ArmConstants.kAVoltSecondSquaredPerRad);
 
@@ -114,45 +112,48 @@ public class ArmSubsystem extends SubsystemBase {
 
     private final NeutralOut m_brake = new NeutralOut();
 
-  public ArmSubsystem() {
-    
-    // From the Motion Magic example -- Configuration
-    var leadConfiguration = new TalonFXConfiguration();
-    var followConfiguration = new TalonFXConfiguration();
+    public ArmSubsystem() {
 
-    /* set motors to Brake */
-    leadConfiguration.MotorOutput.NeutralMode = NeutralModeValue.Brake;
-    followConfiguration.MotorOutput.NeutralMode = NeutralModeValue.Brake;
+        // From the Motion Magic example -- Configuration
+        var leadConfiguration = new TalonFXConfiguration();
+        var followConfiguration = new TalonFXConfiguration();
 
-    /* Make the right motor follow the other */
-    m_armFollower.setControl(new Follower(m_armLeader.getDeviceID(), true));
+        /* set motors to Brake */
+        leadConfiguration.MotorOutput.NeutralMode = NeutralModeValue.Brake;
+        followConfiguration.MotorOutput.NeutralMode = NeutralModeValue.Brake;
 
-    /* Configure current limits */
-    MotionMagicConfigs mm = leadConfiguration.MotionMagic;
-    mm.MotionMagicCruiseVelocity = 10; // 5 rotations per second cruise
-    mm.MotionMagicAcceleration = 10; // Take approximately 0.5 seconds to reach max vel
-    // Take approximately 0.2 seconds to reach max accel 
-    mm.MotionMagicJerk = 50;
+        /* Make the right motor follow the other */
+        m_armFollower.setControl(new Follower(m_armLeader.getDeviceID(), true));
 
-    Slot0Configs slot0 = leadConfiguration.Slot0;
-    slot0.kP = 60;
-    slot0.kI = 0;
-    slot0.kD = 0.1;
-    slot0.kV = 0.12;
-    slot0.kS = 0.25; // Approximately 0.25V to get the mechanism moving
+        /* Configure current limits */
+        MotionMagicConfigs mm = leadConfiguration.MotionMagic;
+        mm.MotionMagicCruiseVelocity = 10; // 5 rotations per second cruise
+        mm.MotionMagicAcceleration = 10; // Take approximately 0.5 seconds to reach max vel
+        // Take approximately 0.2 seconds to reach max accel
+        mm.MotionMagicJerk = 50;
 
-    FeedbackConfigs fdb = leadConfiguration.Feedback;
-    fdb.SensorToMechanismRatio = 144.0;
+        Slot0Configs slot0 = leadConfiguration.Slot0;
+        slot0.kP = 60;
+        slot0.kI = 0;
+        slot0.kD = 0.1;
+        slot0.kV = 0.12;
+        slot0.kS = 0.25; // Approximately 0.25V to get the mechanism moving
 
-    StatusCode status = StatusCode.StatusCodeNotInitialized;
-    for(int i = 0; i < 5; ++i) {
-      status = m_armLeader.getConfigurator().apply(leadConfiguration);
-      if (status.isOK()) break;
+        FeedbackConfigs fdb = leadConfiguration.Feedback;
+        fdb.SensorToMechanismRatio = 144.0;
+
+        StatusCode status = StatusCode.StatusCodeNotInitialized;
+        for (int i = 0; i < 5; ++i) {
+            status = m_armLeader.getConfigurator().apply(leadConfiguration);
+            if (status.isOK())
+                break;
+        }
+
+        if (!status.isOK()) {
+            System.out.println("Could not configure device. Error: " + status.toString());
+        }
     }
-    
-    if (!status.isOK()) {
-      System.out.println("Could not configure device. Error: " + status.toString());}
-    }
+
     private int m_printCount = 0;
     private final Mechanisms m_mechanisms = new Mechanisms();
 
@@ -160,158 +161,166 @@ public class ArmSubsystem extends SubsystemBase {
      * Configure the lead Talon to use a supply limit of 5 amps IF we exceed 10 amps
      * for over 1 second
      */
-    /* m_currentLimits.SupplyCurrentLimit = 5; // Limit to 5 amps
-    m_currentLimits.SupplyCurrentThreshold = 10; // If we exceed 10 amps
-    m_currentLimits.SupplyTimeThreshold = 1.0; // For at least 1 second
-    m_currentLimits.SupplyCurrentLimitEnable = true; // And enable it
+    /*
+     * m_currentLimits.SupplyCurrentLimit = 5; // Limit to 5 amps
+     * m_currentLimits.SupplyCurrentThreshold = 10; // If we exceed 10 amps
+     * m_currentLimits.SupplyTimeThreshold = 1.0; // For at least 1 second
+     * m_currentLimits.SupplyCurrentLimitEnable = true; // And enable it
+     * 
+     * m_currentLimits.StatorCurrentLimit = 20; // Limit stator to 20 amps
+     * m_currentLimits.StatorCurrentLimitEnable = true; // And enable it
+     * leadConfiguration.CurrentLimits = m_currentLimits;
+     */
 
-    m_currentLimits.StatorCurrentLimit = 20; // Limit stator to 20 amps
-    m_currentLimits.StatorCurrentLimitEnable = true; // And enable it
-    leadConfiguration.CurrentLimits = m_currentLimits; */
+    @Override
+    public void periodic() {
+        // This method will be called once per scheduler run
+        // m_armLeader.setSelectedSensorPosition(dutyCycleToCTREUnits(getArmPos()), 0,
+        // ArmConstants.TIMEOUT);
 
+        SmartDashboard.putBoolean("Arm at Setpoint", getArmAtDesiredSetpoint());
+        SmartDashboard.putNumber("Arm Angle", getArmJointDegrees());
 
-    
-  @Override
-  public void periodic() {
-    // This method will be called once per scheduler run
-    // m_armLeader.setSelectedSensorPosition(dutyCycleToCTREUnits(getArmPos()), 0, ArmConstants.TIMEOUT);
+        if (Constants.tuningMode) {
+            SmartDashboard.putNumber("Arm Angle Uncorrected", dutyCycleToDegrees(getArmPos()));
+            SmartDashboard.putNumber("Arm Error", getArmError());
+            SmartDashboard.putNumber("Arm Setpoint", m_upperSetpoint);
+        }
+        // From the Motion Magic example
+        if (m_printCount++ > 10) {
+            m_printCount = 0;
+            System.out.println("Pos: " + m_armLeader.getPosition());
+            System.out.println("Vel: " + m_armLeader.getVelocity());
+            System.out.println();
+        }
+        m_mechanisms.update(m_armLeader.getPosition(), m_armLeader.getVelocity());
 
-    SmartDashboard.putBoolean("Arm at Setpoint", getArmAtDesiredSetpoint());
-    SmartDashboard.putNumber("Arm Angle", getArmJointDegrees());
+        /* Deadband the joystick */
+        double leftY = m_joystick.getLeftY();
+        if (leftY > -0.1 && leftY < 0.1)
+            leftY = 0;
 
-    if (Constants.tuningMode) {
-      SmartDashboard.putNumber("Arm Angle Uncorrected", dutyCycleToDegrees(getArmPos()));
-      SmartDashboard.putNumber("Arm Error", getArmError());
-      SmartDashboard.putNumber("Arm Setpoint", m_upperSetpoint);
-    } 
-      // From the Motion Magic example
-    if (m_printCount++ > 10) {
-        m_printCount = 0;
-        System.out.println("Pos: " + m_armLeader.getPosition());
-        System.out.println("Vel: " + m_armLeader.getVelocity());
-        System.out.println();
-      }
-      m_mechanisms.update(m_armLeader.getPosition(), m_armLeader.getVelocity());
-
-    /* Deadband the joystick */
-    double leftY = m_joystick.getLeftY();
-    if(leftY > -0.1 && leftY < 0.1) leftY = 0;
-
-    m_armLeader.setControl(m_mmReq.withPosition(leftY * 10).withSlot(0));
-    if(m_joystick.getBButton()) {
-      armDown();
+        m_armLeader.setControl(m_mmReq.withPosition(leftY * 10).withSlot(0));
+        if (m_joystick.getBButton()) {
+            armDown();
+        }
     }
-  }
 
-  /*public void reset() {
-    m_upperSetpoint = getArmJointDegrees();
-    m_controllerArm.reset(getArmJointDegrees());
-    m_setpoint = new Setpoint(m_lowerSetpoint, m_upperSetpoint, false, ClawState.IN, 
-                              m_lowerSetpoint, m_upperSetpoint, false, ClawState.OUT, ArmState.OTHER);
-  }*/
+    /*
+     * public void reset() {
+     * m_upperSetpoint = getArmJointDegrees();
+     * m_controllerArm.reset(getArmJointDegrees());
+     * m_setpoint = new Setpoint(m_lowerSetpoint, m_upperSetpoint, false,
+     * ClawState.IN,
+     * m_lowerSetpoint, m_upperSetpoint, false, ClawState.OUT, ArmState.OTHER);
+     * }
+     */
 
-  /*public void updateUpperSetpoint(double setpoint) {
-    if (m_upperSetpoint != setpoint) {
-      if (setpoint < 360 && setpoint > 0) {
-        m_upperSetpoint = setpoint;
-      }
-    }
-  }*/
+    /*
+     * public void updateUpperSetpoint(double setpoint) {
+     * if (m_upperSetpoint != setpoint) {
+     * if (setpoint < 360 && setpoint > 0) {
+     * m_upperSetpoint = setpoint;
+     * }
+     * }
+     * }
+     */
 
     // System.out.println("Upper PID" + pidOutput);
     // if(Math.abs(pidOutput) > 0.01 && Math.abs(pidOutput)<0.045){
-    //   pidOutput = Math.copySign(0.045, pidOutput);
+    // pidOutput = Math.copySign(0.045, pidOutput);
     // }
-    //m_armLeader.set(pidOutput + ff); // may need to negate ff voltage to get desired output }
+    // m_armLeader.set(pidOutput + ff); // may need to negate ff voltage to get
+    // desired output }
 
     // if(Math.abs(pidOutput) > 0.01 && Math.abs(pidOutput)<0.04){
-    //   pidOutput = Math.copySign(0.04, pidOutput);
+    // pidOutput = Math.copySign(0.04, pidOutput);
     // }
     // System.out.println("Lower PID" + pidOutput);
-  
-  
-  public double getArmError(){
-    return Math.abs(m_desiredPos.getSetpoint() - getArmJointDegrees());
-  }
 
-  public boolean getArmAtDesiredSetpoint() {
-    return getArmError() < ArmConstants.TOLERANCE_POS;
-  }
-
-  
-  /* public Setpoint getSetpoint() {
-    if(m_setpoint.equals(null)){
-      reset();
-      return m_setpoint;
+    public double getArmError() {
+        return Math.abs(m_desiredPos.getSetpoint() - getArmJointDegrees());
     }
-    else{
-      return m_setpoint;
+
+    public boolean getArmAtDesiredSetpoint() {
+        return getArmError() < ArmConstants.TOLERANCE_POS;
     }
-  }*/
 
-  public void setPercentOutputArm(double speed) {
-    m_armLeader.set(speed);
-  }
+    /*
+     * public Setpoint getSetpoint() {
+     * if(m_setpoint.equals(null)){
+     * reset();
+     * return m_setpoint;
+     * }
+     * else{
+     * return m_setpoint;
+     * }
+     * }
+     */
 
+    public void setPercentOutputArm(double speed) {
+        m_armLeader.set(speed);
+    }
 
-  public void neutralArm() {
-    //m_armLeader.neutralOutput();
-  }
+    public void neutralArm() {
+        // m_armLeader.neutralOutput();
+    }
 
-  public double getArmPos() {
-    return m_armEncoder.getAbsolutePosition();
-  }
+    public double getArmPos() {
+        return m_armEncoder.getAbsolutePosition();
+    }
 
-  public double getArmJointDegrees() {
-    return dutyCycleToDegrees(getArmPos()) + ArmConstants.ANGLE_OFFSET;
-  }
+    public double getArmJointDegrees() {
+        return dutyCycleToDegrees(getArmPos()) + ArmConstants.ANGLE_OFFSET;
+    }
 
-  public double dutyCycleToCTREUnits(double dutyCyclePos) {
-    // 4096 units per rotation = raw sensor units for Pulse width encoder
-    return dutyCyclePos * 4096;
-  }
+    public double dutyCycleToCTREUnits(double dutyCyclePos) {
+        // 4096 units per rotation = raw sensor units for Pulse width encoder
+        return dutyCyclePos * 4096;
+    }
 
-  public double dutyCycleToDegrees(double dutyCyclePos) {
-    return dutyCyclePos * 360;
-  }
+    public double dutyCycleToDegrees(double dutyCyclePos) {
+        return dutyCyclePos * 360;
+    }
 
-  // Command methods, will get their own files
-  public void armDown() {
-      // From the Motion Magic example
-    m_armLeader.setPosition(0);
-    armState m_armState = armState.armIntake;
-  }
+    // Command methods, will get their own files
+    public void armDown() {
+        // From the Motion Magic example
+        m_armLeader.setPosition(0);
+        armState m_armState = armState.armIntake;
+    }
 
     public void SubwooferPos() {
-      // From the Motion Magic example
-    m_armLeader.setPosition(0.25);
-    armState m_armState = armState.armSubwoofer;
-  }
+        // From the Motion Magic example
+        m_armLeader.setPosition(0.25);
+        armState m_armState = armState.armSubwoofer;
+    }
+
     public void armAmpPos() {
-      // From the Motion Magic example
-    m_armLeader.setPosition(0.4);
-    armState m_armState = armState.armAmp;
+        // From the Motion Magic example
+        m_armLeader.setPosition(0.4);
+        armState m_armState = armState.armAmp;
 
-  }
+    }
 
-  public void armPodiumPos() {
-      // From the Motion Magic example
-    m_armLeader.setPosition(0.3);
-    armState m_armState = armState.armPodium;
+    public void armPodiumPos() {
+        // From the Motion Magic example
+        m_armLeader.setPosition(0.3);
+        armState m_armState = armState.armPodium;
 
-  }
+    }
 
-  public void armHalfCourtPos() {
-      // From the Motion Magic example
-    m_armLeader.setPosition(0.25);
-    armState m_armState = armState.armHalfCourt;
+    public void armHalfCourtPos() {
+        // From the Motion Magic example
+        m_armLeader.setPosition(0.25);
+        armState m_armState = armState.armHalfCourt;
 
-  }
-  public armState returnArmstate() {
-    
-    return m_armState.getSetpoint();
-    
-  }
+    }
 
+    public armState returnArmstate() {
+
+        return m_armState.getSetpoint();
+
+    }
 
 }
