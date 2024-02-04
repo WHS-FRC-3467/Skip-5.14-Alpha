@@ -14,33 +14,34 @@ import edu.wpi.first.wpilibj2.command.StartEndCommand;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants.CanConstants;
 import frc.robot.Constants.DIOConstants;
+import frc.robot.Constants.StageConstants;
 
 public class StageSubsystem extends SubsystemBase {
     // Initialize Bags
-    TalonSRX m_stageLead = new TalonSRX(CanConstants.ID_StageLeft);
-    TalonSRX m_stageFollow = new TalonSRX(CanConstants.ID_StageRight);
-    DigitalInput stageBeamBreak = new DigitalInput(DIOConstants.StageBeamBreak);
-    boolean noteInStage = false;
+    TalonSRX m_stageLead = new TalonSRX(CanConstants.ID_StageMotor);
+    //TalonSRX m_stageFollow = new TalonSRX(CanConstants.ID_StageRight);
+    DigitalInput m_stageBeamBreak = new DigitalInput(DIOConstants.kStageBeamBreak);
+    boolean m_noteInStage = false;
 
-    /** Creates a new IntakeSubsystem. */
+    /** Creates a new StageSubsystem. */
     public StageSubsystem() {
 
         // Set motors to factory defaults
         m_stageLead.configFactoryDefault();
-        m_stageFollow.configFactoryDefault();
+        //m_stageFollow.configFactoryDefault();
 
         // Invert motor2 and have it follow motor1
-        m_stageFollow.follow(m_stageLead);
-        m_stageFollow.setInverted(false);
-        m_stageLead.setInverted(true);
+        //m_stageFollow.follow(m_stageLead);
+        //m_stageFollow.setInverted(false);
+        m_stageLead.setInverted(false);
 
         // Set motors to Brake
         m_stageLead.setNeutralMode(NeutralMode.Brake);
-        m_stageFollow.setNeutralMode(NeutralMode.Brake);
+        //m_stageFollow.setNeutralMode(NeutralMode.Brake);
 
         // Config ramp rate and current limit
-        m_stageLead.configOpenloopRamp(0.75);
-        m_stageLead.configSupplyCurrentLimit(new SupplyCurrentLimitConfiguration(true, 15, 20, 0.10));
+        //m_stageLead.configOpenloopRamp(0.75);
+        //m_stageLead.configSupplyCurrentLimit(new SupplyCurrentLimitConfiguration(true, 15, 20, 0.10));
 
         /* Config the peak and nominal outputs */
         m_stageLead.configNominalOutputForward(0.0, 30);
@@ -53,30 +54,30 @@ public class StageSubsystem extends SubsystemBase {
         m_stageLead.setStatusFramePeriod(StatusFrame.Status_10_Targets, 255);
         m_stageLead.setStatusFramePeriod(StatusFrame.Status_9_MotProfBuffer, 255);
 
-        m_stageFollow.setStatusFramePeriod(StatusFrame.Status_10_MotionMagic, 255);
-        m_stageFollow.setStatusFramePeriod(StatusFrame.Status_10_Targets, 255);
-        m_stageFollow.setStatusFramePeriod(StatusFrame.Status_9_MotProfBuffer, 255);
+        //m_stageFollow.setStatusFramePeriod(StatusFrame.Status_10_MotionMagic, 255);
+        //m_stageFollow.setStatusFramePeriod(StatusFrame.Status_10_Targets, 255);
+        //m_stageFollow.setStatusFramePeriod(StatusFrame.Status_9_MotProfBuffer, 255);
     }
 
     @Override
     public void periodic() {
 
         // This method will be called once per scheduler run
+
+        // Default command is to hold the note in place if sensor detects note
+        // (may need to flip the boolean value)
+        m_noteInStage = m_stageBeamBreak.get() ? false : true;
+
         SmartDashboard.putNumber("Stage Current Draw", m_stageLead.getSupplyCurrent());
-        SmartDashboard.putBoolean("Note Not In Stage", stageBeamBreak.get());
-        // Default command is to hold the note in place if sensor detects note - may
-        // need to flip the boolean value
-        if (!stageBeamBreak.get()) {
-            noteInStage = true;
-        }
+        SmartDashboard.putBoolean("Note In Stage", m_noteInStage);
     }
 
     /**
      * 
-     * @param speed speed to set stage motor at
+     * @param speed speed to set Stage motor at
      */
-    public void driveStage(double speed) {
-        m_stageLead.set(ControlMode.PercentOutput, speed * 1.0);
+    public void runStage(double speed) {
+        m_stageLead.set(ControlMode.PercentOutput, speed);
     }
 
     public void stopStage() {
@@ -85,38 +86,68 @@ public class StageSubsystem extends SubsystemBase {
 
     // Do not use if the shooter's target velocity is zero.
     public void ejectFront(double speed) {
-        if (noteInStage) {
-            this.driveStage(speed);
+        if (m_noteInStage) {
+            this.runStage(speed);
         }
     }
 
     public void ejectBack(double speed) {
-        if (noteInStage) {
-            this.driveStage(-speed);
+        if (m_noteInStage) {
+            this.runStage((-1.0) * speed);
         }
+    }
+
+    public boolean isNoteInStage() {
+        return m_noteInStage;
     }
 
     /*
      * Command Factories
      */
-
-    // Pass the note to the shooter
-    // Still need to prevent this from running if shooter is not ready (do this in
-    // RobotContainer or a Command Class)
-    public Command ejectFrontCommand(double speed) {
-        return new StartEndCommand(() -> this.ejectFront(speed), () -> this.stopStage());
+    public Command runStageCommand() {
+        return new InstantCommand(()-> this.runStage(StageConstants.kIntakeSpeed), this)
+        .repeatedly()
+        .andThen(()-> this.stopStage());
     }
 
-    // Command that holds note in place
+    // To Intake a Note, drive the Stage until the sensor says we have a Note
+    public Command intakeNoteCommand() {
+        return new InstantCommand(()-> this.runStage(StageConstants.kIntakeSpeed), this)
+            .until(()->this.isNoteInStage())
+            .andThen(()->this.stopStage());
+    }
+    
+    // Pass the Note to the Shooter
+    public Command feedNote2ShooterCommand() {
+        return new InstantCommand(() -> this.ejectFront(StageConstants.kFeedToShooterSpeed), this)
+            .withTimeout(StageConstants.kFeedToShooterTime)
+            .andThen(()->this.stopStage());
+    }
+
+    // Feed the Note to the Amp
+    public Command feedNote2AmpCommand() {
+        return new InstantCommand(() -> this.ejectFront(StageConstants.kFeedToAmpSpeed), this)
+            .withTimeout(StageConstants.kFeedToAmpTime)
+            .andThen(()->this.stopStage());
+    }
+
+    // Feed the Note backwards to the Amp
+    public Command ejectNote2AmpCommand() {
+        return new InstantCommand(() -> this.ejectBack(StageConstants.kFeedToAmpSpeed), this)
+            .withTimeout(StageConstants.kFeedToAmpTime)
+            .andThen(()->this.stopStage());
+    }
+
+    // Feed the Note to the Trap
+    public Command feedNote2TrapCommand() {
+        return new InstantCommand(() -> this.ejectFront(StageConstants.kFeedToTrapSpeed), this)
+            .withTimeout(StageConstants.kFeedToTrapTime)
+            .andThen(()->this.stopStage());
+    }
+
+    // Command to just stop the Stage
     public Command stopStageCommand() {
         return new InstantCommand(() -> this.stopStage());
     }
 
-    // Discard the note or Score in Trap
-    public Command ejectBackCommand(double speed) {
-        return new StartEndCommand(() -> this.ejectBack(speed), () -> this.stopStage());
-    }
-
-    // Still need to add operator controls on Robot Container, will wait for the
-    // operator xbox controller to be set up
 }

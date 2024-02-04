@@ -4,7 +4,7 @@ import com.ctre.phoenix6.Utils;
 //import com.ctre.phoenix6.configs.CurrentLimitsConfigs;
 import com.ctre.phoenix6.configs.Slot0Configs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
-import com.ctre.phoenix6.controls.Follower;
+//import com.ctre.phoenix6.controls.Follower;
 import com.ctre.phoenix6.controls.NeutralOut;
 import com.ctre.phoenix6.controls.VelocityVoltage;
 import com.ctre.phoenix6.hardware.TalonFX;
@@ -25,9 +25,9 @@ public class ShooterSubsystem extends SubsystemBase {
 
     /* Hardware */
     TalonFX m_motorLeftLeader = new TalonFX(CanConstants.ID_ShooterLeftLeader);
-    TalonFX m_motorLeftFollower = new TalonFX(CanConstants.ID_ShooterLeftFollower);
+    //TalonFX m_motorLeftFollower = new TalonFX(CanConstants.ID_ShooterLeftFollower);
     TalonFX m_motorRightLeader = new TalonFX(CanConstants.ID_ShooterRightLeader);
-    TalonFX m_motorRightFollower = new TalonFX(CanConstants.ID_ShooterRightFollower);
+    //TalonFX m_motorRightFollower = new TalonFX(CanConstants.ID_ShooterRightFollower);
 
     /*
      * Gains for shooter tuning
@@ -74,13 +74,13 @@ public class ShooterSubsystem extends SubsystemBase {
 
         /* Configure the devices */
         var leadConfiguration = new TalonFXConfiguration();
-        var followConfiguration = new TalonFXConfiguration();
+        //var followConfiguration = new TalonFXConfiguration();
 
         /* set motors to Coast */
         leadConfiguration.MotorOutput.NeutralMode = NeutralModeValue.Coast;
-        followConfiguration.MotorOutput.NeutralMode = NeutralModeValue.Coast;
+        //followConfiguration.MotorOutput.NeutralMode = NeutralModeValue.Coast;
 
-        leadConfiguration.MotorOutput.Inverted = InvertedValue.Clockwise_Positive;
+        //leadConfiguration.MotorOutput.Inverted = InvertedValue.Clockwise_Positive;
 
 /*
         // Configure the lead Talon to use a supply limit of 5 amps IF we exceed 10 amps for over 1 second
@@ -105,16 +105,16 @@ public class ShooterSubsystem extends SubsystemBase {
         leadConfiguration.Slot0.kV = m_kV.get();
 
         /* Apply configs */
-        leadConfiguration.MotorOutput.Inverted = InvertedValue.Clockwise_Positive;
-        m_motorLeftLeader.getConfigurator().apply(leadConfiguration);
         leadConfiguration.MotorOutput.Inverted = InvertedValue.CounterClockwise_Positive;
+        m_motorLeftLeader.getConfigurator().apply(leadConfiguration);
+        leadConfiguration.MotorOutput.Inverted = InvertedValue.Clockwise_Positive;
         m_motorRightLeader.getConfigurator().apply(leadConfiguration);
-        m_motorLeftFollower.getConfigurator().apply(followConfiguration);
-        m_motorRightFollower.getConfigurator().apply(followConfiguration);
+        //m_motorLeftFollower.getConfigurator().apply(followConfiguration);
+        //m_motorRightFollower.getConfigurator().apply(followConfiguration);
 
         /* Set up followers to follow leaders but in the opposite direction */
-        m_motorLeftFollower.setControl(new Follower(m_motorLeftLeader.getDeviceID(), true));
-        m_motorRightFollower.setControl(new Follower(m_motorRightLeader.getDeviceID(), true));
+        //m_motorLeftFollower.setControl(new Follower(m_motorLeftLeader.getDeviceID(), true));
+        //m_motorRightFollower.setControl(new Follower(m_motorRightLeader.getDeviceID(), true));
 
     }
 
@@ -198,11 +198,11 @@ public class ShooterSubsystem extends SubsystemBase {
      * Command Factories
      */
     public Command runShooterCommand(double velocityL, double velocityR) {
-        return new StartEndCommand(()->this.runShooter(velocityL, velocityR), ()->this.stopShooter(), this);
+        return new InstantCommand(()->this.runShooter(velocityL, velocityR), this);
     }
 
     public Command runShooterCommand() {
-        return new StartEndCommand(()->this.runShooter(), ()->this.stopShooter(), this);
+        return new InstantCommand(()->this.runShooter(), this).repeatedly();
     }
 
     public Command stopShooterCommand() {

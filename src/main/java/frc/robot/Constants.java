@@ -4,6 +4,11 @@
 
 package frc.robot;
 
+import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.util.Units;
+
+import edu.wpi.first.math.system.plant.DCMotor;
 
 /**
  * The Constants class provides a convenient place for teams to hold robot-wide numerical or boolean constants. This class should not be
@@ -21,42 +26,43 @@ public final class Constants {
 
         // Shooter CAN IDs
         public static final int ID_ShooterLeftLeader = 15;
-        public static final int ID_ShooterLeftFollower = 16;
+        //public static final int ID_ShooterLeftFollower = 16;
         public static final int ID_ShooterRightLeader = 17;
-        public static final int ID_ShooterRightFollower = 18;
+        //public static final int ID_ShooterRightFollower = 18;
 
         // Intake CAN IDs
         public static final int ID_IntakeMotor = 19;
-        public static final int ID_IntakeLeftRoller = 20;
-        public static final int ID_IntakeRightRoller = 21;
+        public static final int ID_IntakeCtrRoller = 20;
 
         // Stage CAN IDs
-        public static final int ID_StageLeft = 23;
-        public static final int ID_StageRight = 24;
+        public static final int ID_StageMotor = 23;
 
         // Arm CAN IDs
         public static final int ID_ArmLeader = 25;
         public static final int ID_ArmFollower = 26;
-
-
-    }
-
-    public static final class PHConstants {
-
-        public static final int IntakeForwardSolenoid = 0;
-        public static final int IntakeReverseSolenoid = 1;
-    }
-
-    public static final class DIOConstants {
-        public static final int StageBeamBreak = 0;
-        public static final int MidTowerBeamBreak = 1;
-        public static final int UpperTowerBeamBreak = 2;
     }
 
     public static final class RobotConstants {
 
-        public static final boolean tuningMode = true;
+        public static final boolean kIsTuningMode = true;
+    }
 
+    public static final class DIOConstants {
+
+        public static final int kStageBeamBreak = 1;
+        public static final int armAbsEncoder = 0;
+    }
+
+    public static final class StageConstants {
+
+        public static final double kIntakeSpeed = 0.75;
+        public static final double kFeedToShooterSpeed = 1.0;
+        public static final double kFeedToAmpSpeed = 0.7;
+        public static final double kFeedToTrapSpeed = 0.5;
+
+        public static final double kFeedToShooterTime = 5.0;
+        public static final double kFeedToAmpTime = 5.0;
+        public static final double kFeedToTrapTime = 5.0;
     }
 
     public static final class ShooterConstants {
@@ -64,9 +70,57 @@ public final class Constants {
         public static final double kSubwooferVelocity = 50.0;
         public static final double kPodiumVelocity = 70.0;
         public static final double kShooterTolerance = 10.0;
+        
+        public static final double shooterSpeed = 10.0;
+        public static final double podiumRangeMin = .5;
+        public static final double podiumRangeMax = 1;
+        public static final double subwooferRangeMin = .01;
+        public static final double subwooferRangeMax = .5;
+    }
+
+    public static final Pose2d BLUE_SPEAKER = new Pose2d(Units.inchesToMeters(-1.5), Units.inchesToMeters(218.42), new Rotation2d(0));
+    public static final Pose2d RED_SPEAKER = new Pose2d(Units.inchesToMeters(652.73), Units.inchesToMeters(218.42), new Rotation2d(Math.PI));
+
+
+
+    public static final class ArmConstants {
+        // Joint Config
+        public static final double LENGTH = 0.0;
+        public static final double MOI = 0.0;
+        public static final double CGRadius = 0.0;
+        public static final double MASS = 3.0;
+        public static final DCMotor MOTOR = DCMotor.getFalcon500(1).withReduction(192);
+
+        public static final double DUTY_CYCLE_MIN = 1.0/1025.0;
+        public static final double DUTY_CYCLE_MAX = 1024.0/1025.0;
+
+        // Motor Neutral dead-band : Range 0.001 -> 0.25
+        public static final double NEUTRAL_DEADBAND = 0.005;
+
+        // Profiled PID Constants
+        public static final double ARM_CRUISE = 0.0;
+        public static final double ARM_ACCELERATION = 0.0;
+
+        //PID Tollerance in Degrees
+        public static final double TOLERANCE_POS = 6.0;
+
+        public static final double ARM_OFFSET = 0.0;
+        public static final double ARM_ANGLE_OFFSET = 12.4 - ARM_OFFSET;
+
+        // Nominal Outputs
+        public static final double NOMINAL_OUTPUT_FORWARD = 0;
+        public static final double NOMINAL_OUTPUT_REVERSE = 0;
+        public static final double PEAK_OUTPUT_FORWARD = 1.0;
+        public static final double PEAK_OUTPUT_REVERSE = -1.0;
+
+        //  Timeout ms
+        public static final int TIMEOUT = 10;
+
+    
+        
+
 
 
     }
-
 
 }
