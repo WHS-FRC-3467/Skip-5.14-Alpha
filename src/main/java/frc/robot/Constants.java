@@ -22,9 +22,9 @@ public final class Constants {
 
         // Shooter CAN IDs
         public static final int ID_ShooterLeftLeader = 15;
-        public static final int ID_ShooterLeftFollower = 16;
+        //public static final int ID_ShooterLeftFollower = 16;
         public static final int ID_ShooterRightLeader = 17;
-        public static final int ID_ShooterRightFollower = 18;
+        //public static final int ID_ShooterRightFollower = 18;
 
         // Intake CAN IDs
         public static final int ID_IntakeMotor = 19;
@@ -45,12 +45,12 @@ public final class Constants {
 
     public static final class DIOConstants {
 
-        public static final int kStageBeamBreak = 0;
-            }
+        public static final int kStageBeamBreak = 1;
+    }
 
     public static final class StageConstants {
 
-        public static final double kIntakeSpeed = 1.0;
+        public static final double kIntakeSpeed = 0.75;
         public static final double kFeedToShooterSpeed = 1.0;
         public static final double kFeedToAmpSpeed = 0.7;
         public static final double kFeedToTrapSpeed = 0.5;

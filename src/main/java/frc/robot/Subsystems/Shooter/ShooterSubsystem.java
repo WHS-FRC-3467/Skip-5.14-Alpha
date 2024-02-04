@@ -80,7 +80,7 @@ public class ShooterSubsystem extends SubsystemBase {
         leadConfiguration.MotorOutput.NeutralMode = NeutralModeValue.Coast;
         //followConfiguration.MotorOutput.NeutralMode = NeutralModeValue.Coast;
 
-        leadConfiguration.MotorOutput.Inverted = InvertedValue.Clockwise_Positive;
+        //leadConfiguration.MotorOutput.Inverted = InvertedValue.Clockwise_Positive;
 
 /*
         // Configure the lead Talon to use a supply limit of 5 amps IF we exceed 10 amps for over 1 second
@@ -105,9 +105,9 @@ public class ShooterSubsystem extends SubsystemBase {
         leadConfiguration.Slot0.kV = m_kV.get();
 
         /* Apply configs */
-        leadConfiguration.MotorOutput.Inverted = InvertedValue.Clockwise_Positive;
-        m_motorLeftLeader.getConfigurator().apply(leadConfiguration);
         leadConfiguration.MotorOutput.Inverted = InvertedValue.CounterClockwise_Positive;
+        m_motorLeftLeader.getConfigurator().apply(leadConfiguration);
+        leadConfiguration.MotorOutput.Inverted = InvertedValue.Clockwise_Positive;
         m_motorRightLeader.getConfigurator().apply(leadConfiguration);
         //m_motorLeftFollower.getConfigurator().apply(followConfiguration);
         //m_motorRightFollower.getConfigurator().apply(followConfiguration);
@@ -198,11 +198,11 @@ public class ShooterSubsystem extends SubsystemBase {
      * Command Factories
      */
     public Command runShooterCommand(double velocityL, double velocityR) {
-        return new StartEndCommand(()->this.runShooter(velocityL, velocityR), ()->this.stopShooter(), this);
+        return new InstantCommand(()->this.runShooter(velocityL, velocityR), this);
     }
 
     public Command runShooterCommand() {
-        return new StartEndCommand(()->this.runShooter(), ()->this.stopShooter(), this);
+        return new InstantCommand(()->this.runShooter(), this).repeatedly();
     }
 
     public Command stopShooterCommand() {
