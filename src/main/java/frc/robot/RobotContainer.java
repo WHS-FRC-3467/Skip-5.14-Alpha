@@ -108,7 +108,7 @@ public class RobotContainer {
         DriverStation.silenceJoystickConnectionWarning(true);
 
         // Change this to specify Limelight is in use
-        m_vision.useLimelight(true);
+        m_vision.useLimelight(false);
         m_vision.setAlliance(Alliance.Blue);
         m_vision.trustLL(true);
 
@@ -207,10 +207,6 @@ public class RobotContainer {
         m_driverCtrl.leftBumper().onFalse(runOnce(() -> m_MaxSpeed = TunerConstants.kSpeedAt12VoltsMps * speedChooser.getSelected())
                 .andThen(() -> m_AngularRate = m_MaxAngularRate));
 
-        // Driver: When X button is pressed, release Note to shooter
-        m_driverCtrl.x().onTrue(m_stageSubsystem.feedNote2ShooterCommand());
-        //m_driverCtrl.x().onFalse(m_stageSubsystem.stopStageCommand());   
-
         // Driver: While Y button is pressed:
         //      - bring Arm home
         //      - run Intake
@@ -221,16 +217,32 @@ public class RobotContainer {
             Commands.sequence(
                 // m_armSubsystem.goHome(),
                 Commands.deadline(
+                    //Run in parallel until intakeNoteCommand finishes, then interrupt all others
                     m_stageSubsystem.intakeNoteCommand(),
                     m_intakeSubsystem.runIntakeCommand()
-                )
+                ),
+                m_intakeSubsystem.stopIntakeCommand()
             )
-        );   
-        m_driverCtrl.y().onFalse(m_stageSubsystem.stopStageCommand().andThen(m_intakeSubsystem.stopIntakeCommand()));
+        );
+
+        // When Y button is released, stop the Intake and the Stage, regardless of if we have a Note
+        m_driverCtrl.y().onFalse(
+            Commands.parallel(
+                m_stageSubsystem.stopStageCommand(),
+                m_intakeSubsystem.stopIntakeCommand()
+            )
+        );
         
+        // Driver: When X button is pressed, release Note to shooter
+        m_driverCtrl.x().onTrue(m_stageSubsystem.feedNote2ShooterCommand());
+
+        // Driver: Right Bumper will drive Intake (only) in reverse
+        m_driverCtrl.rightBumper().whileTrue(m_intakeSubsystem.ejectIntakeCommand());
+
         // Driver: While A button is held, run Shooter at fixed speed
         m_driverCtrl.a().whileTrue(m_shooterSubsystem.runShooterCommand().andThen(m_shooterSubsystem.stopShooterCommand()));   
         
+        //m_driverCtrl.povLeft().onTrue()
     
         /*
          * Put Commands on Shuffleboard

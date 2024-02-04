@@ -12,6 +12,7 @@ import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
+import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants.CanConstants;
 import frc.robot.Constants.DIOConstants;
@@ -81,6 +82,10 @@ public class StageSubsystem extends SubsystemBase {
         m_stageMotor.set(ControlMode.PercentOutput, speed);
     }
 
+    public void runStage() {
+        m_stageMotor.set(ControlMode.PercentOutput, StageConstants.kIntakeSpeed);
+    }
+
     public void stopStage() {
         m_stageMotor.set(ControlMode.PercentOutput, 0.0);
     }
@@ -105,41 +110,38 @@ public class StageSubsystem extends SubsystemBase {
     /*
      * Command Factories
      */
-    public Command runStageCommand() {
-        return new InstantCommand(()-> this.runStage(StageConstants.kIntakeSpeed), this).repeatedly();
-    }
 
     // To Intake a Note, drive the Stage until the sensor says we have a Note
     public Command intakeNoteCommand() {
-        return new InstantCommand(()-> this.runStage(StageConstants.kIntakeSpeed), this)
+        return new RunCommand(()-> this.runStage(StageConstants.kIntakeSpeed), this)
             .until(()->this.isNoteInStage())
             .andThen(()->this.stopStage());
     }
     
     // Pass the Note to the Shooter
     public Command feedNote2ShooterCommand() {
-        return new InstantCommand(() -> this.ejectFront(StageConstants.kFeedToShooterSpeed), this)
+        return new RunCommand(() -> this.ejectFront(StageConstants.kFeedToShooterSpeed), this)
             .withTimeout(StageConstants.kFeedToShooterTime)
             .andThen(()->this.stopStage());
     }
 
     // Feed the Note to the Amp
     public Command feedNote2AmpCommand() {
-        return new InstantCommand(() -> this.ejectFront(StageConstants.kFeedToAmpSpeed), this)
+        return new RunCommand(() -> this.ejectFront(StageConstants.kFeedToAmpSpeed), this)
             .withTimeout(StageConstants.kFeedToAmpTime)
             .andThen(()->this.stopStage());
     }
 
     // Feed the Note backwards to the Amp
     public Command ejectNote2AmpCommand() {
-        return new InstantCommand(() -> this.ejectBack(StageConstants.kFeedToAmpSpeed), this)
+        return new RunCommand(() -> this.ejectBack(StageConstants.kFeedToAmpSpeed), this)
             .withTimeout(StageConstants.kFeedToAmpTime)
             .andThen(()->this.stopStage());
     }
 
     // Feed the Note to the Trap
     public Command feedNote2TrapCommand() {
-        return new InstantCommand(() -> this.ejectFront(StageConstants.kFeedToTrapSpeed), this)
+        return new RunCommand(() -> this.ejectFront(StageConstants.kFeedToTrapSpeed), this)
             .withTimeout(StageConstants.kFeedToTrapTime)
             .andThen(()->this.stopStage());
     }

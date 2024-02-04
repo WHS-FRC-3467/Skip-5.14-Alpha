@@ -13,6 +13,7 @@ import com.ctre.phoenix6.signals.NeutralModeValue;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
+import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants.CanConstants;
 import frc.robot.Constants.ShooterConstants;
@@ -184,11 +185,11 @@ public class ShooterSubsystem extends SubsystemBase {
      * Command Factories
      */
     public Command runShooterCommand(double velocityL, double velocityR) {
-        return new InstantCommand(()->this.runShooter(velocityL, velocityR), this);
+        return new RunCommand(()->this.runShooter(velocityL, velocityR), this);
     }
 
     public Command runShooterCommand() {
-        return new InstantCommand(()->this.runShooter(), this).repeatedly();
+        return new RunCommand(()->this.runShooter(), this);
     }
 
     public Command stopShooterCommand() {
