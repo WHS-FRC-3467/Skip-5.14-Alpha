@@ -42,7 +42,7 @@ public class TunableNumber {
         if (!m_hasDefault) {
             m_hasDefault = true;
             this.m_defaultValue = defaultValue;
-            if (RobotConstants.tuningMode) {
+            if (RobotConstants.kIsTuningMode) {
                 SmartDashboard.putNumber(m_key, SmartDashboard.getNumber(m_key, defaultValue));
             }
         }
@@ -61,7 +61,11 @@ public class TunableNumber {
      * Publishes a new value. Note that the value will not be returned by {@link #get()} until the next cycle.
      */
     public void set(double value) {
-        SmartDashboard.putNumber(m_key, value);
+        if (RobotConstants.kIsTuningMode) {
+            SmartDashboard.putNumber(m_key, value);
+        } else {
+            m_defaultValue = value;
+        }
     }
 
     /**
@@ -73,7 +77,7 @@ public class TunableNumber {
         if (!m_hasDefault) {
             return 0.0;
         } else {
-            return RobotConstants.tuningMode ? SmartDashboard.getNumber(m_key, m_defaultValue) : m_defaultValue;
+            return RobotConstants.kIsTuningMode ? SmartDashboard.getNumber(m_key, m_defaultValue) : m_defaultValue;
         }
     }
 }

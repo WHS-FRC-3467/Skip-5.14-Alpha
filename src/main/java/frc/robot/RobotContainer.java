@@ -18,16 +18,21 @@ import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
+/* Local */
+import frc.robot.Commands.intakeNote;
 import frc.robot.Constants.StageConstants;
 import frc.robot.Subsystems.Arm.ArmSubsystem;
 import frc.robot.Subsystems.Drivetrain.CommandSwerveDrivetrain;
 import frc.robot.Subsystems.Drivetrain.Telemetry;
-import frc.robot.Subsystems.Intake.IntakeSubsystem;
+import frc.robot.Subsystems.Intake.IntakeDefault;
+import frc.robot.Subsystems.Intake.UBIntakeSubsystem;
 import frc.robot.Subsystems.Shooter.ShooterSubsystem;
 import frc.robot.Subsystems.Stage.StageSubsystem;
 import frc.robot.Util.CommandXboxPS5Controller;
@@ -97,11 +102,11 @@ public class RobotContainer {
 
     // Set up Drivetrain Telemetry
     Telemetry m_logger = new Telemetry(m_MaxSpeed);
-    // Pose2d m_odomStart = new Pose2d(0, 0, new Rotation2d(0, 0));
+    Pose2d m_odomStart = new Pose2d(0, 0, new Rotation2d(0, 0));
 
     // Instantiate other Subsystems
     ShooterSubsystem m_shooterSubsystem = new ShooterSubsystem();
-    IntakeSubsystem m_intakeSubsystem = new IntakeSubsystem();
+    UBIntakeSubsystem m_intakeSubsystem = new UBIntakeSubsystem();
     StageSubsystem m_stageSubsystem = new StageSubsystem();
     ArmSubsystem m_armSubsystem = new ArmSubsystem();
 
@@ -114,7 +119,9 @@ public class RobotContainer {
         DriverStation.silenceJoystickConnectionWarning(true);
 
         // Change this to specify Limelight is in use
-        m_vision.useLimelight(false);
+        m_vision.useLimelight(true);
+        m_vision.setAlliance(Alliance.Blue);
+        m_vision.trustLL(true);
 
         // Register NamedCommands for use in PathPlanner autos
         registerNamedCommands();
@@ -143,9 +150,8 @@ public class RobotContainer {
         // Register Named Commands for use in PathPlanner autos
         NamedCommands.registerCommand("Deploy Intake", m_intakeSubsystem.deployIntakeCommand());
         NamedCommands.registerCommand("Retract Intake", m_intakeSubsystem.retractIntakeCommand());
-        // NamedCommands.registerCommand("exampleCommand",
-        // exampleSubsystem.exampleCommand());
-        // NamedCommands.registerCommand("someOtherCommand", new SomeOtherCommand());
+        //NamedCommands.registerCommand("exampleCommand", exampleSubsystem.exampleCommand());
+        //NamedCommands.registerCommand("someOtherCommand", new SomeOtherCommand());
 
     }
 
@@ -197,8 +203,7 @@ public class RobotContainer {
 
     private void configureButtonBindings() {
 
-        // Driver: While A button is held, put swerve modules in Brake mode (modules
-        // make an 'X')
+        // Driver: While A button is held, put swerve modules in Brake mode (modules make an 'X')
         m_driverCtrl.a().whileTrue(m_drivetrain.applyRequest(() -> m_brake));
 
         // Driver: While B button is held, point drivetrain in the direction of the Left
@@ -216,26 +221,19 @@ public class RobotContainer {
                 .onFalse(runOnce(() -> m_MaxSpeed = TunerConstants.kSpeedAt12VoltsMps * speedChooser.getSelected())
                         .andThen(() -> m_AngularRate = m_MaxAngularRate));
 
-        // Driver: Use Left and Right Triggers to run Intake at variable speed (left =
-        // in, right = out)
-        m_driverCtrl.leftTrigger(0.1).onTrue(m_intakeSubsystem.runIntakeCommand(m_driverCtrl.getLeftTriggerAxis()));
-        m_driverCtrl.rightTrigger(0.1)
-                .onTrue(m_intakeSubsystem.runIntakeCommand((-1.0) * m_driverCtrl.getRightTriggerAxis()));
+        // Driver: Use Left and Right Triggers to run Intake at variable speed (left = in, right = out)
+        m_driverCtrl.leftTrigger(0.1).onTrue(m_intakeSubsystem.runIntakeCommand(m_driverCtrl.getLeftTriggerAxis()));   
+        m_driverCtrl.rightTrigger(0.1).onTrue(m_intakeSubsystem.runIntakeCommand((-1.0) * m_driverCtrl.getRightTriggerAxis()));   
 
         // Driver: Use Right Bumper to toggle intake position
         m_driverCtrl.rightBumper().onTrue(m_intakeSubsystem.toggleIntakeCommand());
 
+
         /*
          * Put Commands on Shuffleboard
          */
-        SmartDashboard.putData("Deploy Intake", m_intakeSubsystem.deployIntakeCommand());
-        SmartDashboard.putData("Retract Intake", m_intakeSubsystem.retractIntakeCommand());
-        SmartDashboard.putData("Toggle Intake", m_intakeSubsystem.toggleIntakeCommand());
         SmartDashboard.putData("Update Shooter Gains", m_shooterSubsystem.updateShooterGainsCommand());
         SmartDashboard.putData("Run Shooter", m_shooterSubsystem.runShooterCommand());
-        SmartDashboard.putData("Run Stage", m_stageSubsystem.ejectFrontCommand(StageConstants.kStageSpeed));
-        SmartDashboard.putData("Run Stage", m_stageSubsystem.ejectBackCommand(StageConstants.kStageSpeed));
-        SmartDashboard.putData("Stop Stage", m_stageSubsystem.stopStageCommand());
 
     }
 
@@ -263,7 +261,7 @@ public class RobotContainer {
     }
 
     public Command getAutonomousCommand() {
-
+        
         /* First put the drivetrain into auto run mode, then run the auto */
         return autoChooser.getSelected();
     }
