@@ -50,6 +50,7 @@ public final class Constants {
     public static final class DIOConstants {
 
         public static final int kStageBeamBreak = 1;
+        public static final int armAbsEncoder = 0;
     }
 
     public static final class StageConstants {
@@ -115,7 +116,7 @@ public final class Constants {
         //  Timeout ms
         public static final int TIMEOUT = 10;
 
-
+    
         
 
 
