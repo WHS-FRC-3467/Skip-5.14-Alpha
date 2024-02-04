@@ -197,7 +197,8 @@ public class RobotContainer {
         m_driverCtrl.a().whileTrue(m_drivetrain.applyRequest(
                 () -> m_head.withVelocityX(-m_driverCtrl.getLeftY() * m_MaxSpeed)
                             .withVelocityY(-m_driverCtrl.getLeftX() * m_MaxSpeed)
-                            .withTargetDirection(new Rotation2d(m_drivetrain.calcAngleToSpeaker()))));
+                            .withTargetDirection(new Rotation2d(m_drivetrain.calcAngleToSpeaker()))
+                            .withDeadband(m_MaxSpeed * 0.1).withRotationalDeadband(m_AngularRate * 0.1)));
 
         // Driver: While B button is held, point drivetrain in the direction of the Left Joystick
         m_driverCtrl.b().whileTrue(m_drivetrain.applyRequest(
@@ -246,8 +247,7 @@ public class RobotContainer {
         /*
          * Put Commands on Shuffleboard
          */
-        SmartDashboard.putNumber("Robot Angle To Speaker",m_drivetrain.calcAngleToSpeaker());
-        SmartDashboard.putNumber("Robot Dist To Speaker",m_drivetrain.calcDistToSpeaker());
+        
         //SmartDashboard.putData("Update Shooter Gains", m_shooterSubsystem.updateShooterGainsCommand());
         //SmartDashboard.putData("Run Shooter", m_shooterSubsystem.runShooterCommand());
         //SmartDashboard.putData("Stop Shooter", m_shooterSubsystem.stopShooterCommand());

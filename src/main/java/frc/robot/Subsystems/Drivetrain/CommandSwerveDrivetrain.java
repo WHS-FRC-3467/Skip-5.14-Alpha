@@ -23,6 +23,7 @@ import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Subsystem;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
@@ -113,7 +114,13 @@ public class CommandSwerveDrivetrain extends SwerveDrivetrain implements Subsyst
     public Command getAutoPath(String pathName) {
         return new PathPlannerAuto(pathName);
     }
+    @Override
+    public void periodic(){
+        SmartDashboard.putNumber("Robot Angle To Speaker",calcAngleToSpeaker());
+        SmartDashboard.putNumber("Robot Dist To Speaker",calcDistToSpeaker());
 
+
+    }
     @Override
     public void simulationPeriodic() {
         /* Assume 20ms update rate, get battery voltage from WPILib */
@@ -173,17 +180,23 @@ public class CommandSwerveDrivetrain extends SwerveDrivetrain implements Subsyst
 
     private double calcAngleToSpeakerForBlue() {
         Pose2d robotPose = m_odometry.getEstimatedPosition();
-        Pose2d speakerPos = getSpeakerPos();
+        Pose2d speakerPos = Constants.RED_SPEAKER;
         double xDiff = robotPose.getX() - speakerPos.getX();
         double yDiff = speakerPos.getY() - robotPose.getY();
+        //System.out.print(xDiff);
+        //System.out.print(yDiff);
+        //System.out.println(180 - Math.toDegrees(Math.atan(yDiff / xDiff)));
         return 180 - Math.toDegrees(Math.atan(yDiff / xDiff));
     }
 
     private double calcAngleToSpeakerForRed() {
         Pose2d robotPose = m_odometry.getEstimatedPosition();
-        Pose2d speakerPos = getSpeakerPos();
+        Pose2d speakerPos = Constants.RED_SPEAKER;
         double xDiff = speakerPos.getX() - robotPose.getX();
         double yDiff = speakerPos.getY() - robotPose.getY();
+        //System.out.print(xDiff);
+        //System.out.print(yDiff);
+        //System.out.println(Math.toDegrees(Math.atan(yDiff / xDiff)));
         return Math.toDegrees(Math.atan(yDiff / xDiff));
     }
 
