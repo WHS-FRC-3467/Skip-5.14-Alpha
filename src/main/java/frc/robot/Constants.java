@@ -4,6 +4,8 @@
 
 package frc.robot;
 
+import edu.wpi.first.math.system.plant.DCMotor;
+
 /**
  * The Constants class provides a convenient place for teams to hold robot-wide numerical or boolean constants. This class should not be
  * used for any other purpose. All constants should be declared globally (i.e. public static). Do not put anything functional in this class.
@@ -44,7 +46,7 @@ public final class Constants {
     public static final class DIOConstants {
 
         public static final int kStageBeamBreak = 0;
-    }
+            }
 
     public static final class StageConstants {
 
@@ -63,6 +65,46 @@ public final class Constants {
         public static final double kSubwooferVelocity = 50.0;
         public static final double kPodiumVelocity = 70.0;
         public static final double kShooterTolerance = 10.0;
+    }
+
+    public static final class ArmConstants {
+        // Joint Config
+        public static final double LENGTH = 0.0;
+        public static final double MOI = 0.0;
+        public static final double CGRadius = 0.0;
+        public static final double MASS = 3.0;
+        public static final DCMotor MOTOR = DCMotor.getFalcon500(1).withReduction(192);
+
+        public static final double DUTY_CYCLE_MIN = 1.0/1025.0;
+        public static final double DUTY_CYCLE_MAX = 1024.0/1025.0;
+
+        // Motor Neutral dead-band : Range 0.001 -> 0.25
+        public static final double NEUTRAL_DEADBAND = 0.005;
+
+        // Profiled PID Constants
+        public static final double ARM_CRUISE = 0.0;
+        public static final double ARM_ACCELERATION = 0.0;
+
+        //PID Tollerance in Degrees
+        public static final double TOLERANCE_POS = 6.0;
+
+        public static final double ARM_OFFSET = 0.0;
+        public static final double ARM_ANGLE_OFFSET = 12.4 - ARM_OFFSET;
+
+        // Nominal Outputs
+        public static final double NOMINAL_OUTPUT_FORWARD = 0;
+        public static final double NOMINAL_OUTPUT_REVERSE = 0;
+        public static final double PEAK_OUTPUT_FORWARD = 1.0;
+        public static final double PEAK_OUTPUT_REVERSE = -1.0;
+
+        //  Timeout ms
+        public static final int TIMEOUT = 10;
+
+
+        
+
+
+
     }
 
 }
