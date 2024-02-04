@@ -28,6 +28,8 @@ import edu.wpi.first.wpilibj2.command.button.Trigger;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
 /* Local */
 import frc.robot.Commands.intakeNote;
+import frc.robot.Commands.moveToSetpoint;
+import frc.robot.Subsystems.Arm.ArmSubsystem;
 import frc.robot.Subsystems.Drivetrain.CommandSwerveDrivetrain;
 import frc.robot.Subsystems.Drivetrain.Telemetry;
 import frc.robot.Subsystems.Intake.IntakeDefault;
@@ -105,6 +107,7 @@ public class RobotContainer {
     ShooterSubsystem m_shooterSubsystem = new ShooterSubsystem();
     UBIntakeSubsystem m_intakeSubsystem = new UBIntakeSubsystem();
     StageSubsystem m_stageSubsystem = new StageSubsystem();
+    ArmSubsystem m_ArmSubsystem = new ArmSubsystem();
 
     // Setup Limelight periodic query (defaults to disabled)
     Limelight m_vision = new Limelight(m_drivetrain);
@@ -201,7 +204,7 @@ public class RobotContainer {
     private void configureButtonBindings() {
 
         // Driver: While A button is held, drive while pointing direction of alliance speaker
-        m_driverCtrl.a().whileTrue(m_drivetrain.applyRequest(
+        m_driverCtrl.b().whileTrue(m_drivetrain.applyRequest(
                 () -> m_head.withVelocityX(-m_driverCtrl.getLeftY() * m_MaxSpeed)
                             .withVelocityY(-m_driverCtrl.getLeftX() * m_MaxSpeed)
                             //.withTargetDirection(m_drivetrain.RotToSpeaker())
@@ -209,11 +212,11 @@ public class RobotContainer {
                             .withDeadband(m_MaxSpeed * 0.1).withRotationalDeadband(m_AngularRate * 0.1)));
 
         // Driver: While B button is held, point drivetrain in the direction of the Left Joystick
-        m_driverCtrl.b().whileTrue(m_drivetrain.applyRequest(
+ /*        m_driverCtrl.b().whileTrue(m_drivetrain.applyRequest(
                 () -> m_point.withModuleDirection(new Rotation2d(-m_driverCtrl.getLeftY(), -m_driverCtrl.getLeftX()))
             )
         );
-
+ */
         // Driver: On Start button press, reset the field-centric heading
         m_driverCtrl.start().onTrue(m_drivetrain.runOnce(() -> m_drivetrain.seedFieldRelative()));
 
@@ -237,6 +240,11 @@ public class RobotContainer {
 //                                            ()) -> m_driverCtrl.getLeftTriggerAxis(),
 //                                            () -> m_driverCtrl.getRightTriggerAxis()));
 
+        m_driverCtrl.povUp().whileTrue(m_ArmSubsystem.runArmMotorSpeedCommand(.2));
+        m_driverCtrl.povCenter().whileTrue(m_ArmSubsystem.runArmMotorSpeedCommand(0));
+        m_driverCtrl.povDown().whileTrue(m_ArmSubsystem.runArmMotorSpeedCommand(-.2));
+        m_driverCtrl.povLeft().whileTrue(new moveToSetpoint(m_ArmSubsystem));
+
 /*        m_driverCtrl.y().whileTrue(
             new ParallelCommandGroup (
                 ()->m_intakeSubsystem.runIntakeCommand(),
@@ -248,7 +256,8 @@ public class RobotContainer {
         //    .whenHeld(new intakeNote(m_intakeSubsystem, m_stageSubsystem, m_operatorCtrl.getLeftTriggerAxis(), m_operatorCtrl.getRightTriggerAxis()));
         
         // Driver: While A button is held, run Shooter at fixed speed
-        m_driverCtrl.a().whileTrue(m_shooterSubsystem.runShooterCommand().andThen(m_shooterSubsystem.stopShooterCommand()));   
+        m_driverCtrl.a().onTrue(m_shooterSubsystem.runShooterCommand());
+        m_driverCtrl.a().onFalse(m_shooterSubsystem.stopShooterCommand());   
         
         //m_driverCtrl.y().onTrue(Commands.intakeNote());
     
@@ -256,9 +265,9 @@ public class RobotContainer {
          * Put Commands on Shuffleboard
          */
         
-        //SmartDashboard.putData("Update Shooter Gains", m_shooterSubsystem.updateShooterGainsCommand());
-        //SmartDashboard.putData("Run Shooter", m_shooterSubsystem.runShooterCommand());
-        //SmartDashboard.putData("Stop Shooter", m_shooterSubsystem.stopShooterCommand());
+        SmartDashboard.putData("Update Shooter Gains", m_shooterSubsystem.updateShooterGainsCommand());
+        SmartDashboard.putData("Run Shooter", m_shooterSubsystem.runShooterCommand());
+        SmartDashboard.putData("Stop Shooter", m_shooterSubsystem.stopShooterCommand());
 
     }
 

@@ -84,11 +84,12 @@ public final class Constants {
 
 
     public static final class ArmConstants {
-        // Joint Config
-        public static final double LENGTH = 0.0;
-        public static final double MOI = 0.0;
-        public static final double CGRadius = 0.0;
-        public static final double MASS = 3.0;
+
+        public static final double kS = .5;  // The Static Gain, in volts
+        public static final double kG = .25;  // The Gravity Gain, in volts
+        public static final double kV = 3.45;  // The Velocity Gain, in volt seconds per radian
+        public static final double kA = .01;  // The acceleration gain, in volt seconds^2 per radian
+
         public static final DCMotor MOTOR = DCMotor.getFalcon500(1).withReduction(192);
 
         public static final double DUTY_CYCLE_MIN = 1.0/1025.0;
@@ -98,20 +99,21 @@ public final class Constants {
         public static final double NEUTRAL_DEADBAND = 0.005;
 
         // Profiled PID Constants
-        public static final double ARM_CRUISE = 0.0;
-        public static final double ARM_ACCELERATION = 0.0;
+        public static final double ARM_CRUISE = 100.0;
+        public static final double ARM_ACCELERATION = 100.0;
 
         //PID Tollerance in Degrees
         public static final double TOLERANCE_POS = 6.0;
 
         public static final double ARM_OFFSET = 0.0;
-        public static final double ARM_ANGLE_OFFSET = 12.4 - ARM_OFFSET;
 
         // Nominal Outputs
         public static final double NOMINAL_OUTPUT_FORWARD = 0;
         public static final double NOMINAL_OUTPUT_REVERSE = 0;
         public static final double PEAK_OUTPUT_FORWARD = 1.0;
         public static final double PEAK_OUTPUT_REVERSE = -1.0;
+
+        public static final double testPos0 = .35;
 
         //  Timeout ms
         public static final int TIMEOUT = 10;
