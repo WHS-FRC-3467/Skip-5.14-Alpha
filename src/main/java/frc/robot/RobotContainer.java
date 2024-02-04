@@ -35,6 +35,7 @@ import frc.robot.Subsystems.Intake.UBIntakeSubsystem;
 import frc.robot.Subsystems.Shooter.ShooterSubsystem;
 import frc.robot.Subsystems.Stage.StageSubsystem;
 import frc.robot.Util.CommandXboxPS5Controller;
+import frc.robot.Util.TunableNumber;
 import frc.robot.Vision.Limelight;
 import frc.robot.generated.TunerConstants;
 
@@ -46,6 +47,7 @@ public class RobotContainer {
     private SendableChooser<Command> autoChooser;
     private SendableChooser<String> controlChooser = new SendableChooser<>();
     private SendableChooser<Double> speedChooser = new SendableChooser<>();
+   
 
     /*
      * Speed adjustments
@@ -93,6 +95,7 @@ public class RobotContainer {
     SwerveRequest.RobotCentric m_forwardStraight = new SwerveRequest.RobotCentric().withDriveRequestType(DriveRequestType.OpenLoopVoltage);
     SwerveRequest.PointWheelsAt m_point = new SwerveRequest.PointWheelsAt();
     SwerveRequest.FieldCentricFacingAngle m_head = new SwerveRequest.FieldCentricFacingAngle();
+    
 
     // Set up Drivetrain Telemetry
     Telemetry m_logger = new Telemetry(m_MaxSpeed);
@@ -115,6 +118,10 @@ public class RobotContainer {
         m_vision.useLimelight(true);
         m_vision.setAlliance(Alliance.Blue);
         m_vision.trustLL(true);
+ 
+        //Sets autoAim Rot PID
+        SmartDashboard.putData("Auto Turning PID",m_head.HeadingController);
+        m_head.HeadingController.setPID(10,0,0);
 
         // Register NamedCommands for use in PathPlanner autos
         registerNamedCommands();
@@ -197,7 +204,9 @@ public class RobotContainer {
         m_driverCtrl.a().whileTrue(m_drivetrain.applyRequest(
                 () -> m_head.withVelocityX(-m_driverCtrl.getLeftY() * m_MaxSpeed)
                             .withVelocityY(-m_driverCtrl.getLeftX() * m_MaxSpeed)
-                            .withTargetDirection(new Rotation2d(m_drivetrain.calcAngleToSpeaker()))));
+                            //.withTargetDirection(m_drivetrain.RotToSpeaker())
+                            .withTargetDirection(m_drivetrain.RotToSpeaker())
+                            .withDeadband(m_MaxSpeed * 0.1).withRotationalDeadband(m_AngularRate * 0.1)));
 
         // Driver: While B button is held, point drivetrain in the direction of the Left Joystick
         m_driverCtrl.b().whileTrue(m_drivetrain.applyRequest(
@@ -246,8 +255,7 @@ public class RobotContainer {
         /*
          * Put Commands on Shuffleboard
          */
-        SmartDashboard.putNumber("Robot Angle To Speaker",m_drivetrain.calcAngleToSpeaker());
-        SmartDashboard.putNumber("Robot Dist To Speaker",m_drivetrain.calcDistToSpeaker());
+        
         //SmartDashboard.putData("Update Shooter Gains", m_shooterSubsystem.updateShooterGainsCommand());
         //SmartDashboard.putData("Run Shooter", m_shooterSubsystem.runShooterCommand());
         //SmartDashboard.putData("Stop Shooter", m_shooterSubsystem.stopShooterCommand());

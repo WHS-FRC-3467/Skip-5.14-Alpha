@@ -2,10 +2,10 @@
   "version": 1.0,
   "startingPose": {
     "position": {
-      "x": 1.160210639509598,
-      "y": 4.899850711382335
+      "x": 1.2420697206066778,
+      "y": 6.5136440244390466
     },
-    "rotation": 180.0
+    "rotation": -138.6169985126076
   },
   "command": {
     "type": "sequential",
@@ -16,15 +16,15 @@
           "data": {
             "commands": [
               {
-                "type": "named",
+                "type": "path",
                 "data": {
-                  "name": "RunIntake"
+                  "pathName": "FirstCollect"
                 }
               },
               {
-                "type": "path",
+                "type": "named",
                 "data": {
-                  "pathName": "Back2Start"
+                  "name": "RunIntake"
                 }
               }
             ]
@@ -34,6 +34,12 @@
           "type": "named",
           "data": {
             "name": "StopIntake"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "First Shot"
           }
         }
       ]

@@ -845,6 +845,32 @@
               "_glyph": 148,
               "_showGlyph": false
             }
+          },
+          "6,3": {
+            "size": [
+              1,
+              1
+            ],
+            "content": {
+              "_type": "Text View",
+              "_source0": "network_table:///SmartDashboard/Robot Angle To Speaker",
+              "_title": "SmartDashboard/Robot Angle To Speaker",
+              "_glyph": 148,
+              "_showGlyph": false
+            }
+          },
+          "7,3": {
+            "size": [
+              1,
+              1
+            ],
+            "content": {
+              "_type": "Text View",
+              "_source0": "network_table:///SmartDashboard/Robot Dist To Speaker",
+              "_title": "SmartDashboard/Robot Dist To Speaker",
+              "_glyph": 148,
+              "_showGlyph": false
+            }
           }
         }
       }
