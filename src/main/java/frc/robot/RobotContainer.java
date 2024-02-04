@@ -23,13 +23,17 @@ import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
+/* Local */
+import frc.robot.Commands.intakeNote;
 import frc.robot.Subsystems.Drivetrain.CommandSwerveDrivetrain;
 import frc.robot.Subsystems.Drivetrain.Telemetry;
 import frc.robot.Subsystems.Intake.IntakeDefault;
 import frc.robot.Subsystems.Intake.UBIntakeSubsystem;
 import frc.robot.Subsystems.Shooter.ShooterSubsystem;
+import frc.robot.Subsystems.Stage.StageSubsystem;
 import frc.robot.Util.CommandXboxPS5Controller;
 import frc.robot.Vision.Limelight;
 import frc.robot.generated.TunerConstants;
@@ -95,8 +99,9 @@ public class RobotContainer {
     Pose2d m_odomStart = new Pose2d(0, 0, new Rotation2d(0, 0));
 
     // Instantiate other Subsystems
-    //ShooterSubsystem m_shooterSubsystem = new ShooterSubsystem();
+    ShooterSubsystem m_shooterSubsystem = new ShooterSubsystem();
     UBIntakeSubsystem m_intakeSubsystem = new UBIntakeSubsystem();
+    StageSubsystem m_stageSubsystem = new StageSubsystem();
 
     // Setup Limelight periodic query (defaults to disabled)
     Limelight m_vision = new Limelight(m_drivetrain);
@@ -210,16 +215,34 @@ public class RobotContainer {
                 .andThen(() -> m_AngularRate = m_MaxAngularRate));
 
         // Driver: Use Left and Right Triggers to run Intake at variable speed (left = in, right = out)
-        m_intakeSubsystem.setDefaultCommand(new IntakeDefault(m_intakeSubsystem,
+/*        m_intakeSubsystem.setDefaultCommand(new IntakeDefault(m_intakeSubsystem,
                                             ()-> m_driverCtrl.getLeftTriggerAxis(),
                                             () -> m_driverCtrl.getRightTriggerAxis()));
-        
+*/        
         // Driver: While X button is held, run Intake at fixed speed
-        m_driverCtrl.x().whileTrue(m_intakeSubsystem.runIntakeCommand(0.5));   
+//        m_driverCtrl.x().whileTrue(m_intakeSubsystem.runIntakeCommand(0.5));   
+        m_driverCtrl.x().whileTrue(m_stageSubsystem.runStageCommand().andThen(m_stageSubsystem.stopStageCommand()));   
 
-        // Driver: While Y button is held, run Shooter at fixed speed
-        //m_driverCtrl.y().whileTrue(m_shooterSubsystem.runShooterCommand());   
+      
+        m_driverCtrl.y().whileTrue(new intakeNote(m_intakeSubsystem, m_stageSubsystem));
+//                                            ()) -> m_driverCtrl.getLeftTriggerAxis(),
+//                                            () -> m_driverCtrl.getRightTriggerAxis()));
 
+/*        m_driverCtrl.y().whileTrue(
+            new ParallelCommandGroup (
+                ()->m_intakeSubsystem.runIntakeCommand(),
+                ()->m_stageSubsystem.intakeNoteCommand()
+            )
+        );   
+*/
+        //new XBoxControllerButton(m_operatorController, XBoxControllerEE.Button.kX)
+        //    .whenHeld(new intakeNote(m_intakeSubsystem, m_stageSubsystem, m_operatorCtrl.getLeftTriggerAxis(), m_operatorCtrl.getRightTriggerAxis()));
+        
+        // Driver: While A button is held, run Shooter at fixed speed
+        m_driverCtrl.a().whileTrue(m_shooterSubsystem.runShooterCommand().andThen(m_shooterSubsystem.stopShooterCommand()));   
+        
+        //m_driverCtrl.y().onTrue(Commands.intakeNote());
+    
         /*
          * Put Commands on Shuffleboard
          */
