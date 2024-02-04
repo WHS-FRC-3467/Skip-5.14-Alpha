@@ -22,13 +22,12 @@ import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
-import frc.robot.Constants.StageConstants;
-import frc.robot.Subsystems.Arm.ArmSubsystem;
+/* Local */
 import frc.robot.Subsystems.Drivetrain.CommandSwerveDrivetrain;
 import frc.robot.Subsystems.Drivetrain.Telemetry;
-import frc.robot.Subsystems.Intake.IntakeDefault;
 import frc.robot.Subsystems.Intake.UBIntakeSubsystem;
 import frc.robot.Subsystems.Shooter.ShooterSubsystem;
 import frc.robot.Subsystems.Stage.StageSubsystem;
@@ -96,10 +95,9 @@ public class RobotContainer {
     Pose2d m_odomStart = new Pose2d(0, 0, new Rotation2d(0, 0));
 
     // Instantiate other Subsystems
-    //ShooterSubsystem m_shooterSubsystem = new ShooterSubsystem();
+    ShooterSubsystem m_shooterSubsystem = new ShooterSubsystem();
     UBIntakeSubsystem m_intakeSubsystem = new UBIntakeSubsystem();
     StageSubsystem m_stageSubsystem = new StageSubsystem();
-    ArmSubsystem m_armSubsystem = new ArmSubsystem();
 
     // Setup Limelight periodic query (defaults to disabled)
     Limelight m_vision = new Limelight(m_drivetrain);
@@ -139,7 +137,7 @@ public class RobotContainer {
     private void registerNamedCommands() {
         
         // Register Named Commands for use in PathPlanner autos
-        NamedCommands.registerCommand("RunIntake", m_intakeSubsystem.runIntakeCommand(1.0));
+        NamedCommands.registerCommand("RunIntake", m_intakeSubsystem.runIntakeCommand());
         NamedCommands.registerCommand("StopIntake", m_intakeSubsystem.stopIntakeCommand());
 
     }
@@ -209,26 +207,37 @@ public class RobotContainer {
         m_driverCtrl.leftBumper().onFalse(runOnce(() -> m_MaxSpeed = TunerConstants.kSpeedAt12VoltsMps * speedChooser.getSelected())
                 .andThen(() -> m_AngularRate = m_MaxAngularRate));
 
-        // Driver: Use Left and Right Triggers to run Intake at variable speed (left = in, right = out)
-        m_intakeSubsystem.setDefaultCommand(new IntakeDefault(m_intakeSubsystem,
-                                            ()-> m_driverCtrl.getLeftTriggerAxis(),
-                                            () -> m_driverCtrl.getRightTriggerAxis()));
+        // Driver: When X button is pressed, release Note to shooter
+        m_driverCtrl.x().onTrue(m_stageSubsystem.feedNote2ShooterCommand());
+        //m_driverCtrl.x().onFalse(m_stageSubsystem.stopStageCommand());   
+
+        // Driver: While Y button is pressed:
+        //      - bring Arm home
+        //      - run Intake
+        //      - intake a Note into Stage
+        // Stop everything when a Note is in the stage
+        //
+        m_driverCtrl.y().whileTrue(
+            Commands.sequence(
+                // m_armSubsystem.goHome(),
+                Commands.deadline(
+                    m_stageSubsystem.intakeNoteCommand(),
+                    m_intakeSubsystem.runIntakeCommand()
+                )
+            )
+        );   
+        m_driverCtrl.y().onFalse(m_stageSubsystem.stopStageCommand().andThen(m_intakeSubsystem.stopIntakeCommand()));
         
-        // Driver: While X button is held, run Intake at fixed speed
-        m_driverCtrl.x().whileTrue(m_intakeSubsystem.runIntakeCommand(0.5));   
-
-        // Driver: While Y button is held, run Shooter at fixed speed
-        //m_driverCtrl.y().whileTrue(m_shooterSubsystem.runShooterCommand());   
-
+        // Driver: While A button is held, run Shooter at fixed speed
+        m_driverCtrl.a().whileTrue(m_shooterSubsystem.runShooterCommand().andThen(m_shooterSubsystem.stopShooterCommand()));   
+        
+    
         /*
          * Put Commands on Shuffleboard
          */
-        //SmartDashboard.putData("Update Shooter Gains", m_shooterSubsystem.updateShooterGainsCommand());
-        //SmartDashboard.putData("Run Shooter", m_shooterSubsystem.runShooterCommand());
-        //SmartDashboard.putData("Stop Shooter", m_shooterSubsystem.stopShooterCommand());
-        SmartDashboard.putData("Run Stage", m_stageSubsystem.ejectFrontCommand(StageConstants.kStageSpeed));
-        SmartDashboard.putData("Run Stage", m_stageSubsystem.ejectBackCommand(StageConstants.kStageSpeed));
-        SmartDashboard.putData("Stop Stage", m_stageSubsystem.stopStageCommand());
+        SmartDashboard.putData("Update Shooter Gains", m_shooterSubsystem.updateShooterGainsCommand());
+        SmartDashboard.putData("Run Shooter", m_shooterSubsystem.runShooterCommand());
+        SmartDashboard.putData("Stop Shooter", m_shooterSubsystem.stopShooterCommand());
 
     }
 
