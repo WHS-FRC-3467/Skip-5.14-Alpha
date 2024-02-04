@@ -67,9 +67,17 @@ public final class Constants {
         public static final double kSubwooferVelocity = 50.0;
         public static final double kPodiumVelocity = 70.0;
         public static final double kShooterTolerance = 10.0;
+        
+        public static final double shooterSpeed = 10.0;
+        public static final double podiumRangeMin = .5;
+        public static final double podiumRangeMax = 1;
+        public static final double subwooferRangeMin = .01;
+        public static final double subwooferRangeMax = .5;
     }
 
     public static final Pose2d BLUE_SPEAKER = new Pose2d(Units.inchesToMeters(-1.5), Units.inchesToMeters(218.42), new Rotation2d(0));
     public static final Pose2d RED_SPEAKER = new Pose2d(Units.inchesToMeters(652.73), Units.inchesToMeters(218.42), new Rotation2d(Math.PI));
+
+
 
 }

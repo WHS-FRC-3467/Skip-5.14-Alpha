@@ -188,10 +188,10 @@ public class RobotContainer {
 
     private void configureButtonBindings() {
 
-        // Driver: While A button is held, drive while pointing direction 0 
+        // Driver: While A button is held, drive while pointing direction of alliance speaker
         m_driverCtrl.a().whileTrue(m_drivetrain.applyRequest(
-                () -> m_head.withVelocityX(m_driverCtrl.getLeftY())
-                            .withVelocityY(m_driverCtrl.getLeftX())
+                () -> m_head.withVelocityX(-m_driverCtrl.getLeftY() * m_MaxSpeed)
+                            .withVelocityY(-m_driverCtrl.getLeftX() * m_MaxSpeed)
                             .withTargetDirection(new Rotation2d(m_drivetrain.calcAngleToSpeaker()))));
 
         // Driver: While B button is held, point drivetrain in the direction of the Left Joystick
@@ -223,6 +223,8 @@ public class RobotContainer {
         /*
          * Put Commands on Shuffleboard
          */
+        SmartDashboard.putNumber("Robot Angle To Speaker",m_drivetrain.calcAngleToSpeaker());
+        SmartDashboard.putNumber("Robot Dist To Speaker",m_drivetrain.calcDistToSpeaker());
         //SmartDashboard.putData("Update Shooter Gains", m_shooterSubsystem.updateShooterGainsCommand());
         //SmartDashboard.putData("Run Shooter", m_shooterSubsystem.runShooterCommand());
         //SmartDashboard.putData("Stop Shooter", m_shooterSubsystem.stopShooterCommand());

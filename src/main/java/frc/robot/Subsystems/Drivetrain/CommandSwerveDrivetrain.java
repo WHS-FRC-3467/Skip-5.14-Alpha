@@ -42,7 +42,6 @@ public class CommandSwerveDrivetrain extends SwerveDrivetrain implements Subsyst
     private final SwerveRequest.ApplyChassisSpeeds autoRequest = new SwerveRequest.ApplyChassisSpeeds();
     private Alliance _alliance;
     private Pose2d _speakerPosition;
-    private Translation2d _centerOfRotation;
     public Field2d _field;
 
     public CommandSwerveDrivetrain(SwerveDrivetrainConstants driveTrainConstants, double OdometryUpdateFrequency,
@@ -137,7 +136,6 @@ public class CommandSwerveDrivetrain extends SwerveDrivetrain implements Subsyst
                 _alliance = DriverStation.getAlliance().get();
             }
         }
-
         return _alliance;
     }
 
@@ -153,13 +151,6 @@ public class CommandSwerveDrivetrain extends SwerveDrivetrain implements Subsyst
         return _speakerPosition;
     }
 
-    /**
-     * Returns the distance from the center of the robot to the alliance's speaker in inches
-     */
-    public double getRadiusToSpeakerInInches() {
-        return getRadiusToSpeakerInMeters(m_odometry.getEstimatedPosition(), getSpeakerPos());
-    }
-
     // this setup lets us test the math, but when we actually run the code we don't
     // have to give a pose estimator
     public static double getRadiusToSpeakerInMeters(Pose2d robotPose, Pose2d speakerPos) {
@@ -172,14 +163,6 @@ public class CommandSwerveDrivetrain extends SwerveDrivetrain implements Subsyst
     }
 
     
-    public void setCenterOfRotationToSpeaker() {
-        if (getAlliance() == Alliance.Blue) {
-            setCenterOfRotation(calcSpeakerCoRForBlue(m_odometry.getEstimatedPosition(), getSpeakerPos()));
-        } else {
-            setCenterOfRotation(calcSpeakerCoRForRed(m_odometry.getEstimatedPosition(), getSpeakerPos()));
-        }
-    }
-
     public double calcAngleToSpeaker() {
         if (getAlliance() == Alliance.Blue) {
             return calcAngleToSpeakerForBlue();
@@ -204,24 +187,8 @@ public class CommandSwerveDrivetrain extends SwerveDrivetrain implements Subsyst
         return Math.toDegrees(Math.atan(yDiff / xDiff));
     }
 
-    public static Translation2d calcSpeakerCoRForBlue(Pose2d robotPose, Pose2d speakerPos) {
-        double xDiff = robotPose.getX() - speakerPos.getX();
-        double yDiff = speakerPos.getY() - robotPose.getY();
-        return new Translation2d(xDiff, yDiff);
-    }
-
-    public static Translation2d calcSpeakerCoRForRed(Pose2d robotPose, Pose2d speakerPos) {
-        double xDiff = speakerPos.getX() - robotPose.getX();
-        double yDiff = speakerPos.getY() - robotPose.getY();
-        return new Translation2d(xDiff, yDiff);
-    }
-
-    public void setCenterOfRotationToRobot() {
-        setCenterOfRotation(new Translation2d());
-    }
-
-    private void setCenterOfRotation(Translation2d pos) {
-        _centerOfRotation = pos;
+    public double calcDistToSpeaker() {
+        return getRadiusToSpeakerInMeters(m_odometry.getEstimatedPosition(),getSpeakerPos());
     }
 
     /*
