@@ -1,198 +1,198 @@
+// Copyright (c) FIRST and other WPILib contributors.
+// Open Source Software; you can modify and/or share it under the terms of
+// the WPILib BSD license file in the root directory of this project.
+
 package frc.robot.Subsystems.Arm;
 
+import com.ctre.phoenix.motorcontrol.FeedbackDevice;
+import com.ctre.phoenix.motorcontrol.TalonFXControlMode;
+/* Phoenix6 */
 import com.ctre.phoenix6.Utils;
-//import com.ctre.phoenix6.configs.CurrentLimitsConfigs;
+import com.ctre.phoenix6.configs.CurrentLimitsConfigs;
 import com.ctre.phoenix6.configs.Slot0Configs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
-//import com.ctre.phoenix6.controls.Follower;
+import com.ctre.phoenix6.configs.VoltageConfigs;
+import com.ctre.phoenix6.controls.Follower;
 import com.ctre.phoenix6.controls.NeutralOut;
 import com.ctre.phoenix6.controls.VelocityVoltage;
+import com.ctre.phoenix6.controls.DutyCycleOut;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 
-//Motion Magic
-import com.ctre.phoenix6.StatusCode;
-import com.ctre.phoenix6.configs.FeedbackConfigs;
-import com.ctre.phoenix6.configs.MotionMagicConfigs;
-import com.ctre.phoenix6.controls.ControlRequest;
-import com.ctre.phoenix6.controls.MotionMagicVoltage;
-
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
-import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.InstantCommand;
-import edu.wpi.first.wpilibj2.command.StartEndCommand;
+/* WPI */
+import edu.wpi.first.math.controller.PIDController;
+import edu.wpi.first.math.controller.ArmFeedforward;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import edu.wpi.first.wpilibj.DutyCycleEncoder;
+import edu.wpi.first.math.controller.ProfiledPIDController;
+import edu.wpi.first.math.numbers.N2;
+import edu.wpi.first.math.trajectory.TrapezoidProfile;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import edu.wpi.first.wpilibj.Timer;
+
+/* Local */
 import frc.robot.Constants.CanConstants;
-import frc.robot.Constants.ShooterConstants;
-import frc.robot.Util.TunableNumber;
-import frc.robot.sim.PhysicsSim;
+import frc.robot.Constants.DIOConstants;
+import frc.robot.Subsystems.Arm.Setpoint.ArmState;
+import frc.robot.Constants;
+import frc.robot.Constants.ArmConstants;
 
-public class armSubsystem extends SubsystemBase{
-    /* Hardware */
-    TalonFX m_motorLeader = new TalonFX(CanConstants.ID_ArmLeader);
-    TalonFX m_motorFollower = new TalonFX(CanConstants.ID_ArmFollower);
-    /* Hardware */
+public class ArmSubsystem extends SubsystemBase {
+    /* Creates a new ArmSubsystem */
+    private TalonFX m_armLeader = new TalonFX(CanConstants.ID_ArmLeader);
+    private TalonFX m_armFollower = new TalonFX(CanConstants.ID_ArmFollower);
 
-    /* Motion Magic Configure */
-    private final MotionMagicVoltage m_mmReq = new MotionMagicVoltage(0);
-    /* Motion Magic Configure */
+    private DutyCycleEncoder m_encoder = new DutyCycleEncoder(DIOConstants.armAbsEncoder);
+    private DutyCycleOut m_PercentOutput = new DutyCycleOut(0.0);
 
-    /* Modify Gains */
-    /*
-    // The Acceleration gain, in volt seconds^2 per radian
-    private static TunableNumber m_WPIkA = new TunableNumber("WPI FeedForward Arm kA", 0.00);
-    // The gravity gain, in volts
-    private static TunableNumber m_WPIkG = new TunableNumber("WPI FeedForward Arm kG", 0.00);
-    // The static gain, in volts
-    private static TunableNumber m_WPIkS = new TunableNumber("WPI FeedForward Arm kS", 0.00);
-    // The velocity gain, in volt seconds per radian
-    private static TunableNumber m_WPIkV = new TunableNumber("WPI FeedForward Arm kV", 0.00);
-    */
+    private TrapezoidProfile.Constraints armConstraints;
 
-    // 
-    private static TunableNumber m_kP = new TunableNumber("Arm kP", 60.00);
-    // 
-    private static TunableNumber m_kI = new TunableNumber("Arm kI", 0.00);
-    // 
-    private static TunableNumber m_kD = new TunableNumber("Arm kD", 0.10);
-    // 
-    private static TunableNumber m_kV = new TunableNumber("Arm kV", 0.12);
-    //
-    private static TunableNumber m_kS = new TunableNumber("Arm kS", 0.25);
+    private ProfiledPIDController m_controllerarmLeader;
 
-    // double calculate(double positionRadians, double velocity) Calculates the feedforward from the gains and velocity setpoint (acceleration is assumed to be zero)
-    // double calculate (double positionRadians, double velocityRadPerSec, double accelRadPerSecSquared) Calcualtes the feedforward from the gains and setpoints
-
-    // Shooter Velocity setpoints (in RPS)
-    private static TunableNumber m_armSetpoint = new TunableNumber("m_armSetpoint", 0.0);
-    /* Modify Gains */
-
-    /* Arm Setpoints Enumeration */
-    public enum eArmPosition {
-        HOME(0, "HOME"),
-        AMP(1000, "AMP"),
-        CLIMB(900, "CLIMB");
-
-        private final int setpoint;
-        private final String name;
-
-        private eArmPosition(int position, String name) {
-            this.setpoint = position;
-            this.name = name;
-        }
-
-        public int getSetpoint() {
-            return this.setpoint;
-        }
-
-        public String getName() {
-            return this.name;
-        }
-    }
-    /* Arm Setpoints Enumeration */
-
-    // Track the Enumerations
-    public eArmPosition m_moveToPosition;
-
-    // Actual encoder position - updated everytime the lift is moved
-    // Save this because we want the default command to run MotionMagic at the current position,
-    // which will avoid sudden movements upon re-enabling the robot
-    private double m_actualEncoderPosition;
-    private boolean m_wasRecentlyDisabled;
-
-
-
-
-    public armSubsystem() {
-        /* If running in Simulation, setup simulated Falcons */
-        if (Utils.isSimulation()) {
-            PhysicsSim.getInstance().addTalonFX(m_motorLeader, 0.001);
-            PhysicsSim.getInstance().addTalonFX(m_motorFollower, 0.001);
-        }
-
-        /* Configure the devices */
-        var leadConfiguration = new TalonFXConfiguration();
-
-        /* Configure Motion Magic */
-        MotionMagicConfigs armMagic = leadConfiguration.MotionMagic;
-        armMagic.MotionMagicCruiseVelocity = 5; // 5 rotations per second cruise
-        armMagic.MotionMagicAcceleration = 10; // Takes approximately 0.6 seconds to reach max vel
-        // Take approximately 0.2 seconds to reach max accel
-        armMagic.MotionMagicJerk = 50;
-
-        /* set motors to Brake */
-        leadConfiguration.MotorOutput.NeutralMode = NeutralModeValue.Brake;
-
-        leadConfiguration.MotorOutput.Inverted = InvertedValue.CounterClockwise_Positive;
-
-        /* Config the peak outputs */
-        leadConfiguration.Voltage.PeakForwardVoltage = 12.0;
-        leadConfiguration.Voltage.PeakReverseVoltage = 12.0;
-
-        /* Update Arm Gains from TunableNumbers */
-        leadConfiguration.Slot0.kP = m_kP.get();
-        leadConfiguration.Slot0.kI = m_kI.get();
-        leadConfiguration.Slot0.kD = m_kD.get();
-        leadConfiguration.Slot0.kV = m_kV.get();
-        leadConfiguration.Slot0.kS = m_kS.get();
-
-        FeedbackConfigs fdb = leadConfiguration.Feedback;
-        fdb.SensorToMechanismRatio = 192;  // This is the ratio of the arm gearbox
+    private JointConfig armJoint = new JointConfig(ArmConstants.MASS, ArmConstants.LENGTH, 
+        ArmConstants.MOI, ArmConstants.CGRadius, ArmConstants.MOTOR);
     
-        /* Apply Configs */
-        leadConfiguration.MotorOutput.Inverted = InvertedValue.CounterClockwise_Positive;
-        m_motorLeader.getConfigurator().apply(leadConfiguration);
-        leadConfiguration.MotorOutput.Inverted = InvertedValue.Clockwise_Positive;
-        m_motorFollower.getConfigurator().apply(leadConfiguration);
+    double kS;  // The Static Gain, in volts
+    double kG;  // The Gravity Gain, in volts
+    double kV;  // The Velocity Gain, in volt seconds per radian
+    double kA;  // The acceleration gain, in volt seconds^2 per radian
+    private ArmFeedforward feedforward = new ArmFeedforward(kS, kG, kV, kA); // double kS, double kG, double kV, double kA
 
+    private Setpoint m_setpoint;
+    private double armDegrees;
+    
+    public ArmSubsystem() {
+        // Config Duty Cycle Range for the encoders
+        m_encoder.setDutyCycleRange(ArmConstants.DUTY_CYCLE_MIN, ArmConstants.DUTY_CYCLE_MAX);
+
+        // Default Motors
+        var leadConfiguration = new TalonFXConfiguration();
+        var followerConfiguration = new TalonFXConfiguration();
+
+        // Set the mode to brake
+        leadConfiguration.MotorOutput.NeutralMode = NeutralModeValue.Brake;
+        followerConfiguration.MotorOutput.NeutralMode = NeutralModeValue.Brake;
+
+        leadConfiguration.MotorOutput.DutyCycleNeutralDeadband = ArmConstants.NEUTRAL_DEADBAND;
+        followerConfiguration.MotorOutput.DutyCycleNeutralDeadband = ArmConstants.NEUTRAL_DEADBAND;
+
+        //leadConfiguration.CurrentLimits.SupplyCurrentLimit();
+
+        leadConfiguration.MotorOutput.Inverted = InvertedValue.CounterClockwise_Positive;
+
+        //leadConfiguration.configVoltageCompSaturation(12, ArmConstants.TIMEOUT);
+
+        //leadConfiguration.configFeedbackNotContinuous(true, ArmConstants.TIMEOUT);
+
+        //leadConfiguration.configForwardSoftLimitThreshold(ArmConstants.FORWARD_SOFT_LIMIT_UPPER, ArmConstants.TIMEOUT);
+        //leadConfiguration.configReverseSoftLimitThreshold(ArmConstants.REVERSE_SOFT_LIMIT_UPPER, ArmConstants.TIMEOUT);
+
+        Timer.delay(1.5);
+        armConstraints = new TrapezoidProfile.Constraints(ArmConstants.ARM_CRUISE,
+            ArmConstants.ARM_ACCELERATION);
+
+        m_armLeader.getConfigurator().apply(leadConfiguration);
+        m_armLeader.getConfigurator().apply(followerConfiguration);
+
+        m_armLeader.setControl(new Follower(m_armLeader.getDeviceID(), true));
+
+        reset();
     }
 
     @Override
     public void periodic() {
-        /* Inside of this function we are constantly checking to see what our position currently is */
-        SmartDashboard.putNumber("Arm Lead Motor Position", m_motorLeader.getPosition().getValueAsDouble());
-        SmartDashboard.putNumber("Arm Lead Motor Velocity", m_motorLeader.getVelocity().getValueAsDouble());
+        // This method will be called once per scheduler run
+
+        if(getArmJointDegrees() <= 0.0 || getArmJointDegrees() <= 0.0) {
+            //m_armLeader.nuetralOutput();
+        }
+        
+        //SmartDashboard.putBoolean("Upper at Setpoint", getUpperAtSetpoint());
+        SmartDashboard.putBoolean("Arm Joint at Setpoint", getArmJointAtSetpoint());
+        //SmartDashboard.putNumber("Upper Angle", getUpperJointDegrees());
+        SmartDashboard.putNumber("Arm Joint Angle", getArmJointDegrees());
+
+        if (Constants.RobotConstants.kIsTuningMode) {
+            SmartDashboard.putNumber("Arm Angle Uncorrected", dutyCycleToDegrees(getArmJointPos()));
+            SmartDashboard.putNumber("Arm Joint Error", getArmJointError());
+            SmartDashboard.putNumber("Arm Joint Setpoint", armDegrees);
+        } 
     }
 
-    /* Manual Commands */
-    public void driveManual(double speed) {
-        m_motorLeader.set(speed);
-        updatePosition();
+    public void reset() {
+        armDegrees = getArmJointDegrees();
+        m_controllerarmLeader.reset(getArmJointDegrees());
+        // public Setpoint(double home, double amp, double climb, ArmState state
+        m_setpoint = new Setpoint(armDegrees, ArmState.OTHER);
+        
     }
 
-    public void moveArmToExactPosition(int position) {
-        m_motorLeader.setPosition(position);
-    }
-
-    /* Closed Loop Motion Control */
-
-    public void moveArmToPosition(eArmPosition position) {
-        m_moveToPosition = position;
-        m_motorLeader.setPosition(position.getSetpoint());
-        updatePosition();
-
-        // Now that the arm has been rer-commanded to a position, turn off flag
-        m_wasRecentlyDisabled = false;
-    }
-
-    public void updatePosition() {
-        m_actualEncoderPosition = m_motorLeader.getPosition().getValueAsDouble();
-    }
-
-    public double getArmPos() {
-        return m_actualEncoderPosition;
-    }
-
-    // Use Current Position as Setpoint
-    public void holdMagically (boolean reportStats) {
-
-        // If robot was recently disabled and hasn't been re-commanded to a position, use actual encoder position
-        if (m_wasRecentlyDisabled == true) {
-            m_motorLeader.setPosition(m_actualEncoderPosition);
-        } else {
-            m_motorLeader.setPosition(m_moveToPosition.getSetpoint());
+    public void updateArmSetpoint(double setpoint) {
+        if (armDegrees != setpoint) {                   
+            if (setpoint < 360 && setpoint > 0) {          
+                armDegrees = setpoint;                      
+            }
         }
     }
+
+    public void runArmProfiled() {
+        m_controllerarmLeader.setConstraints(armConstraints);
+        m_controllerarmLeader.setGoal(new TrapezoidProfile.State(armDegrees, 0.0));
+        double pidOutput = -m_controllerarmLeader.calculate(getArmJointDegrees(), new TrapezoidProfile.State(armDegrees, 0.0));
+        double ff = feedforward.calculate(pidOutput, 0);
+        if(Constants.RobotConstants.kIsTuningMode){
+            //SmartDashboard.putNumber("upper ff", (ff));
+            SmartDashboard.putNumber("Arm PID", pidOutput);
+        }
+        System.out.println("Upper PID" + pidOutput);
+        if(Math.abs(pidOutput) > 0.01 && Math.abs(pidOutput)<0.045){
+            pidOutput = Math.copySign(0.045, pidOutput);
+        }
+        m_armLeader.setControl(m_PercentOutput.withOutput(pidOutput - ff));
+    }
+
+    public double getArmJointError(){
+        return Math.abs(armDegrees - getArmJointDegrees());
+    }
+
+    public boolean getArmJointAtSetpoint() {
+        return getArmJointError() < ArmConstants.TOLERANCE_POS;
+    }
+
+    public Setpoint getSetpoint() {
+        if(m_setpoint.equals(null)){
+            reset();
+            return m_setpoint;
+        } else {
+            return m_setpoint;
+        }
+    }
+
+    public void setPercentOutputUpper(double speed) {
+        m_armLeader.setControl(m_PercentOutput.withOutput(speed));
+    }
+
+    //public void neutralUpper() {
+        //m_armLeader.neutralOutput();
+    //}
+
+    public double getArmJointPos() {
+        return m_encoder.getAbsolutePosition();
+    }
+
+    public double getArmJointDegrees() {
+        return dutyCycleToDegrees(getArmJointPos()) + ArmConstants.ARM_ANGLE_OFFSET;
+    }
+
+    public double dutyCycleToCTREUnits(double dutyCyclePos) {
+        // 4096 units per rotation = raw sensor units for Pulse width encoder
+        return dutyCyclePos * 4096;
+    }
+
+    public double dutyCycleToDegrees(double dutyCyclePos) {
+        return dutyCyclePos * 360;
+    }
+
 
 }
