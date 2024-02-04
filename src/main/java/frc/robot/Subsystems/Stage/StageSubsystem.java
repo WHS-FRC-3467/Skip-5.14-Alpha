@@ -23,7 +23,7 @@ public class StageSubsystem extends SubsystemBase {
     DigitalInput m_stageBeamBreak = new DigitalInput(DIOConstants.kStageBeamBreak);
     boolean m_noteInStage = false;
 
-    /** Creates a new IntakeSubsystem. */
+    /** Creates a new StageSubsystem. */
     public StageSubsystem() {
 
         // Set motors to factory defaults
@@ -33,15 +33,15 @@ public class StageSubsystem extends SubsystemBase {
         // Invert motor2 and have it follow motor1
         //m_stageFollow.follow(m_stageLead);
         //m_stageFollow.setInverted(false);
-        m_stageLead.setInverted(true);
+        m_stageLead.setInverted(false);
 
         // Set motors to Brake
         m_stageLead.setNeutralMode(NeutralMode.Brake);
         //m_stageFollow.setNeutralMode(NeutralMode.Brake);
 
         // Config ramp rate and current limit
-        m_stageLead.configOpenloopRamp(0.75);
-        m_stageLead.configSupplyCurrentLimit(new SupplyCurrentLimitConfiguration(true, 15, 20, 0.10));
+        //m_stageLead.configOpenloopRamp(0.75);
+        //m_stageLead.configSupplyCurrentLimit(new SupplyCurrentLimitConfiguration(true, 15, 20, 0.10));
 
         /* Config the peak and nominal outputs */
         m_stageLead.configNominalOutputForward(0.0, 30);
@@ -66,9 +66,8 @@ public class StageSubsystem extends SubsystemBase {
 
         // Default command is to hold the note in place if sensor detects note
         // (may need to flip the boolean value)
-        if (m_stageBeamBreak.get()) {
-            m_noteInStage = true;
-        }
+        m_noteInStage = m_stageBeamBreak.get() ? false : true;
+
         SmartDashboard.putNumber("Stage Current Draw", m_stageLead.getSupplyCurrent());
         SmartDashboard.putBoolean("Note In Stage", m_noteInStage);
     }
@@ -105,6 +104,11 @@ public class StageSubsystem extends SubsystemBase {
     /*
      * Command Factories
      */
+    public Command runStageCommand() {
+        return new InstantCommand(()-> this.runStage(StageConstants.kIntakeSpeed), this)
+        .repeatedly()
+        .andThen(()-> this.stopStage());
+    }
 
     // To Intake a Note, drive the Stage until the sensor says we have a Note
     public Command intakeNoteCommand() {
