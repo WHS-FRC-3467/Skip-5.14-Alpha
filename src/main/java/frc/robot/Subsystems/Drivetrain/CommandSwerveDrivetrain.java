@@ -178,6 +178,10 @@ public class CommandSwerveDrivetrain extends SwerveDrivetrain implements Subsyst
         }
     }
 
+    public Rotation2d RotToSpeaker() {
+        return Rotation2d.fromDegrees(calcAngleToSpeaker());
+    }
+
     private double calcAngleToSpeakerForBlue() {
         Pose2d robotPose = m_odometry.getEstimatedPosition();
         Pose2d speakerPos = Constants.RED_SPEAKER;
