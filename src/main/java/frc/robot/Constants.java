@@ -19,16 +19,48 @@ import edu.wpi.first.math.system.plant.DCMotor;
  */
 public final class Constants {
 
+    // Shooter and Arm State enumeration
+    public enum SharmState {
+
+        ss_Intake(0, 0, "INTAKE - DEFAULT POSITION"),
+        ss_Subwoofer(30, 0, "SHOOT FROM SUBWOOFER"),
+        ss_Amp(20, 10, "SCORE IN AMP"),
+        ss_Podium(50, 5, "SHOOT FROM PODIUM"),
+        ss_Wing(70, 7, "SHOOT FROM THE WING"),
+        ss_PrepareToClimb(0, 10, "PREPARE TO CLIMB"),
+        ss_ClimbChain(0, 0, "CLIMB ON CHAIN");
+
+        private final int setpointShooter;
+        private final int setpointArm;
+        private final String name;
+
+        private SharmState(int spShooter, int spArm, String name) {
+            this.setpointShooter = spShooter;
+            this.setpointArm = spArm;
+            this.name = name;
+        }
+
+        public int getShooterSetpoint() {
+            return this.setpointShooter;
+        }
+        
+        public int getArmSetpoint() {
+            return this.setpointArm;
+        }
+
+        public String getName() {
+            return this.name;
+        }
+    }
+    
     public static final class CanConstants {
 
         // Drivebase CAN IDs are 1 -> 13
         // See generated/TunerConstants.java
 
         // Shooter CAN IDs
-        public static final int ID_ShooterLeftLeader = 15;
-        //public static final int ID_ShooterLeftFollower = 16;
-        public static final int ID_ShooterRightLeader = 17;
-        //public static final int ID_ShooterRightFollower = 18;
+        public static final int ID_ShooterLeft = 15;
+        public static final int ID_ShooterRight = 17;
 
         // Intake CAN IDs
         public static final int ID_IntakeMotor = 19;
@@ -55,14 +87,20 @@ public final class Constants {
 
     public static final class StageConstants {
 
-        public static final double kIntakeSpeed = 0.75;
+        public static final double kIntakeSpeed = 0.6;
         public static final double kFeedToShooterSpeed = 1.0;
         public static final double kFeedToAmpSpeed = 0.7;
         public static final double kFeedToTrapSpeed = 0.5;
 
-        public static final double kFeedToShooterTime = 5.0;
-        public static final double kFeedToAmpTime = 5.0;
-        public static final double kFeedToTrapTime = 5.0;
+        public static final double kFeedToShooterTime = 1.0;
+        public static final double kFeedToAmpTime = 4.0;
+        public static final double kFeedToTrapTime = 4.0;
+    }
+
+    public static final class IntakeConstants {
+
+        public static final double kIntakeSpeed = 1.0;
+        public static final double kEjectSpeed = -0.75;
     }
 
     public static final class ShooterConstants {

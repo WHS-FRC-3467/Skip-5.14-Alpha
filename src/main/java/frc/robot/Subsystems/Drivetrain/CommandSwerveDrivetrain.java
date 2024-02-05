@@ -15,7 +15,6 @@ import com.pathplanner.lib.util.ReplanningConfig;
 
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.units.Measure;
 import edu.wpi.first.units.Voltage;
@@ -161,6 +160,9 @@ public class CommandSwerveDrivetrain extends SwerveDrivetrain implements Subsyst
     // this setup lets us test the math, but when we actually run the code we don't
     // have to give a pose estimator
     public static double getRadiusToSpeakerInMeters(Pose2d robotPose, Pose2d speakerPos) {
+
+        if (speakerPos == null) return 0;
+        
         double xDiff = robotPose.getX() - speakerPos.getX();
         double yDiff = robotPose.getY() - speakerPos.getY();
         double xPow = Math.pow(xDiff, 2);

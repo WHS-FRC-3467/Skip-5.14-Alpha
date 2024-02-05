@@ -10,7 +10,6 @@ import java.util.function.Supplier;
 
 import com.ctre.phoenix6.Utils;
 import com.ctre.phoenix6.mechanisms.swerve.SwerveRequest;
-import com.ctre.phoenix6.mechanisms.swerve.SwerveDrivetrain.SwerveDriveState;
 import com.ctre.phoenix6.mechanisms.swerve.SwerveModule.DriveRequestType;
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.auto.NamedCommands;
@@ -23,21 +22,18 @@ import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
+import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
 /* Local */
-import frc.robot.Commands.intakeNote;
 import frc.robot.Commands.moveToSetpoint;
 import frc.robot.Subsystems.Arm.ArmSubsystem;
 import frc.robot.Subsystems.Drivetrain.CommandSwerveDrivetrain;
 import frc.robot.Subsystems.Drivetrain.Telemetry;
-import frc.robot.Subsystems.Intake.IntakeDefault;
 import frc.robot.Subsystems.Intake.UBIntakeSubsystem;
 import frc.robot.Subsystems.Shooter.ShooterSubsystem;
 import frc.robot.Subsystems.Stage.StageSubsystem;
 import frc.robot.Util.CommandXboxPS5Controller;
-import frc.robot.Util.TunableNumber;
 import frc.robot.Vision.Limelight;
 import frc.robot.generated.TunerConstants;
 
@@ -49,7 +45,6 @@ public class RobotContainer {
     private SendableChooser<Command> autoChooser;
     private SendableChooser<String> controlChooser = new SendableChooser<>();
     private SendableChooser<Double> speedChooser = new SendableChooser<>();
-   
 
     /*
      * Speed adjustments
@@ -118,7 +113,7 @@ public class RobotContainer {
         DriverStation.silenceJoystickConnectionWarning(true);
 
         // Change this to specify Limelight is in use
-        m_vision.useLimelight(true);
+        m_vision.useLimelight(false);
         m_vision.setAlliance(Alliance.Blue);
         m_vision.trustLL(true);
  
@@ -151,7 +146,7 @@ public class RobotContainer {
     private void registerNamedCommands() {
         
         // Register Named Commands for use in PathPlanner autos
-        NamedCommands.registerCommand("RunIntake", m_intakeSubsystem.runIntakeCommand(1.0));
+        NamedCommands.registerCommand("RunIntake", m_intakeSubsystem.runIntakeCommand());
         NamedCommands.registerCommand("StopIntake", m_intakeSubsystem.stopIntakeCommand());
 
     }
@@ -203,20 +198,77 @@ public class RobotContainer {
 
     private void configureButtonBindings() {
 
-        // Driver: While A button is held, drive while pointing direction of alliance speaker
+        /*
+         * Driver Controls:
+         *  A Button:  Brake in "X" position (while held)
+         *  B Button:  Drive while pointing at Speaker (while held)
+         *  X Button:  Shoot (when pressed)
+         *  Y Button:  Intake a Note (while held)
+         *  Start Button: Reset field orientation (when pressed)
+         *  DPad Left: Shooter Off/ Arm Home (when pressed)
+         *  DPad Up: Shooter/Arm to Speaker Position (when pressed)
+         *  DPad Right: Shooter/Arm to Podium Position (when pressed)
+         *  DPad Down: (Shooter/Arm to Wing Position) (when pressed)
+         *  Left Bumper: Drive in Turtle Mode (while held)
+         *  Right Bumper:
+         *  Left Trigger:
+         *  Right Trigger:
+         * 
+         * 
+         * Operator Controls:
+         *  A Button: Run Shooter at speed on Shuffleboard (while held)
+         *  B Button:
+         *  X Button:
+         *  Y Button:
+         *  Start Button:
+         *  DPad Left: Position Arm @ Home position (when pressed)
+         *  DPad Up: Drive Arm Up @ 20% (while held)
+         *  DPad Right: Position Arm @ fixed setpoint (when pressed)
+         *  DPad Down: Drive Arm Down @ 20% (while held)
+         *  Left Bumper:
+         *  Right Bumper:
+         *  Left Trigger:
+         *  Right Trigger:
+         *          * 
+         */
+
+        /* 
+         * DRIVER Controls
+         */
+
+         // Driver: While A button is held, put swerve modules in Brake mode (modules make an 'X')
+        m_driverCtrl.a().whileTrue(m_drivetrain.applyRequest(() -> m_brake));
+
+        // Driver: While B button is held, drive while pointing direction of alliance speaker
         m_driverCtrl.b().whileTrue(m_drivetrain.applyRequest(
                 () -> m_head.withVelocityX(-m_driverCtrl.getLeftY() * m_MaxSpeed)
-                            .withVelocityY(-m_driverCtrl.getLeftX() * m_MaxSpeed)
-                            //.withTargetDirection(m_drivetrain.RotToSpeaker())
-                            .withTargetDirection(m_drivetrain.RotToSpeaker())
-                            .withDeadband(m_MaxSpeed * 0.1).withRotationalDeadband(m_AngularRate * 0.1)));
-
-        // Driver: While B button is held, point drivetrain in the direction of the Left Joystick
- /*        m_driverCtrl.b().whileTrue(m_drivetrain.applyRequest(
-                () -> m_point.withModuleDirection(new Rotation2d(-m_driverCtrl.getLeftY(), -m_driverCtrl.getLeftX()))
-            )
+                      .withVelocityY(-m_driverCtrl.getLeftX() * m_MaxSpeed)
+                      //.withTargetDirection(m_drivetrain.RotToSpeaker())
+                      .withTargetDirection(m_drivetrain.RotToSpeaker())
+                      .withDeadband(m_MaxSpeed * 0.1)
+                      .withRotationalDeadband(m_AngularRate * 0.1))
         );
- */
+
+        // Driver: When X button is pressed, release Note to shooter
+        m_driverCtrl.x().onTrue(m_stageSubsystem.feedNote2ShooterCommand());
+
+        // Driver: While Y button is pressed:
+        //      - bring Arm home
+        //      - run Intake
+        //      - intake a Note into Stage
+        // Stop everything when a Note is in the stage
+        //
+        m_driverCtrl.y().whileTrue(
+            Commands.sequence(
+                // m_armSubsystem.goHome(),
+                Commands.deadline(
+                    m_stageSubsystem.intakeNoteCommand(),
+                    m_intakeSubsystem.runIntakeCommand()
+                )
+            )
+        );   
+        m_driverCtrl.y().onFalse(m_stageSubsystem.stopStageCommand().andThen(m_intakeSubsystem.stopIntakeCommand()));
+        
         // Driver: On Start button press, reset the field-centric heading
         m_driverCtrl.start().onTrue(m_drivetrain.runOnce(() -> m_drivetrain.seedFieldRelative()));
 
@@ -226,45 +278,24 @@ public class RobotContainer {
         m_driverCtrl.leftBumper().onFalse(runOnce(() -> m_MaxSpeed = TunerConstants.kSpeedAt12VoltsMps * speedChooser.getSelected())
                 .andThen(() -> m_AngularRate = m_MaxAngularRate));
 
-        // Driver: Use Left and Right Triggers to run Intake at variable speed (left = in, right = out)
-/*        m_intakeSubsystem.setDefaultCommand(new IntakeDefault(m_intakeSubsystem,
-                                            ()-> m_driverCtrl.getLeftTriggerAxis(),
-                                            () -> m_driverCtrl.getRightTriggerAxis()));
-*/        
-        // Driver: While X button is held, run Intake at fixed speed
-//        m_driverCtrl.x().whileTrue(m_intakeSubsystem.runIntakeCommand(0.5));   
-        m_driverCtrl.x().whileTrue(m_stageSubsystem.runStageCommand().andThen(m_stageSubsystem.stopStageCommand()));   
+        /* 
+         * OPERATOR Controls
+         */
 
-      
-        m_driverCtrl.y().whileTrue(new intakeNote(m_intakeSubsystem, m_stageSubsystem));
-//                                            ()) -> m_driverCtrl.getLeftTriggerAxis(),
-//                                            () -> m_driverCtrl.getRightTriggerAxis()));
-
-        m_driverCtrl.povUp().whileTrue(m_ArmSubsystem.runArmMotorSpeedCommand(.2));
-        m_driverCtrl.povCenter().whileTrue(m_ArmSubsystem.runArmMotorSpeedCommand(0));
-        m_driverCtrl.povDown().whileTrue(m_ArmSubsystem.runArmMotorSpeedCommand(-.2));
-        m_driverCtrl.povLeft().whileTrue(new moveToSetpoint(m_ArmSubsystem));
-
-/*        m_driverCtrl.y().whileTrue(
-            new ParallelCommandGroup (
-                ()->m_intakeSubsystem.runIntakeCommand(),
-                ()->m_stageSubsystem.intakeNoteCommand()
-            )
-        );   
-*/
-        //new XBoxControllerButton(m_operatorController, XBoxControllerEE.Button.kX)
-        //    .whenHeld(new intakeNote(m_intakeSubsystem, m_stageSubsystem, m_operatorCtrl.getLeftTriggerAxis(), m_operatorCtrl.getRightTriggerAxis()));
-        
-        // Driver: While A button is held, run Shooter at fixed speed
+        // Operator: While A button is held, run Shooter at fixed speed (as determined by Shuffleboard settings)
         m_driverCtrl.a().onTrue(m_shooterSubsystem.runShooterCommand());
         m_driverCtrl.a().onFalse(m_shooterSubsystem.stopShooterCommand());   
-        
-        //m_driverCtrl.y().onTrue(Commands.intakeNote());
-    
+
+        // Operator: Use POV pad to drive Arm 
+        m_operatorCtrl.povUp().whileTrue(m_ArmSubsystem.runArmMotorSpeedCommand(.2));
+        m_operatorCtrl.povCenter().whileTrue(m_ArmSubsystem.runArmMotorSpeedCommand(0));
+        m_operatorCtrl.povDown().whileTrue(m_ArmSubsystem.runArmMotorSpeedCommand(-.2));
+        m_operatorCtrl.povLeft().whileTrue(new moveToSetpoint(m_ArmSubsystem));
+
+            
         /*
          * Put Commands on Shuffleboard
          */
-        
         SmartDashboard.putData("Update Shooter Gains", m_shooterSubsystem.updateShooterGainsCommand());
         SmartDashboard.putData("Run Shooter", m_shooterSubsystem.runShooterCommand());
         SmartDashboard.putData("Stop Shooter", m_shooterSubsystem.stopShooterCommand());

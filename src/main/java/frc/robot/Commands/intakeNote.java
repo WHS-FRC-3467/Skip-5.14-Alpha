@@ -41,7 +41,6 @@ public class intakeNote extends Command {
     // Called every time the scheduler runs while the command is scheduled.
     @Override
     public void execute() {
-        double speed;
 
         /*
          * We will need to do some conditional checks before we can run the intake and

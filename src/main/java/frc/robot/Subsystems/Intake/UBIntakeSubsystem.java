@@ -10,6 +10,8 @@ import com.ctre.phoenix.motorcontrol.StatusFrame;
 import com.ctre.phoenix.motorcontrol.SupplyCurrentLimitConfiguration;
 import com.ctre.phoenix.motorcontrol.TalonSRXControlMode;
 import com.ctre.phoenix.motorcontrol.can.TalonSRX;
+import com.ctre.phoenix.motorcontrol.can.WPI_TalonSRX;
+import com.ctre.phoenix6.Utils;
 //import com.ctre.phoenix6.configs.CurrentLimitsConfigs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.DutyCycleOut;
@@ -21,14 +23,17 @@ import com.ctre.phoenix6.signals.NeutralModeValue;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
+import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants.CanConstants;
+import frc.robot.Constants.IntakeConstants;
+import frc.robot.sim.PhysicsSim;
 
 public class UBIntakeSubsystem extends SubsystemBase {
 
     /* Initialize Talons */
     TalonFX m_intakeMotor = new TalonFX(CanConstants.ID_IntakeMotor);
-    TalonSRX m_centeringMotor = new TalonSRX(CanConstants.ID_IntakeCtrRoller);
+    TalonSRX m_centeringMotor = new WPI_TalonSRX(CanConstants.ID_IntakeCtrRoller);
 
     /* Current Limits config */
     //private final CurrentLimitsConfigs m_currentLimits = new CurrentLimitsConfigs();
@@ -41,6 +46,12 @@ public class UBIntakeSubsystem extends SubsystemBase {
 
     /** Creates a new IntakeSubsystem. */
     public UBIntakeSubsystem() {
+
+         /* If running in Simulation, setup simulated Talons */
+         if (Utils.isSimulation()) {
+            PhysicsSim.getInstance().addTalonFX(m_intakeMotor, 0.001);
+            PhysicsSim.getInstance().addTalonSRX(m_centeringMotor, 1.0, 89975.0);
+        }
 
         /* Configure the Intake motor */
         var m_configuration = new TalonFXConfiguration();
@@ -103,6 +114,11 @@ public class UBIntakeSubsystem extends SubsystemBase {
     @Override
     public void periodic() {
 
+        // If running in simulation, update the sims
+        if (Utils.isSimulation()) {
+            PhysicsSim.getInstance().run();
+        }
+
         // This method will be called once per scheduler run
         SmartDashboard.putNumber("Intake Current Draw", m_intakeMotor.getSupplyCurrent().getValueAsDouble());
         SmartDashboard.putNumber("Intake Center Current Draw", m_centeringMotor.getSupplyCurrent());
@@ -125,11 +141,16 @@ public class UBIntakeSubsystem extends SubsystemBase {
     /*
      * Command Factories
      */
-    public Command runIntakeCommand(double speed) {
-        return new InstantCommand(()->this.runIntake(speed), this).repeatedly();
+    public Command runIntakeCommand() {
+        return new RunCommand(()->this.runIntake(IntakeConstants.kIntakeSpeed), this);
     }
 
     public Command stopIntakeCommand() {
         return new InstantCommand(()->this.stopIntake(), this);
     }
+
+    public Command ejectIntakeCommand() {
+        return new RunCommand(()->this.runIntake(IntakeConstants.kEjectSpeed), this);
+    }
+
 }
