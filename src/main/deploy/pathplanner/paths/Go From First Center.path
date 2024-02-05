@@ -3,35 +3,51 @@
   "waypoints": [
     {
       "anchor": {
-        "x": 3.791395389058584,
-        "y": 7.156822518773243
+        "x": 7.863489600850769,
+        "y": 7.414251945618729
       },
       "prevControl": null,
       "nextControl": {
-        "x": 2.8675571881058293,
-        "y": 6.595503105536126
+        "x": 7.345786223103977,
+        "y": 7.146155553572369
       },
       "isLocked": false,
-      "linkedName": "StartOfFirstShot"
+      "linkedName": "CenterPiece1"
     },
     {
       "anchor": {
-        "x": 1.8150832882862347,
-        "y": 5.601499977928731
+        "x": 4.442949426439393,
+        "y": 6.878059161523729
       },
       "prevControl": {
-        "x": 1.7800008249589148,
-        "y": 6.583808951093687
+        "x": 5.588046152573098,
+        "y": 6.961476803824859
+      },
+      "nextControl": {
+        "x": 3.046999247151647,
+        "y": 6.776367426608728
+      },
+      "isLocked": false,
+      "linkedName": null
+    },
+    {
+      "anchor": {
+        "x": 1.891411350390268,
+        "y": 6.508271034560088
+      },
+      "prevControl": {
+        "x": 2.7326793392325524,
+        "y": 7.127666147224187
       },
       "nextControl": null,
       "isLocked": false,
-      "linkedName": "EndOfFirstShot"
+      "linkedName": "UpStage Auto Shot"
     }
   ],
   "rotationTargets": [
     {
       "waypointRelativePos": 0,
-      "rotationDegrees": -174.96707352037845,
+      "rotationDegrees": 179.99999999972295,
       "rotateFast": false
     }
   ],
@@ -45,7 +61,7 @@
   },
   "goalEndState": {
     "velocity": 0,
-    "rotation": 180.0,
+    "rotation": -151.29404745659895,
     "rotateFast": false
   },
   "reversed": false,
