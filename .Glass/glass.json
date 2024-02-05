@@ -19,6 +19,7 @@
     "types": {
       "/FMSInfo": "FMSInfo",
       "/Pose": "Field2d",
+      "/SmartDashboard/Arm Contoller": "ProfiledPIDController",
       "/SmartDashboard/Auto Chooser": "String Chooser",
       "/SmartDashboard/Auto Turning PID": "PIDController",
       "/SmartDashboard/Control Style Chooser": "String Chooser",
@@ -26,7 +27,10 @@
       "/SmartDashboard/Module 1": "Mechanism2d",
       "/SmartDashboard/Module 2": "Mechanism2d",
       "/SmartDashboard/Module 3": "Mechanism2d",
-      "/SmartDashboard/Speed Limit": "String Chooser"
+      "/SmartDashboard/Run Shooter": "Command",
+      "/SmartDashboard/Speed Limit": "String Chooser",
+      "/SmartDashboard/Stop Shooter": "Command",
+      "/SmartDashboard/Update Shooter Gains": "Command"
     },
     "windows": {
       "/Pose": {
