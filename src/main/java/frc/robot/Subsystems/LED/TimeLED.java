@@ -4,27 +4,23 @@ package frc.robot.Subsystems.LED;
 // Open Source Software; you can modify and/or share it under the terms of
 // the WPILib BSD license file in the root directory of this project.
 
-
 import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.Constants;
-import frc.robot.Constants.IntakeConstants;
-import frc.robot.Subsystems.Intake.UBIntakeSubsystem;
-import frc.robot.Subsystems.Shooter.ShooterSubsystem;
 
 
-public class LEDDefault extends Command {
+public class TimeLED extends Command {
+
+
   /** Creates a new LEDDefault. */
   LEDSubsystem m_led;
-  UBIntakeSubsystem m_intake;
-  ShooterSubsystem m_shooter;
-  public LEDDefault(LEDSubsystem led, UBIntakeSubsystem intake, ShooterSubsystem shooter) {
-    m_led = led;
-    m_intake = intake;
-    m_shooter = shooter;    
+  public TimeLED(LEDSubsystem led) {
+    m_led = led;    
     addRequirements(m_led);
     // Use addRequirements() here to declare subsystem dependencies.
   }
+
   
 
   // Called when the command is initially scheduled.
@@ -49,35 +45,33 @@ public class LEDDefault extends Command {
       m_led.ledColors();
     }
 
-    // might have to change Blinkin2 values 
-    else if(m_intake.getIntakeCurrent()>=IntakeConstants.Blinkin2){
-    //flash orange if intake is extending       
-      m_led.setColor(255, 153, 53);
-
-    }
-
-    else if (m_shooter.shooterCurrent()>5){
-    // set purple
-        m_led.setColor(138, 0, 230);
-    }
-
-
-
-
-    /* 
+    double matchTime = Timer.getMatchTime();
+        if (matchTime > 215.0) {
+            //led green
+            m_led.setColor(0, 255, 0);
+        } 
+        else if (matchTime > 60.0) {
+            //led yellow
+            m_led.setColor(230, 230, 0);
+        }
+        else if (matchTime > 30.0) {
+            //led orange
+            m_led.setColor(255, 153, 53);
+        }
+        else if (matchTime > 20.0) {
+            //led red
+            m_led.setColor(255, 0, 0);
+        }
+        else if (matchTime > 10.0) {
+            //led white
+            m_led.setColor(255, 255, 255);
+        }
+        else if (matchTime > 5.0) {
+            //led flash white
+            m_led.setColor(255, 255, 255);
     
-    else if(GamePiece.getGamePiece() == GamePieceType.Cube){
-      //Set color to purple
-      m_led.setColor(186, 0, 255);
-    }
-    else if(GamePiece.getGamePiece() == GamePieceType.Cone){
-      m_led.setColor(255,191,0);
-    }
-    else if (GamePiece.getGamePiece() == GamePieceType.None){
-      m_led.setColor(255,0,0);
-    }
-
-    */
+        }
+        
   }
 
   // Called once the command ends or is interrupted.

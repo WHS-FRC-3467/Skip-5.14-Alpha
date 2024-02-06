@@ -43,15 +43,15 @@ public class LEDSubsystem extends SubsystemBase {
     //purple
     m_candle.setLEDs(138, 0, 230, 0, 2, 1);
     //black
-    m_candle.setLEDs(230, 230, 0, 0, 3, 1);
+    m_candle.setLEDs(0, 0, 0, 0, 3, 1);
     //Blue
-    m_candle.setLEDs(0, 50, 255, 0, 4, 1);
+    m_candle.setLEDs(0, 0, 255, 0, 4, 1);
     //pink
     m_candle.setLEDs(0, 50, 255, 0, 5, 1);
     //orange
     m_candle.setLEDs(255, 153, 53, 0, 6, 2);
     //red
-    m_candle.setLEDs(255, 51, 51, 0, 7, 1);
+    m_candle.setLEDs(255, 0, 0, 0, 7, 1);
     //green
     m_candle.setLEDs(0, 255, 0, 0, 8, 1);
   }
