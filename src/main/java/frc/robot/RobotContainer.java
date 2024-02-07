@@ -157,8 +157,8 @@ public class RobotContainer {
     private void registerNamedCommands() {
         
         // Register Named Commands for use in PathPlanner autos
-        NamedCommands.registerCommand("RunIntake", m_intakeSubsystem.runIntakeCommand(1.0));
-        NamedCommands.registerCommand("StopIntake", m_intakeSubsystem.stopIntakeCommand());
+        NamedCommands.registerCommand("RunIntake", new intakeNote(m_intakeSubsystem, m_stageSubsystem));
+        //NamedCommands.registerCommand("StopIntake", m_intakeSubsystem.stopIntakeCommand());
 
     }
     

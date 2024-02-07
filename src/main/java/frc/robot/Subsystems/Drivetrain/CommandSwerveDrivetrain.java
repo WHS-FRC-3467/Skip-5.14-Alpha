@@ -225,7 +225,12 @@ public class CommandSwerveDrivetrain extends SwerveDrivetrain implements Subsyst
     }
 
     public double calcDistToSpeaker() {
-        return getRadiusToSpeakerInMeters(m_odometry.getEstimatedPosition(),getSpeakerPos());
+        if(getSpeakerPos()!=null) {
+            return getRadiusToSpeakerInMeters(m_odometry.getEstimatedPosition(),getSpeakerPos());
+        } else {
+            return 999;
+        }
+        
     }
 
     /*
