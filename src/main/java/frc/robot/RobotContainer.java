@@ -6,6 +6,7 @@ package frc.robot;
 
 import static edu.wpi.first.wpilibj2.command.Commands.runOnce;
 
+import java.lang.reflect.Field;
 import java.util.function.Supplier;
 
 import com.ctre.phoenix6.Utils;
@@ -20,6 +21,7 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
+import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -39,6 +41,7 @@ import frc.robot.Subsystems.Stage.StageSubsystem;
 import frc.robot.Util.CommandXboxPS5Controller;
 import frc.robot.Util.TunableNumber;
 import frc.robot.Vision.Limelight;
+import frc.robot.Vision.PhotonVision;
 import frc.robot.generated.TunerConstants;
 
 public class RobotContainer {
@@ -46,6 +49,7 @@ public class RobotContainer {
     /*
      * Shuffleboard Chooser widgets
      */
+    
     private SendableChooser<Command> autoChooser;
     private SendableChooser<String> controlChooser = new SendableChooser<>();
     private SendableChooser<Double> speedChooser = new SendableChooser<>();
@@ -109,6 +113,8 @@ public class RobotContainer {
     StageSubsystem m_stageSubsystem = new StageSubsystem();
     ArmSubsystem m_ArmSubsystem = new ArmSubsystem();
 
+    PhotonVision m_PhotonVision = new PhotonVision();
+
     // Setup Limelight periodic query (defaults to disabled)
     Limelight m_vision = new Limelight(m_drivetrain);
 
@@ -118,7 +124,7 @@ public class RobotContainer {
         DriverStation.silenceJoystickConnectionWarning(true);
 
         // Change this to specify Limelight is in use
-        m_vision.useLimelight(true);
+        m_vision.useLimelight(false);
         m_vision.setAlliance(Alliance.Blue);
         m_vision.trustLL(true);
  
