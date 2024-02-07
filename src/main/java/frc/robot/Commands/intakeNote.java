@@ -5,74 +5,72 @@
 package frc.robot.Commands;
 
 import edu.wpi.first.wpilibj2.command.Command;
-import java.util.function.DoubleSupplier;
-
-/* Local */
+import frc.robot.Constants.IntakeConstants;
+import frc.robot.Constants.RobotConstants;
+import frc.robot.Subsystems.Arm.ArmSubsystem;
 import frc.robot.Subsystems.Intake.UBIntakeSubsystem;
 import frc.robot.Subsystems.Stage.StageSubsystem;
-//import frc.robot.Subsystems.Arm.armSubsystem;
-
+/**
+ *  Intake a Note
+ * - Bring Arm to Intake position
+ * - Run Intake & Stage
+ * - Stop everything when a Note is in the stage
+ */
 public class intakeNote extends Command {
-    DoubleSupplier m_fwd, m_rev;
-    UBIntakeSubsystem m_intake;
-    StageSubsystem m_stage;
 
-    // armSubsystem m_arm;
-    /** Creates a new intakeNote. */
+    ArmSubsystem m_armSubsystem;
+    UBIntakeSubsystem m_intakeSubsystem;
+    StageSubsystem m_stageSubsystem;
+    boolean m_isDone;
 
-    public intakeNote(UBIntakeSubsystem intake, StageSubsystem stage) { //}, DoubleSupplier fwd, DoubleSupplier rev) {
-        // Use addRequirements() here to declare subsystem dependencies.
-        m_intake = intake;
-        m_stage = stage;
-        // m_arm = arm;
-//        m_fwd = fwd;
-//        m_rev = rev;
+    /** Constructor - Creates a new intakeNote */
+    public intakeNote(ArmSubsystem armSub, UBIntakeSubsystem intakeSub, StageSubsystem stageSub) {
 
-        addRequirements(m_intake);
-        addRequirements(m_stage);
-        // addRequirements(m_arm);
+        m_armSubsystem = armSub;
+        m_intakeSubsystem = intakeSub;
+        m_stageSubsystem = stageSub;
+        addRequirements(armSub, intakeSub, stageSub);
     }
 
     // Called when the command is initially scheduled.
     @Override
     public void initialize() {
+        m_isDone = false;
     }
 
     // Called every time the scheduler runs while the command is scheduled.
     @Override
     public void execute() {
 
-        /*
-         * We will need to do some conditional checks before we can run the intake and
-         * the stage
-         * 1. You need to make sure that the arm is at the Home Position
-         * 2. You need to make sure that the beam break does not report 0/1 depending on
-         * the signal that states if a game piece is in the shooter
-         */
+        // Make sure the Arm is in the INTAKE position
+        m_armSubsystem.updateArmSetpoint(RobotConstants.INTAKE.arm);
+        // If Arm is not down yet, return and loop back until it is.
+        if (!m_armSubsystem.isArmJointAtSetpoint())
+            return;
 
-//        if (((speed = m_fwd.getAsDouble()) > 0.1) && (!m_stage.isNoteInStage())) {
-        if (!m_stage.isNoteInStage()) {
-              m_intake.runIntake(0.98);
-              m_stage.runStage(0.6);
-//        } else if ((speed = m_rev.getAsDouble()) > 0.1) {
-//            m_intake.runIntake(-speed);
-//            m_stage.runStage(-speed);
+        // Turn on the Intake
+        m_intakeSubsystem.runIntake(IntakeConstants.kIntakeSpeed);
+
+        // Run the Stage until a Note is inside
+        if (!m_stageSubsystem.isNoteInStage()) {
+            m_stageSubsystem.runStage();
         } else {
-            m_intake.stopIntake();
-            m_stage.stopStage();
+            m_stageSubsystem.stopStage();
+            m_isDone = true;
         }
     }
 
     // Called once the command ends or is interrupted.
     @Override
     public void end(boolean interrupted) {
-        m_intake.stopIntake();
-        m_stage.stopStage();
+        // Turn off the Stage and Intake
+        m_stageSubsystem.stopStage();
+        m_intakeSubsystem.stopIntake();
     }
 
     // Returns true when the command should end.
     @Override
     public boolean isFinished() {
-        return false;
+        return m_isDone;
     }
 }

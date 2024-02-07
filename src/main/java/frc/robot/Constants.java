@@ -7,8 +7,8 @@ package frc.robot;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.util.Units;
-
-import edu.wpi.first.math.system.plant.DCMotor;
+import frc.robot.Util.Setpoints;
+import frc.robot.Util.Setpoints.GameState;
 
 /**
  * The Constants class provides a convenient place for teams to hold robot-wide numerical or boolean constants. This class should not be
@@ -19,38 +19,21 @@ import edu.wpi.first.math.system.plant.DCMotor;
  */
 public final class Constants {
 
-    // Shooter and Arm State enumeration
-    public enum SharmState {
+    public static final class RobotConstants {
 
-        ss_Intake(0, 0, "INTAKE - DEFAULT POSITION"),
-        ss_Subwoofer(30, 0, "SHOOT FROM SUBWOOFER"),
-        ss_Amp(20, 10, "SCORE IN AMP"),
-        ss_Podium(50, 5, "SHOOT FROM PODIUM"),
-        ss_Wing(70, 7, "SHOOT FROM THE WING"),
-        ss_PrepareToClimb(0, 10, "PREPARE TO CLIMB"),
-        ss_ClimbChain(0, 0, "CLIMB ON CHAIN");
+        public static final boolean kIsTuningMode = true;
 
-        private final int setpointShooter;
-        private final int setpointArm;
-        private final String name;
-
-        private SharmState(int spShooter, int spArm, String name) {
-            this.setpointShooter = spShooter;
-            this.setpointArm = spArm;
-            this.name = name;
-        }
-
-        public int getShooterSetpoint() {
-            return this.setpointShooter;
-        }
-        
-        public int getArmSetpoint() {
-            return this.setpointArm;
-        }
-
-        public String getName() {
-            return this.name;
-        }
+        // Shooter and Arm Setpoints
+        public static final Setpoints STOWED = new Setpoints(0.0, 0.0, 0.0, GameState.STOWED);
+        public static final Setpoints INTAKE = new Setpoints(0.0, 0.0, 0.0, GameState.INTAKE);
+        public static final Setpoints SUBWOOFER = new Setpoints(0.0, 30.0,30.0,  GameState.SUBWOOFER);
+        public static final Setpoints AMP = new Setpoints(0.0, 20.0,20.0,  GameState.AMP);
+        public static final Setpoints PODIUM = new Setpoints(0.0, 50.0,50.0,  GameState.PODIUM);
+        public static final Setpoints WING = new Setpoints(0.0, 70.0,65.0,  GameState.WING);
+        public static final Setpoints PREPCLIMB = new Setpoints(0.0, 0.0,0.0,  GameState.PREPCLIMB);
+        public static final Setpoints CLIMB = new Setpoints(0.0, 0.0,0.0,  GameState.CLIMB);
+        public static final Setpoints TRAP = new Setpoints(0.0, 20.0,20.0,  GameState.TRAP);
+        public static final Setpoints OTHER = new Setpoints(0.0, 0.0,0.0,  GameState.OTHER);
     }
     
     public static final class CanConstants {
@@ -74,15 +57,10 @@ public final class Constants {
         public static final int ID_ArmFollower = 26;
     }
 
-    public static final class RobotConstants {
-
-        public static final boolean kIsTuningMode = true;
-    }
-
     public static final class DIOConstants {
 
+        public static final int kArmAbsEncoder = 0;
         public static final int kStageBeamBreak = 1;
-        public static final int armAbsEncoder = 0;
     }
 
     public static final class StageConstants {
@@ -109,11 +87,11 @@ public final class Constants {
         public static final double kPodiumVelocity = 70.0;
         public static final double kShooterTolerance = 10.0;
         
-        public static final double shooterSpeed = 10.0;
-        public static final double podiumRangeMin = .5;
-        public static final double podiumRangeMax = 1;
-        public static final double subwooferRangeMin = .01;
-        public static final double subwooferRangeMax = .5;
+        public static final double kShooterSpeed = 10.0;
+        public static final double kPodiumRangeMin = .5;
+        public static final double kPodiumRangeMax = 1;
+        public static final double kSubwooferRangeMin = .01;
+        public static final double kSubwooferRangeMax = .5;
     }
 
     public static final Pose2d BLUE_SPEAKER = new Pose2d(Units.inchesToMeters(-1.5), Units.inchesToMeters(218.42), new Rotation2d(0));
@@ -122,44 +100,52 @@ public final class Constants {
 
 
     public static final class ArmConstants {
+/*
+ * Calibrating the Arm Angle
+ * 
+ * 1. Turn the robot off and push the Arm against its hard stop in the STOWED position <br>
+ * 2. Turn the robot on and connect to the robot (Do not enable) <br>
+ * 3. Open Shuffleboard and find the box with the value for "Arm Angle Uncorrected" <br>
+ * 4. Copy this value into the constant named kARM_STARTING_OFFSET in the "ArmConstants" section of Constants.java <br>
+ * 5. The value should be > 0.0 (i.e. not negative). If it is 0.0 or less, then there is an encoder issue.
+ * 6. The value should be between 30-120 degrees. Anything over 200 likely means the encoder zero point is not in the right spot)<br>
+ * 7. Move the Arm to the horizontal position and again check the value in the "Arm Angle Uncorrected" box. <br>
+ * 8. Copy this value into the constant named kARM_HORIZONTAL_OFFSET. (It should be between 90-160 degrees).<br>
+ * 9. Save the file and deploy code to the robot. Make sure the Arm starts in the STOWED position. <br>
+ * 10. If the value for Arm Current Angle is a negative value do not enable, and try to do the offsets again <br>
+ * 11. If it is still negative, then there is an issue with the encoder. <br>
+ * 
+ * 
+ */
+        // Observed Arm Offsets
+        // Measured against the hardstop when the Arm is in the STOWED position
+        public static final double kARM_STARTING_OFFSET = 99.45;
+        // Measured when the Arm is exactly horizontal
+        public static final double kARM_HORIZONTAL_OFFSET = 154.86;
 
+        // Feedforward Gains
         public static final double kS = .5;  // The Static Gain, in volts
         public static final double kG = .25;  // The Gravity Gain, in volts
         public static final double kV = 3.45;  // The Velocity Gain, in volt seconds per radian
         public static final double kA = .01;  // The acceleration gain, in volt seconds^2 per radian
 
-        public static final DCMotor MOTOR = DCMotor.getFalcon500(1).withReduction(192);
-
-        public static final double DUTY_CYCLE_MIN = 1.0/1025.0;
-        public static final double DUTY_CYCLE_MAX = 1024.0/1025.0;
-
-        // Motor Neutral dead-band : Range 0.001 -> 0.25
-        public static final double NEUTRAL_DEADBAND = 0.005;
+        // PID Control Gains
+        public static final double kP = 0.02; // P Gain - Volts
+        public static final double kI = 0.0;  // I Gain - Volts
+        public static final double kD = 0.0;  // D Gain - Volts
 
         // Profiled PID Constants
-        public static final double ARM_CRUISE = 100.0;
-        public static final double ARM_ACCELERATION = 100.0;
+        public static final double kArm_Cruise = 5.0;           // Radians per second
+        public static final double kArm_Acceleration = 100.0;   // Radians per second^2
 
-        //PID Tollerance in Degrees
-        public static final double TOLERANCE_POS = 6.0;
+        public static final double kDuty_Cycle_Min = 1.0/1025.0;
+        public static final double kDuty_Cycle_Max = 1024.0/1025.0;
 
-        public static final double ARM_OFFSET = 0.0;
+        // Motor Neutral dead-band : Range 0.001 -> 0.25
+        public static final double kNeutral_Deadband = 0.005;
 
-        // Nominal Outputs
-        public static final double NOMINAL_OUTPUT_FORWARD = 0;
-        public static final double NOMINAL_OUTPUT_REVERSE = 0;
-        public static final double PEAK_OUTPUT_FORWARD = 1.0;
-        public static final double PEAK_OUTPUT_REVERSE = -1.0;
-
-        public static final double testPos0 = .35;
-
-        //  Timeout ms
-        public static final int TIMEOUT = 10;
-
-    
-        
-
-
+        // PID Tolerance in Degrees
+        public static final double kTolerance_Pos = 2.0;
 
     }
 
