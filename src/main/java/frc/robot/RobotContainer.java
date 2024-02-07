@@ -6,6 +6,7 @@ package frc.robot;
 
 import static edu.wpi.first.wpilibj2.command.Commands.runOnce;
 
+import java.lang.reflect.Field;
 import java.util.function.Supplier;
 
 import com.ctre.phoenix6.Utils;
@@ -20,25 +21,26 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
+import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
-/* Local */
 import frc.robot.Commands.intakeNote;
-import frc.robot.Commands.moveToSetpoint;
+import frc.robot.Commands.prepareToShoot;
+/* Local */
+import frc.robot.Constants.RobotConstants;
+import frc.robot.Subsystems.Arm.ArmDefault;
 import frc.robot.Subsystems.Arm.ArmSubsystem;
 import frc.robot.Subsystems.Drivetrain.CommandSwerveDrivetrain;
 import frc.robot.Subsystems.Drivetrain.Telemetry;
-import frc.robot.Subsystems.Intake.IntakeDefault;
 import frc.robot.Subsystems.Intake.UBIntakeSubsystem;
 import frc.robot.Subsystems.Shooter.ShooterSubsystem;
 import frc.robot.Subsystems.Stage.StageSubsystem;
 import frc.robot.Util.CommandXboxPS5Controller;
-import frc.robot.Util.TunableNumber;
 import frc.robot.Vision.Limelight;
+import frc.robot.Vision.PhotonVision;
 import frc.robot.generated.TunerConstants;
 
 public class RobotContainer {
@@ -49,7 +51,6 @@ public class RobotContainer {
     private SendableChooser<Command> autoChooser;
     private SendableChooser<String> controlChooser = new SendableChooser<>();
     private SendableChooser<Double> speedChooser = new SendableChooser<>();
-   
 
     /*
      * Speed adjustments
@@ -94,10 +95,10 @@ public class RobotContainer {
 
     // Swerve Drive functional requests
     SwerveRequest.SwerveDriveBrake m_brake = new SwerveRequest.SwerveDriveBrake();
-    SwerveRequest.RobotCentric m_forwardStraight = new SwerveRequest.RobotCentric().withDriveRequestType(DriveRequestType.OpenLoopVoltage);
+    SwerveRequest.RobotCentric m_forwardStraight = new SwerveRequest.RobotCentric()
+            .withDriveRequestType(DriveRequestType.OpenLoopVoltage);
     SwerveRequest.PointWheelsAt m_point = new SwerveRequest.PointWheelsAt();
     SwerveRequest.FieldCentricFacingAngle m_head = new SwerveRequest.FieldCentricFacingAngle();
-    
 
     // Set up Drivetrain Telemetry
     Telemetry m_logger = new Telemetry(m_MaxSpeed);
@@ -107,7 +108,8 @@ public class RobotContainer {
     ShooterSubsystem m_shooterSubsystem = new ShooterSubsystem();
     UBIntakeSubsystem m_intakeSubsystem = new UBIntakeSubsystem();
     StageSubsystem m_stageSubsystem = new StageSubsystem();
-    ArmSubsystem m_ArmSubsystem = new ArmSubsystem();
+    ArmSubsystem m_armSubsystem = new ArmSubsystem();
+    PhotonVision m_PhotonVision = new PhotonVision();
 
     // Setup Limelight periodic query (defaults to disabled)
     Limelight m_vision = new Limelight(m_drivetrain);
@@ -118,17 +120,17 @@ public class RobotContainer {
         DriverStation.silenceJoystickConnectionWarning(true);
 
         // Change this to specify Limelight is in use
-        m_vision.useLimelight(true);
+        m_vision.useLimelight(false);
         m_vision.setAlliance(Alliance.Blue);
         m_vision.trustLL(true);
- 
-        //Sets autoAim Rot PID
-        SmartDashboard.putData("Auto Turning PID",m_head.HeadingController);
-        m_head.HeadingController.setPID(10,0,0);
+
+        // Sets autoAim Rot PID
+        SmartDashboard.putData("Auto Turning PID", m_head.HeadingController);
+        m_head.HeadingController.setPID(10, 0, 0);
 
         // Register NamedCommands for use in PathPlanner autos
         registerNamedCommands();
-        
+
         // Configure Shuffleboard Chooser widgets
         configureChooserBindings();
 
@@ -149,14 +151,21 @@ public class RobotContainer {
     }
 
     private void registerNamedCommands() {
-        
-        // Register Named Commands for use in PathPlanner autos
-        NamedCommands.registerCommand("RunIntake", m_intakeSubsystem.runIntakeCommand(1.0));
-        NamedCommands.registerCommand("StopIntake", m_intakeSubsystem.stopIntakeCommand());
 
+        // Register Named Commands for use in PathPlanner autos
+        NamedCommands.registerCommand("IntakeNote", new intakeNote(m_armSubsystem, m_intakeSubsystem, m_stageSubsystem));
+        NamedCommands.registerCommand("StopIntake", m_intakeSubsystem.stopIntakeCommand());
+        // TODO: decide on additional commands needed for auto
     }
-    
-    
+
+    /**
+     * Disables all ProfiledPIDSubsystem and PIDSubsystem instances. This should be
+     * called on robot disable to prevent any integral windup.
+     */
+    public void disablePIDSubsystems() {
+        m_armSubsystem.disable();
+    }
+
     private void configureChooserBindings() {
 
         // Build an auto chooser. This will use Commands.none() as the default option.
@@ -203,68 +212,120 @@ public class RobotContainer {
 
     private void configureButtonBindings() {
 
-        // Driver: While A button is held, drive while pointing direction of alliance speaker
+        /*
+         * Driver Controls:
+         * A Button: Brake in "X" position (while held)
+         * B Button: Drive while pointing at Speaker (while held)
+         * X Button: Shoot (when pressed)
+         * Y Button: Intake a Note (while held)
+         * Start Button: Reset field orientation (when pressed)
+         * DPad Left: Shooter Off/ Arm Home (when pressed)
+         * DPad Up: Shooter/Arm to Subwoofer Position & Speed (when pressed)
+         * DPad Right: Shooter/Arm to Podium Position & Speed (when pressed)
+         * DPad Down: Shooter/Arm to Wing Position & Speed (when pressed)
+         * Left Bumper: Drive in Turtle Mode (while held)
+         * Right Bumper:
+         * Left Trigger:
+         * Right Trigger:
+         * 
+         * 
+         * Operator Controls:
+         * A Button: Run Shooter at speed on Shuffleboard (while held)
+         * B Button:
+         * X Button:
+         * Y Button:
+         * Start Button:
+         * DPad Left: Arm to Stowed position (when pressed)
+         * DPad Up: Arm to Subwoofer Position (when pressed)
+         * DPad Right: Arm to Podium Position (when pressed)
+         * DPad Down: Arm to Wing Position(when pressed)
+         * Left Bumper: Activate "Manual Arm" mode
+         * Left Stick: Y-Axis will drive Arm up and down
+         * Right Bumper:
+         * Left Trigger:
+         * Right Trigger:
+         * *
+         */
+
+        /*
+         * DRIVER Controls
+         */
+        // Driver: While A button is held, put swerve modules in Brake mode (modules
+        // make an 'X')
+        m_driverCtrl.a().whileTrue(m_drivetrain.applyRequest(() -> m_brake));
+
+        // Driver: While B button is held, drive while pointing direction of alliance
+        // speaker
         m_driverCtrl.b().whileTrue(m_drivetrain.applyRequest(
                 () -> m_head.withVelocityX(-m_driverCtrl.getLeftY() * m_MaxSpeed)
-                            .withVelocityY(-m_driverCtrl.getLeftX() * m_MaxSpeed)
-                            //.withTargetDirection(m_drivetrain.RotToSpeaker())
-                            .withTargetDirection(m_drivetrain.RotToSpeaker())
-                            .withDeadband(m_MaxSpeed * 0.1).withRotationalDeadband(m_AngularRate * 0.1)));
+                        .withVelocityY(-m_driverCtrl.getLeftX() * m_MaxSpeed)
+                        // .withTargetDirection(m_drivetrain.RotToSpeaker())
+                        .withTargetDirection(m_drivetrain.RotToSpeaker())
+                        .withDeadband(m_MaxSpeed * 0.1)
+                        .withRotationalDeadband(m_AngularRate * 0.1)));
 
-        // Driver: While B button is held, point drivetrain in the direction of the Left Joystick
- /*        m_driverCtrl.b().whileTrue(m_drivetrain.applyRequest(
-                () -> m_point.withModuleDirection(new Rotation2d(-m_driverCtrl.getLeftY(), -m_driverCtrl.getLeftX()))
-            )
-        );
- */
+        // Driver: When X button is pressed, release Note to shooter
+        m_driverCtrl.x().onTrue(m_stageSubsystem.feedNote2ShooterCommand());
+
+        // Driver: While Y button is pressed, run the Intake and Stage until a Note is found
+        m_driverCtrl.y().whileTrue(new intakeNote(m_armSubsystem, m_intakeSubsystem, m_stageSubsystem));
+
         // Driver: On Start button press, reset the field-centric heading
         m_driverCtrl.start().onTrue(m_drivetrain.runOnce(() -> m_drivetrain.seedFieldRelative()));
 
         // Driver: While Left Bumper is held, drive in Turtle Mode
         m_driverCtrl.leftBumper().onTrue(runOnce(() -> m_MaxSpeed = TunerConstants.kSpeedAt12VoltsMps * m_TurtleSpeed)
                 .andThen(() -> m_AngularRate = m_TurtleAngularRate));
-        m_driverCtrl.leftBumper().onFalse(runOnce(() -> m_MaxSpeed = TunerConstants.kSpeedAt12VoltsMps * speedChooser.getSelected())
-                .andThen(() -> m_AngularRate = m_MaxAngularRate));
+        m_driverCtrl.leftBumper()
+                .onFalse(runOnce(() -> m_MaxSpeed = TunerConstants.kSpeedAt12VoltsMps * speedChooser.getSelected())
+                        .andThen(() -> m_AngularRate = m_MaxAngularRate));
 
         // Driver: Use Left and Right Triggers to run Intake at variable speed (left = in, right = out)
 /*        m_intakeSubsystem.setDefaultCommand(new IntakeDefault(m_intakeSubsystem,
                                             ()-> m_driverCtrl.getLeftTriggerAxis(),
                                             () -> m_driverCtrl.getRightTriggerAxis()));
 */        
-        // Driver: While X button is held, run Intake at fixed speed
-//        m_driverCtrl.x().whileTrue(m_intakeSubsystem.runIntakeCommand(0.5));   
-        m_driverCtrl.x().whileTrue(m_stageSubsystem.runStageCommand().andThen(m_stageSubsystem.stopStageCommand()));   
+         // Driver: DPad Left: Shooter Off/ Arm Home (when pressed)
+         m_driverCtrl.povLeft().onTrue(new prepareToShoot(RobotConstants.STOWED, m_armSubsystem, m_shooterSubsystem));
 
-      
-        m_driverCtrl.y().whileTrue(new intakeNote(m_intakeSubsystem, m_stageSubsystem));
-//                                            ()) -> m_driverCtrl.getLeftTriggerAxis(),
-//                                            () -> m_driverCtrl.getRightTriggerAxis()));
+         // Driver: DPad Up: Shooter/Arm to Subwoofer Position & Speed (when pressed)
+         m_driverCtrl.povLeft().onTrue(new prepareToShoot(RobotConstants.SUBWOOFER, m_armSubsystem, m_shooterSubsystem));
 
-        m_driverCtrl.povUp().whileTrue(m_ArmSubsystem.runArmMotorSpeedCommand(.2));
-        m_driverCtrl.povCenter().whileTrue(m_ArmSubsystem.runArmMotorSpeedCommand(0));
-        m_driverCtrl.povDown().whileTrue(m_ArmSubsystem.runArmMotorSpeedCommand(-.2));
-        m_driverCtrl.povLeft().whileTrue(new moveToSetpoint(m_ArmSubsystem));
+         // Driver: DPad Right: Shooter/Arm to Podium Position & Speed (when pressed)
+         m_driverCtrl.povLeft().onTrue(new prepareToShoot(RobotConstants.PODIUM, m_armSubsystem, m_shooterSubsystem));
 
-/*        m_driverCtrl.y().whileTrue(
-            new ParallelCommandGroup (
-                ()->m_intakeSubsystem.runIntakeCommand(),
-                ()->m_stageSubsystem.intakeNoteCommand()
-            )
-        );   
-*/
-        //new XBoxControllerButton(m_operatorController, XBoxControllerEE.Button.kX)
-        //    .whenHeld(new intakeNote(m_intakeSubsystem, m_stageSubsystem, m_operatorCtrl.getLeftTriggerAxis(), m_operatorCtrl.getRightTriggerAxis()));
-        
-        // Driver: While A button is held, run Shooter at fixed speed
+         // Driver: DPad Down: Shooter/Arm to Wing Position & Speed (when pressed)
+         m_driverCtrl.povLeft().onTrue(new prepareToShoot(RobotConstants.WING, m_armSubsystem, m_shooterSubsystem));
+
+        /*
+         * OPERATOR Controls
+         */
+        // Operator: While A button is held, run Shooter at fixed speed (as determined by Shuffleboard settings)
         m_driverCtrl.a().onTrue(m_shooterSubsystem.runShooterCommand());
-        m_driverCtrl.a().onFalse(m_shooterSubsystem.stopShooterCommand());   
-        
-        //m_driverCtrl.y().onTrue(Commands.intakeNote());
-    
+        m_driverCtrl.a().onFalse(m_shooterSubsystem.stopShooterCommand());
+
+        // Operator: Use Left Bumper and Left Stick Y-Axis to manually control Arm
+        m_armSubsystem.setDefaultCommand(
+            new ArmDefault(m_armSubsystem, m_operatorCtrl.leftBumper(), () -> m_operatorCtrl.getLeftY())
+        );
+
+         // Operator: DPad Left: Arm to Stowed position (when pressed)
+         m_operatorCtrl.povLeft().onTrue(m_armSubsystem.runOnce(()->m_armSubsystem.updateArmSetpoint(RobotConstants.STOWED.arm)));
+
+         // Operator: DPad Up: Arm to Subwoofer Position (when pressed)
+         m_operatorCtrl.povLeft().onTrue(m_armSubsystem.runOnce(()->m_armSubsystem.updateArmSetpoint(RobotConstants.SUBWOOFER.arm)));
+
+         // Operator: DPad Right: Arm to Podium Position (when pressed)
+         m_operatorCtrl.povLeft().onTrue(m_armSubsystem.runOnce(()->m_armSubsystem.updateArmSetpoint(RobotConstants.PODIUM.arm)));
+
+         // Operator: DPad Down: Arm to Wing Position(when pressed)
+         m_operatorCtrl.povLeft().onTrue(m_armSubsystem.runOnce(()->m_armSubsystem.updateArmSetpoint(RobotConstants.WING.arm)));
+
+
+
         /*
          * Put Commands on Shuffleboard
          */
-        
         SmartDashboard.putData("Update Shooter Gains", m_shooterSubsystem.updateShooterGainsCommand());
         SmartDashboard.putData("Run Shooter", m_shooterSubsystem.runShooterCommand());
         SmartDashboard.putData("Stop Shooter", m_shooterSubsystem.stopShooterCommand());
@@ -274,7 +335,8 @@ public class RobotContainer {
     private void configureSysIDProfiling() {
 
         /*
-         *  These bindings will only be used when characterizing the Drivetrain. They can eventually be commented out.
+         * These bindings will only be used when characterizing the Drivetrain. They can
+         * eventually be commented out.
          */
         m_driverCtrl.x().and(m_driverCtrl.pov(0)).whileTrue(m_drivetrain.runDriveQuasiTest(Direction.kForward));
         m_driverCtrl.x().and(m_driverCtrl.pov(180)).whileTrue(m_drivetrain.runDriveQuasiTest(Direction.kReverse));
@@ -288,12 +350,13 @@ public class RobotContainer {
         m_driverCtrl.b().and(m_driverCtrl.pov(0)).whileTrue(m_drivetrain.runSteerDynamTest(Direction.kForward));
         m_driverCtrl.b().and(m_driverCtrl.pov(180)).whileTrue(m_drivetrain.runSteerDynamTest(Direction.kReverse));
 
-        // Drivetrain needs to be placed against a sturdy wall and test stopped immediately upon wheel slip
+        // Drivetrain needs to be placed against a sturdy wall and test stopped
+        // immediately upon wheel slip
         m_driverCtrl.back().and(m_driverCtrl.pov(0)).whileTrue(m_drivetrain.runDriveSlipTest());
     }
 
     public Command getAutonomousCommand() {
-        
+
         /* First put the drivetrain into auto run mode, then run the auto */
         return autoChooser.getSelected();
     }
@@ -302,34 +365,45 @@ public class RobotContainer {
 
         m_lastControl = controlChooser.getSelected();
         switch (controlChooser.getSelected()) {
-        case "2 Joysticks":
-            m_controlStyle = () -> m_drive.withVelocityX(-m_driverCtrl.getLeftY() * m_MaxSpeed) // Drive forward -Y
-                    .withVelocityY(-m_driverCtrl.getLeftX() * m_MaxSpeed) // Drive left with negative X (left)
-                    .withRotationalRate(-m_driverCtrl.getRightX() * m_AngularRate); // Drive counterclockwise with negative X (left)
-            break;
-        case "1 Joystick Rotation Triggers":
-            m_controlStyle = () -> m_drive.withVelocityX(-m_driverCtrl.getLeftY() * m_MaxSpeed) // Drive forward -Y
-                    .withVelocityY(-m_driverCtrl.getLeftX() * m_MaxSpeed) // Drive left with negative X (left)
-                    .withRotationalRate((m_driverCtrl.getLeftTriggerAxis() - m_driverCtrl.getRightTriggerAxis()) * m_AngularRate);
-            // Left trigger turns left, right trigger turns right
-            break;
-        case "Split Joysticks Rotation Triggers":
-            m_controlStyle = () -> m_drive.withVelocityX(-m_driverCtrl.getLeftY() * m_MaxSpeed) // Left stick forward/back
-                    .withVelocityY(-m_driverCtrl.getRightX() * m_MaxSpeed) // Right stick strafe
-                    .withRotationalRate((m_driverCtrl.getLeftTriggerAxis() - m_driverCtrl.getRightTriggerAxis()) * m_AngularRate);
-            // Left trigger turns left, right trigger turns right
-            break;
-        case "2 Joysticks with Gas Pedal":
-            m_controlStyle = () -> {
-                var stickX = -m_driverCtrl.getLeftX();
-                var stickY = -m_driverCtrl.getLeftY();
-                var angle = Math.atan2(stickX, stickY);
-                // RightTriggerAxis = "Gas pedal"
-                return m_drive.withVelocityX(Math.cos(angle) * m_driverCtrl.getRightTriggerAxis() * m_MaxSpeed) // left x * gas
-                        .withVelocityY(Math.sin(angle) * m_driverCtrl.getRightTriggerAxis() * m_MaxSpeed) // Angle of left stick Y * gas
-                        .withRotationalRate(-m_driverCtrl.getRightX() * m_AngularRate); // Drive counterclockwise with negative X (left)
-            };
-            break;
+            case "2 Joysticks":
+                m_controlStyle = () -> m_drive.withVelocityX(-m_driverCtrl.getLeftY() * m_MaxSpeed) // Drive forward -Y
+                        .withVelocityY(-m_driverCtrl.getLeftX() * m_MaxSpeed) // Drive left with negative X (left)
+                        .withRotationalRate(-m_driverCtrl.getRightX() * m_AngularRate); // Drive counterclockwise with
+                                                                                        // negative X (left)
+                break;
+            case "1 Joystick Rotation Triggers":
+                m_controlStyle = () -> m_drive.withVelocityX(-m_driverCtrl.getLeftY() * m_MaxSpeed) // Drive forward -Y
+                        .withVelocityY(-m_driverCtrl.getLeftX() * m_MaxSpeed) // Drive left with negative X (left)
+                        .withRotationalRate((m_driverCtrl.getLeftTriggerAxis() - m_driverCtrl.getRightTriggerAxis())
+                                * m_AngularRate);
+                // Left trigger turns left, right trigger turns right
+                break;
+            case "Split Joysticks Rotation Triggers":
+                m_controlStyle = () -> m_drive.withVelocityX(-m_driverCtrl.getLeftY() * m_MaxSpeed) // Left stick
+                                                                                                    // forward/back
+                        .withVelocityY(-m_driverCtrl.getRightX() * m_MaxSpeed) // Right stick strafe
+                        .withRotationalRate((m_driverCtrl.getLeftTriggerAxis() - m_driverCtrl.getRightTriggerAxis())
+                                * m_AngularRate);
+                // Left trigger turns left, right trigger turns right
+                break;
+            case "2 Joysticks with Gas Pedal":
+                m_controlStyle = () -> {
+                    var stickX = -m_driverCtrl.getLeftX();
+                    var stickY = -m_driverCtrl.getLeftY();
+                    var angle = Math.atan2(stickX, stickY);
+                    // RightTriggerAxis = "Gas pedal"
+                    return m_drive.withVelocityX(Math.cos(angle) * m_driverCtrl.getRightTriggerAxis() * m_MaxSpeed) // left
+                                                                                                                    // x
+                                                                                                                    // *
+                                                                                                                    // gas
+                            .withVelocityY(Math.sin(angle) * m_driverCtrl.getRightTriggerAxis() * m_MaxSpeed) // Angle
+                                                                                                              // of left
+                                                                                                              // stick Y
+                                                                                                              // * gas
+                            .withRotationalRate(-m_driverCtrl.getRightX() * m_AngularRate); // Drive counterclockwise
+                                                                                            // with negative X (left)
+                };
+                break;
         }
         try {
             m_drivetrain.getDefaultCommand().cancel();

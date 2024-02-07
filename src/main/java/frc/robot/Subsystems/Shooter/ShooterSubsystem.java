@@ -4,7 +4,6 @@ import com.ctre.phoenix6.Utils;
 //import com.ctre.phoenix6.configs.CurrentLimitsConfigs;
 import com.ctre.phoenix6.configs.Slot0Configs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
-//import com.ctre.phoenix6.controls.Follower;
 import com.ctre.phoenix6.controls.NeutralOut;
 import com.ctre.phoenix6.controls.VelocityVoltage;
 import com.ctre.phoenix6.hardware.TalonFX;
@@ -15,7 +14,6 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.RunCommand;
-import edu.wpi.first.wpilibj2.command.StartEndCommand;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants.CanConstants;
 import frc.robot.Constants.ShooterConstants;
@@ -25,10 +23,8 @@ import frc.robot.sim.PhysicsSim;
 public class ShooterSubsystem extends SubsystemBase {
 
     /* Hardware */
-    TalonFX m_motorLeftLeader = new TalonFX(CanConstants.ID_ShooterLeftLeader);
-    //TalonFX m_motorLeftFollower = new TalonFX(CanConstants.ID_ShooterLeftFollower);
-    TalonFX m_motorRightLeader = new TalonFX(CanConstants.ID_ShooterRightLeader);
-    //TalonFX m_motorRightFollower = new TalonFX(CanConstants.ID_ShooterRightFollower);
+    TalonFX m_motorLeft = new TalonFX(CanConstants.ID_ShooterLeft);
+    TalonFX m_motorRight = new TalonFX(CanConstants.ID_ShooterRight);
 
     /*
      * Gains for shooter tuning
@@ -69,19 +65,15 @@ public class ShooterSubsystem extends SubsystemBase {
 
         /* If running in Simulation, setup simulated Falcons */
         if (Utils.isSimulation()) {
-            PhysicsSim.getInstance().addTalonFX(m_motorLeftLeader, 0.001);
-            PhysicsSim.getInstance().addTalonFX(m_motorRightLeader, 0.001);
+            PhysicsSim.getInstance().addTalonFX(m_motorLeft, 0.001);
+            PhysicsSim.getInstance().addTalonFX(m_motorRight, 0.001);
         }
 
-        /* Configure the devices */
+        /* Configure the motors */
         var leadConfiguration = new TalonFXConfiguration();
-        //var followConfiguration = new TalonFXConfiguration();
 
         /* set motors to Coast */
         leadConfiguration.MotorOutput.NeutralMode = NeutralModeValue.Coast;
-        //followConfiguration.MotorOutput.NeutralMode = NeutralModeValue.Coast;
-
-        //leadConfiguration.MotorOutput.Inverted = InvertedValue.Clockwise_Positive;
 
 /*
         // Configure the lead Talon to use a supply limit of 5 amps IF we exceed 10 amps for over 1 second
@@ -107,15 +99,9 @@ public class ShooterSubsystem extends SubsystemBase {
 
         /* Apply configs */
         leadConfiguration.MotorOutput.Inverted = InvertedValue.CounterClockwise_Positive;
-        m_motorLeftLeader.getConfigurator().apply(leadConfiguration);
+        m_motorLeft.getConfigurator().apply(leadConfiguration);
         leadConfiguration.MotorOutput.Inverted = InvertedValue.Clockwise_Positive;
-        m_motorRightLeader.getConfigurator().apply(leadConfiguration);
-        //m_motorLeftFollower.getConfigurator().apply(followConfiguration);
-        //m_motorRightFollower.getConfigurator().apply(followConfiguration);
-
-        /* Set up followers to follow leaders but in the opposite direction */
-        //m_motorLeftFollower.setControl(new Follower(m_motorLeftLeader.getDeviceID(), true));
-        //m_motorRightFollower.setControl(new Follower(m_motorRightLeader.getDeviceID(), true));
+        m_motorRight.getConfigurator().apply(leadConfiguration);
 
     }
 
@@ -143,8 +129,8 @@ public class ShooterSubsystem extends SubsystemBase {
         slot0.kD = m_kD.get();
         slot0.kV = m_kV.get();
 
-        m_motorLeftLeader.getConfigurator().apply(slot0);
-        m_motorRightLeader.getConfigurator().apply(slot0);
+        m_motorLeft.getConfigurator().apply(slot0);
+        m_motorRight.getConfigurator().apply(slot0);
     }
 
     /**
@@ -155,19 +141,19 @@ public class ShooterSubsystem extends SubsystemBase {
         // Save Velocity setpoints
         m_ShooterSetpointL.set(targetVelocityL);
         m_ShooterSetpointR.set(targetVelocityR);
-        m_motorLeftLeader.setControl(m_voltageVelocityLeft.withVelocity(targetVelocityL));
-        m_motorRightLeader.setControl(m_voltageVelocityRight.withVelocity(targetVelocityR));
+        m_motorLeft.setControl(m_voltageVelocityLeft.withVelocity(targetVelocityL));
+        m_motorRight.setControl(m_voltageVelocityRight.withVelocity(targetVelocityR));
     }
 
     public void runShooter() {
         // Get Velocity setpoint from TunableNumber
-        m_motorLeftLeader.setControl(m_voltageVelocityLeft.withVelocity(m_ShooterSetpointL.get()));
-        m_motorRightLeader.setControl(m_voltageVelocityRight.withVelocity(m_ShooterSetpointR.get()));
+        m_motorLeft.setControl(m_voltageVelocityLeft.withVelocity(m_ShooterSetpointL.get()));
+        m_motorRight.setControl(m_voltageVelocityRight.withVelocity(m_ShooterSetpointR.get()));
     }
 
     public void stopShooter() {
-        m_motorLeftLeader.setControl(m_brake);
-        m_motorRightLeader.setControl(m_brake);
+        m_motorLeft.setControl(m_brake);
+        m_motorRight.setControl(m_brake);
     }
 
     /**
@@ -177,9 +163,9 @@ public class ShooterSubsystem extends SubsystemBase {
     public double getShooterVelocity(kShooterSide side) {
         switch(side) {
         case kLEFT:
-            return m_motorLeftLeader.getVelocity().getValueAsDouble();
+            return m_motorLeft.getVelocity().getValueAsDouble();
         case kRIGHT:
-            return m_motorRightLeader.getVelocity().getValueAsDouble();
+            return m_motorRight.getVelocity().getValueAsDouble();
         default:
             return 0.0;
         }
@@ -199,7 +185,7 @@ public class ShooterSubsystem extends SubsystemBase {
      * Command Factories
      */
     public Command runShooterCommand(double velocityL, double velocityR) {
-        return new InstantCommand(()->this.runShooter(velocityL, velocityR), this);
+        return new RunCommand(()->this.runShooter(velocityL, velocityR), this);
     }
 
     public Command runShooterCommand() {

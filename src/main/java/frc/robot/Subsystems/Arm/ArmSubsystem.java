@@ -4,192 +4,237 @@
 
 package frc.robot.Subsystems.Arm;
 
-import com.ctre.phoenix.motorcontrol.FeedbackDevice;
-import com.ctre.phoenix.motorcontrol.TalonFXControlMode;
-/* Phoenix6 */
-import com.ctre.phoenix6.Utils;
-import com.ctre.phoenix6.configs.CurrentLimitsConfigs;
-import com.ctre.phoenix6.configs.Slot0Configs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
-import com.ctre.phoenix6.configs.VoltageConfigs;
 import com.ctre.phoenix6.controls.Follower;
 import com.ctre.phoenix6.controls.NeutralOut;
-import com.ctre.phoenix6.controls.VelocityVoltage;
-import com.ctre.phoenix6.controls.DutyCycleOut;
+import com.ctre.phoenix6.controls.VoltageOut;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 
-/* WPI */
-import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.controller.ArmFeedforward;
-import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.RunCommand;
-import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import edu.wpi.first.wpilibj.DutyCycleEncoder;
 import edu.wpi.first.math.controller.ProfiledPIDController;
-import edu.wpi.first.math.numbers.N2;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
-import edu.wpi.first.wpilibj.Timer;
-
-/* Local */
-import frc.robot.Constants.CanConstants;
-import frc.robot.Constants.DIOConstants;
-import frc.robot.Subsystems.Arm.Setpoint.ArmState;
-import frc.robot.Util.TunableNumber;
+import edu.wpi.first.wpilibj.DutyCycleEncoder;
 import frc.robot.Constants;
 import frc.robot.Constants.ArmConstants;
+import frc.robot.Constants.CanConstants;
+import frc.robot.Constants.DIOConstants;
+import frc.robot.Constants.RobotConstants;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import edu.wpi.first.wpilibj2.command.ProfiledPIDSubsystem;
 
-public class ArmSubsystem extends SubsystemBase {
+/* 
+ * ArmSubsystem - Subsystem to control all Arm motion using a Trapezoidal Profiled PID controller
+ * 
+ * For more details on how this works, see:
+ * https://docs.wpilib.org/en/stable/docs/software/commandbased/profilepid-subsystems-commands.html
+ *
+ */
+public class ArmSubsystem extends ProfiledPIDSubsystem {
+
     /* Creates a new ArmSubsystem */
     private TalonFX m_armLeader = new TalonFX(CanConstants.ID_ArmLeader);
     private TalonFX m_armFollower = new TalonFX(CanConstants.ID_ArmFollower);
 
-    private DutyCycleEncoder m_encoder = new DutyCycleEncoder(DIOConstants.armAbsEncoder);
-    private DutyCycleOut m_PercentOutput = new DutyCycleOut(0.0);
+    /* Set up to control the motors by Voltage */
+    private VoltageOut m_VoltageOutput = new VoltageOut(0.0);
 
-    private TrapezoidProfile.Constraints armConstraints;
+    /* Neutral output control for disabling the Arm */
+    private final NeutralOut m_neutral = new NeutralOut();
 
-    private ProfiledPIDController m_controllerarmLeader;
+    /* Set up the REV Through-Bore encoder as a DutyCycle (Absolute) encoder */
+    private DutyCycleEncoder m_encoder = new DutyCycleEncoder(DIOConstants.kArmAbsEncoder);
 
-    private ArmFeedforward feedforward = new ArmFeedforward(Constants.ArmConstants.kS, Constants.ArmConstants.kG, Constants.ArmConstants.kV, Constants.ArmConstants.kA); // double kS, double kG, double kV, double kA
+    /* Feed Forward object to assist Profile Controller */
+    private ArmFeedforward m_feedforward = new ArmFeedforward(
+            Constants.ArmConstants.kS,
+            Constants.ArmConstants.kG,
+            Constants.ArmConstants.kV,
+            Constants.ArmConstants.kA);
 
-    private Setpoint m_setpoint;
-    private double armDegrees;
-    
+    /* Working (current) setpoint */
+    private double m_armSetpoint;
+
+    /*
+     * Constructor
+     */
     public ArmSubsystem() {
-        
-        // Config Duty Cycle Range for the encoders
-        m_encoder.setDutyCycleRange(ArmConstants.DUTY_CYCLE_MIN, ArmConstants.DUTY_CYCLE_MAX);
 
-        // Default Motors
+        /* Create the Trapezoidal motion profile controller */
+        super(
+                new ProfiledPIDController(
+                        ArmConstants.kP,
+                        ArmConstants.kI,
+                        ArmConstants.kD,
+                        new TrapezoidProfile.Constraints(ArmConstants.kArm_Cruise, ArmConstants.kArm_Acceleration)));
+
+        // Start arm at rest in STOWED position
+        updateArmSetpoint(RobotConstants.STOWED.arm);
+
+        // Config Duty Cycle Range for the encoders
+        m_encoder.setDutyCycleRange(ArmConstants.kDuty_Cycle_Min, ArmConstants.kDuty_Cycle_Max);
+
+        // Config Motors
         var leadConfiguration = new TalonFXConfiguration();
         var followerConfiguration = new TalonFXConfiguration();
 
-        // Set the mode to brake
+        // Set the output mode to brake
         leadConfiguration.MotorOutput.NeutralMode = NeutralModeValue.Brake;
         followerConfiguration.MotorOutput.NeutralMode = NeutralModeValue.Brake;
 
-        leadConfiguration.MotorOutput.DutyCycleNeutralDeadband = ArmConstants.NEUTRAL_DEADBAND;
-        followerConfiguration.MotorOutput.DutyCycleNeutralDeadband = ArmConstants.NEUTRAL_DEADBAND;
+        // Set the motor's Neutral Deadband
+        leadConfiguration.MotorOutput.DutyCycleNeutralDeadband = ArmConstants.kNeutral_Deadband;
+        followerConfiguration.MotorOutput.DutyCycleNeutralDeadband = ArmConstants.kNeutral_Deadband;
 
-        //leadConfiguration.CurrentLimits.SupplyCurrentLimit();
-
+        /* Set the turning direction */
         leadConfiguration.MotorOutput.Inverted = InvertedValue.CounterClockwise_Positive;
 
-        //leadConfiguration.configVoltageCompSaturation(12, ArmConstants.TIMEOUT);
-
-        //leadConfiguration.configFeedbackNotContinuous(true, ArmConstants.TIMEOUT);
-
-        //leadConfiguration.configForwardSoftLimitThreshold(ArmConstants.FORWARD_SOFT_LIMIT_UPPER, ArmConstants.TIMEOUT);
-        //leadConfiguration.configReverseSoftLimitThreshold(ArmConstants.REVERSE_SOFT_LIMIT_UPPER, ArmConstants.TIMEOUT);
-        
-
-        Timer.delay(1.5); //TODO: See if needs to be removed
-        armConstraints = new TrapezoidProfile.Constraints(ArmConstants.ARM_CRUISE,
-                                                          ArmConstants.ARM_ACCELERATION);
-
-        m_controllerarmLeader = new ProfiledPIDController(0.02, 0, 0, armConstraints);
+        /*
+         * Apply the configurations to the motors, and set one to follow the other in
+         * the same direction
+         */
         m_armLeader.getConfigurator().apply(leadConfiguration);
-
         m_armFollower.getConfigurator().apply(followerConfiguration);
         m_armFollower.setControl(new Follower(m_armLeader.getDeviceID(), false));
 
-        reset();
     }
 
     @Override
     public void periodic() {
+
         // This method will be called once per scheduler run
 
-        if(getArmJointDegrees() <= 0.0 || getArmJointDegrees() >= 360.0) {
-            m_armLeader.stopMotor();
-        }
-        SmartDashboard.putData("Arm Contoller",m_controllerarmLeader);
-        //SmartDashboard.putBoolean("Upper at Setpoint", getUpperAtSetpoint());
-        SmartDashboard.putBoolean("Arm Joint at Setpoint", getArmJointAtSetpoint());
-        //SmartDashboard.putNumber("Upper Angle", getUpperJointDegrees());
-        SmartDashboard.putNumber("Arm Joint Angle", getArmJointDegrees());
+        // Make sure the parent controller gets to do its own updates
+        super.periodic();
 
-        SmartDashboard.putNumber("Arm Encoder", getArmJointPos());
+        // Validate current encoder reading; stop motors if out of range
+        double armPos = getArmJointDegrees();
+        if (!m_encoder.isConnected() || ( armPos < 0.0 || armPos >= 360.0)) {
+            System.out.println("Arm Encoder error reported in periodic().");
+            neutralOutput();
+        }
+
+        // Display useful info on the SmartDashboard
+        SmartDashboard.putData("Arm Controller", m_armLeader);
+        SmartDashboard.putBoolean("Arm Joint at Setpoint?", isArmJointAtSetpoint());
+        SmartDashboard.putNumber("Raw Arm Encoder ", getJointPosAbsolute());
+        SmartDashboard.putNumber("Arm Current Angle", getArmJointDegrees());
 
         if (Constants.RobotConstants.kIsTuningMode) {
-            SmartDashboard.putNumber("Arm Angle Uncorrected", dutyCycleToDegrees(getArmJointPos()));
+            SmartDashboard.putNumber("Arm Angle Uncorrected", dutyCycleToDegrees(getJointPosAbsolute()));
             SmartDashboard.putNumber("Arm Joint Error", getArmJointError());
-            SmartDashboard.putNumber("Arm Joint Setpoint", armDegrees);
-        } 
+            SmartDashboard.putNumber("Arm Joint Setpoint", m_armSetpoint);
+        }
     }
 
-    public void reset() {
-        armDegrees = getArmJointDegrees();
-        m_controllerarmLeader.reset(getArmJointDegrees());
-        m_setpoint = new Setpoint(armDegrees, ArmState.OTHER);
+    /**
+     * Consumes the output from the ProfiledPIDController.
+     * 
+     * The PIDSubsystem will automatically call this method from its periodic()
+     * block, and pass it the computed output of the control loop.
+     * 
+     * @param output   the output of the ProfiledPIDController
+     * @param setpoint the setpoint state of the ProfiledPIDController
+     */
+    @Override
+    public void useOutput(double output, TrapezoidProfile.State setpoint) {
+
+        // Correct the passed-in current setpoint before calculating the feedforward 
+        double correctedPosition = correctArmJointRadiansForFeedFwd(setpoint.position);
         
-    }
+        // Calculate the feedforward using the corrected setpoint
+        double feedforward = m_feedforward.calculate(correctedPosition, setpoint.velocity);
 
-    public void updateArmSetpoint(double setpoint) {
-        if (armDegrees != setpoint) {                   
-            if (setpoint < 360 && setpoint > 0) {          
-                armDegrees = setpoint;                      
-            }
+        if (Constants.RobotConstants.kIsTuningMode) {
+            SmartDashboard.putNumber("Arm corrected FF position", correctedPosition);
+            SmartDashboard.putNumber("Arm PID output", output);
+            SmartDashboard.putNumber("Arm Feed Forward Output", feedforward);
         }
+
+        // Add the feedforward to the PID output to get the motor output
+        m_armLeader.setControl(m_VoltageOutput.withOutput(output + feedforward));
     }
 
-    public void runArmProfiled() {
-        m_controllerarmLeader.setConstraints(armConstraints);
-        //m_controllerarmLeader.setGoal(new TrapezoidProfile.State(armDegrees, 0.0));
-        double pidOutput = -m_controllerarmLeader.calculate(getArmJointDegrees(), new TrapezoidProfile.State(armDegrees, 0.0));
-        double ff = feedforward.calculate(pidOutput, 0);
-        if(Constants.RobotConstants.kIsTuningMode){
-            SmartDashboard.putNumber("Arm PID output", pidOutput);
-        }
-        System.out.println("Upper PID" + pidOutput);
-        if(Math.abs(pidOutput) > 0.01 && Math.abs(pidOutput)<0.045){
-            pidOutput = Math.copySign(0.045, pidOutput);
-        }
-        m_armLeader.setControl(m_PercentOutput.withOutput(pidOutput - ff));
+    /**
+     * Returns the measurement of the process variable used by the ProfiledPIDController.
+     * 
+     * The PIDSubsystem will automatically call this method from its periodic() block,
+     * and pass the returned value to the control loop.
+     * 
+     * @return the measurement of the process variable, in this case, the Arm angle,
+     *  in radians corrected to 0.0 at the STOWED position
+     */
+    @Override
+    public double getMeasurement() {
+        return getArmJointRadians();
     }
 
-    public double getArmJointError(){
-        return Math.abs(armDegrees - getArmJointDegrees());
+    /**
+     * Update the PID controller's current Arm setpoint in radians
+     * 
+     * @param setpointDegrees - the desired position in degrees
+     */
+    public void updateArmSetpoint(double setpointDegrees) {
+
+        // Convert degrees to radians and set the profile goal
+        setGoal(degreesToRadians(setpointDegrees));
     }
 
-    public boolean getArmJointAtSetpoint() {
-        return getArmJointError() < ArmConstants.TOLERANCE_POS;
+    // Get the current Arm Joint position error (in degrees)
+    public double getArmJointError() {
+        return Math.abs(m_armSetpoint - getArmJointDegrees());
     }
 
-    public Setpoint getSetpoint() {
-        if(m_setpoint.equals(null)){
-            reset();
-            return m_setpoint;
-        } else {
-            return m_setpoint;
-        }
+    // Check if Arm is at the setpoint (or within tolerance)
+    public boolean isArmJointAtSetpoint() {
+        return getArmJointError() < ArmConstants.kTolerance_Pos;
     }
 
-    public void setPercentOutputUpper(double speed) {
-        m_armLeader.setControl(m_PercentOutput.withOutput(speed));
+    // Drive the Arm directly by providing a supply voltage value 
+    public void setArmVoltage(double voltage) {
+        m_armLeader.setControl(m_VoltageOutput.withOutput(voltage));
     }
 
-    public Command runArmMotorSpeedCommand(double speed) {
-        return new RunCommand(() -> this.setPercentOutputUpper(speed),this);
+    // Set the lead motor to the Neutral state (no output)
+    public void neutralOutput() {
+        m_armLeader.setControl(m_neutral);
     }
 
-/*     public void neutralUpper() {
-        m_armLeader.neutralOutput();
-    } */
-
-    public double getArmJointPos() {
+    // Returns the current encoder absolute value in DutyCycle units (~0 -> ~1)
+    public double getJointPosAbsolute() {
         return m_encoder.getAbsolutePosition();
     }
 
-    public double getArmJointDegrees() {
-        return dutyCycleToDegrees(getArmJointPos()) + ArmConstants.ARM_OFFSET;
-    }
-
+    // Converts DutyCycle units to Degrees
     public double dutyCycleToDegrees(double dutyCyclePos) {
         return dutyCyclePos * 360;
+    }
+
+    // Converts the current encoder reading to Degrees, and corrects relative to a STOWED position of zero.
+    public double getArmJointDegrees() {
+        return dutyCycleToDegrees(getJointPosAbsolute()) - ArmConstants.kARM_STARTING_OFFSET;
+    }
+
+    // Converts DutyCycle units to Radians
+    public double dutyCycleToRadians(double dutyCyclePos) {
+        return dutyCyclePos * 2.0 * Math.PI;
+    }
+
+    // Converts degrees to Radians
+    public double degreesToRadians(double degrees) {
+        return (degrees * Math.PI) / 180.0;
+    }
+
+    // Converts the current encoder reading to Degrees, and corrects relative to a STOWED position of zero.
+    public double getArmJointRadians() {
+        return dutyCycleToRadians(getJointPosAbsolute()) - degreesToRadians(ArmConstants.kARM_STARTING_OFFSET);
+    }
+
+    // Takes a position in radians relative to STOWED, and corrects it to be relative to a HORIZONTAL position of zero.
+    // This is used for Feedforward only, where we account for gravity using a cosine function
+    public double correctArmJointRadiansForFeedFwd( double position) {
+        return position - degreesToRadians(ArmConstants.kARM_HORIZONTAL_OFFSET - ArmConstants.kARM_STARTING_OFFSET);
     }
 
 
