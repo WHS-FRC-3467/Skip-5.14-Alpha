@@ -15,6 +15,7 @@ import com.pathplanner.lib.util.ReplanningConfig;
 
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.units.Measure;
 import edu.wpi.first.units.Voltage;
@@ -30,6 +31,7 @@ import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
 import frc.robot.Constants;
 import frc.robot.Util.ModifiedSignalLogger;
 import frc.robot.Util.SwerveVoltageRequest;
+import frc.robot.Vision.PhotonVision;
 import frc.robot.generated.TunerConstants;
 
 import static edu.wpi.first.units.Units.*;
@@ -42,7 +44,9 @@ public class CommandSwerveDrivetrain extends SwerveDrivetrain implements Subsyst
     private final SwerveRequest.ApplyChassisSpeeds autoRequest = new SwerveRequest.ApplyChassisSpeeds();
     private Alliance _alliance;
     private Pose2d _speakerPosition;
-    public Field2d _field;
+    public Field2d _field = new Field2d();
+    public PhotonVision _vision = new PhotonVision();
+
 
     public CommandSwerveDrivetrain(SwerveDrivetrainConstants driveTrainConstants, double OdometryUpdateFrequency,
             SwerveModuleConstants... modules) {
@@ -64,7 +68,7 @@ public class CommandSwerveDrivetrain extends SwerveDrivetrain implements Subsyst
          * distance from the center of the robot to the furthest
          * module.
          */
-        double driveBaseRadius = 0;
+        double driveBaseRadius = .762;
         for (var moduleLocation : m_moduleLocations) {
             driveBaseRadius = Math.max(driveBaseRadius, moduleLocation.getNorm());
         }
@@ -117,6 +121,22 @@ public class CommandSwerveDrivetrain extends SwerveDrivetrain implements Subsyst
     public void periodic(){
         SmartDashboard.putNumber("Robot Angle To Speaker",calcAngleToSpeaker());
         SmartDashboard.putNumber("Robot Dist To Speaker",calcDistToSpeaker());
+        _field.setRobotPose(m_odometry.getEstimatedPosition());
+        SmartDashboard.putData("Field TEst",_field);
+        var visionEst = _vision.getEstimatedGlobalPose();
+        visionEst.ifPresent(
+                est -> {
+                    var estPose = est.estimatedPose.toPose2d();
+                    // Change our trust in the measurement based on the tags we can see
+                    var estStdDevs = _vision.getEstimationStdDevs(estPose);
+                    //System.out.println("Adding to vision");
+
+                    this.addVisionMeasurement(
+                            est.estimatedPose.toPose2d(), est.timestampSeconds, estStdDevs);
+                });
+        
+        
+
 
 
     }
@@ -207,7 +227,12 @@ public class CommandSwerveDrivetrain extends SwerveDrivetrain implements Subsyst
     }
 
     public double calcDistToSpeaker() {
-        return getRadiusToSpeakerInMeters(m_odometry.getEstimatedPosition(),getSpeakerPos());
+        if(getSpeakerPos()!=null) {
+            return getRadiusToSpeakerInMeters(m_odometry.getEstimatedPosition(),getSpeakerPos());
+        } else {
+            return 999;
+        }
+        
     }
 
     /*

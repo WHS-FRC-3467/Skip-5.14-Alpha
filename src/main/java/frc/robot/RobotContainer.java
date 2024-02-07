@@ -6,10 +6,12 @@ package frc.robot;
 
 import static edu.wpi.first.wpilibj2.command.Commands.runOnce;
 
+import java.lang.reflect.Field;
 import java.util.function.Supplier;
 
 import com.ctre.phoenix6.Utils;
 import com.ctre.phoenix6.mechanisms.swerve.SwerveRequest;
+import com.ctre.phoenix6.mechanisms.swerve.SwerveDrivetrain.SwerveDriveState;
 import com.ctre.phoenix6.mechanisms.swerve.SwerveModule.DriveRequestType;
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.auto.NamedCommands;
@@ -19,6 +21,7 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
+import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -37,6 +40,7 @@ import frc.robot.Subsystems.Shooter.ShooterSubsystem;
 import frc.robot.Subsystems.Stage.StageSubsystem;
 import frc.robot.Util.CommandXboxPS5Controller;
 import frc.robot.Vision.Limelight;
+import frc.robot.Vision.PhotonVision;
 import frc.robot.generated.TunerConstants;
 
 public class RobotContainer {
@@ -55,11 +59,9 @@ public class RobotContainer {
     private double m_MaxSpeed = TunerConstants.kSpeedAt12VoltsMps;
     // Reduction in speed from Max Speed, 0.1 = 10%
     private final double m_TurtleSpeed = 0.1;
-    // .75 rotation per second max angular velocity. Adjust for max turning rate
-    // speed.
+    // .75 rotation per second max angular velocity. Adjust for max turning rate speed.
     private final double m_MaxAngularRate = Math.PI * 1.5;
-    // .75 rotation per second max angular velocity. Adjust for max turning rate
-    // speed.
+    // .75 rotation per second max angular velocity. Adjust for max turning rate speed.
     private final double m_TurtleAngularRate = Math.PI * 0.5;
     // This will be updated when turtle and reset to MaxAngularRate
     private double m_AngularRate = m_MaxAngularRate;
@@ -83,15 +85,12 @@ public class RobotContainer {
     // It is configured by the Phoenix Tuner X Swerve Project Generator
     CommandSwerveDrivetrain m_drivetrain = TunerConstants.DriveTrain;
 
-    // Field-centric driving in Open Loop, can change to closed loop after
-    // characterization
-    SwerveRequest.FieldCentric m_drive = new SwerveRequest.FieldCentric()
-            .withDriveRequestType(DriveRequestType.OpenLoopVoltage)
+    // Field-centric driving in Open Loop, can change to closed loop after characterization
+    SwerveRequest.FieldCentric m_drive = new SwerveRequest.FieldCentric().withDriveRequestType(DriveRequestType.OpenLoopVoltage)
             .withDeadband(m_MaxSpeed * 0.1).withRotationalDeadband(m_AngularRate * 0.1);
 
     // Field-centric driving in Closed Loop. Comment above and uncomment below.
-    // SwerveRequest.FieldCentric m_drive = new
-    // SwerveRequest.FieldCentric().withDriveRequestType(DriveRequestType.Velocity)
+    // SwerveRequest.FieldCentric m_drive = new SwerveRequest.FieldCentric().withDriveRequestType(DriveRequestType.Velocity)
     // .withDeadband(MaxSpeed * 0.1).withRotationalDeadband(AngularRate * 0.1);
 
     // Swerve Drive functional requests
@@ -110,6 +109,7 @@ public class RobotContainer {
     UBIntakeSubsystem m_intakeSubsystem = new UBIntakeSubsystem();
     StageSubsystem m_stageSubsystem = new StageSubsystem();
     ArmSubsystem m_armSubsystem = new ArmSubsystem();
+    PhotonVision m_PhotonVision = new PhotonVision();
 
     // Setup Limelight periodic query (defaults to disabled)
     Limelight m_vision = new Limelight(m_drivetrain);
@@ -179,8 +179,7 @@ public class RobotContainer {
         controlChooser.addOption("2 Joysticks with Gas Pedal", "2 Joysticks with Gas Pedal");
         SmartDashboard.putData("Control Style Chooser", controlChooser);
 
-        // Configure a Trigger to change the Control Style when a selection is made on
-        // the Control Style Chooser
+        // Configure a Trigger to change the Control Style when a selection is made on the Control Style Chooser
         Trigger controlPick = new Trigger(() -> m_lastControl != controlChooser.getSelected());
         controlPick.onTrue(runOnce(() -> newControlStyle()));
 
@@ -202,8 +201,7 @@ public class RobotContainer {
         speedChooser.addOption("35%", 0.35);
         SmartDashboard.putData("Speed Limit", speedChooser);
 
-        // Configure a Trigger to change the speed limit when a selection is made on the
-        // Speed Limit Chooser
+        // Configure a Trigger to change the speed limit when a selection is made on the Speed Limit Chooser
         Trigger speedPick = new Trigger(() -> m_lastSpeed != speedChooser.getSelected());
         speedPick.onTrue(runOnce(() -> newSpeed()));
 
@@ -282,6 +280,11 @@ public class RobotContainer {
                 .onFalse(runOnce(() -> m_MaxSpeed = TunerConstants.kSpeedAt12VoltsMps * speedChooser.getSelected())
                         .andThen(() -> m_AngularRate = m_MaxAngularRate));
 
+        // Driver: Use Left and Right Triggers to run Intake at variable speed (left = in, right = out)
+/*        m_intakeSubsystem.setDefaultCommand(new IntakeDefault(m_intakeSubsystem,
+                                            ()-> m_driverCtrl.getLeftTriggerAxis(),
+                                            () -> m_driverCtrl.getRightTriggerAxis()));
+*/        
          // Driver: DPad Left: Shooter Off/ Arm Home (when pressed)
          m_driverCtrl.povLeft().onTrue(new prepareToShoot(RobotConstants.STOWED, m_armSubsystem, m_shooterSubsystem));
 

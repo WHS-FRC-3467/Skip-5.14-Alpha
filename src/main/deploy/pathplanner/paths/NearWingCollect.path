@@ -3,35 +3,51 @@
   "waypoints": [
     {
       "anchor": {
-        "x": 3.791395389058584,
-        "y": 7.156822518773243
+        "x": 1.6787831773861743,
+        "y": 3.9937117712073262
       },
       "prevControl": null,
       "nextControl": {
-        "x": 2.8675571881058293,
-        "y": 6.595503105536126
+        "x": 2.2242206646575453,
+        "y": 3.2356461109318624
       },
       "isLocked": false,
-      "linkedName": "StartOfFirstShot"
+      "linkedName": "WingShot1"
     },
     {
       "anchor": {
-        "x": 1.8150832882862347,
-        "y": 5.601499977928731
+        "x": 4.831226959751216,
+        "y": 1.8951641506886618
       },
       "prevControl": {
-        "x": 1.7800008249589148,
-        "y": 6.583808951093687
+        "x": 3.700374288087198,
+        "y": 2.280984473962267
+      },
+      "nextControl": {
+        "x": 5.617026729548954,
+        "y": 1.6270677586400226
+      },
+      "isLocked": false,
+      "linkedName": null
+    },
+    {
+      "anchor": {
+        "x": 7.90046841354944,
+        "y": 2.422112231611851
+      },
+      "prevControl": {
+        "x": 6.412071202520782,
+        "y": 1.682535977684569
       },
       "nextControl": null,
       "isLocked": false,
-      "linkedName": "EndOfFirstShot"
+      "linkedName": "CenterPiece4"
     }
   ],
   "rotationTargets": [
     {
       "waypointRelativePos": 0,
-      "rotationDegrees": -174.96707352037845,
+      "rotationDegrees": 120.0,
       "rotateFast": false
     }
   ],
@@ -44,7 +60,7 @@
     "maxAngularAcceleration": 720.0
   },
   "goalEndState": {
-    "velocity": 0,
+    "velocity": 0.0,
     "rotation": 180.0,
     "rotateFast": false
   },
