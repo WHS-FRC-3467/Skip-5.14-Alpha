@@ -2,10 +2,10 @@
   "version": 1.0,
   "startingPose": {
     "position": {
-      "x": 1.2420697206066778,
-      "y": 6.5136440244390466
+      "x": 0.8097810790216173,
+      "y": 4.455946929911878
     },
-    "rotation": -138.6169985126076
+    "rotation": 124.44938317823207
   },
   "command": {
     "type": "sequential",
@@ -24,7 +24,7 @@
               {
                 "type": "path",
                 "data": {
-                  "pathName": "FirstCollect"
+                  "pathName": "WingCollect"
                 }
               },
               {
@@ -45,7 +45,7 @@
         {
           "type": "path",
           "data": {
-            "pathName": "First Shot"
+            "pathName": "Wing Shot"
           }
         },
         {
@@ -61,7 +61,7 @@
               {
                 "type": "path",
                 "data": {
-                  "pathName": "Second Collect"
+                  "pathName": "NearWingCollect"
                 }
               },
               {
@@ -82,38 +82,7 @@
         {
           "type": "path",
           "data": {
-            "pathName": "Second Shot"
-          }
-        },
-        {
-          "type": "named",
-          "data": {
-            "name": "ShootNote"
-          }
-        },
-        {
-          "type": "race",
-          "data": {
-            "commands": [
-              {
-                "type": "path",
-                "data": {
-                  "pathName": "Third Collect"
-                }
-              },
-              {
-                "type": "named",
-                "data": {
-                  "name": "RunIntake"
-                }
-              }
-            ]
-          }
-        },
-        {
-          "type": "named",
-          "data": {
-            "name": "StopIntake"
+            "pathName": "NearWing Shot"
           }
         },
         {
