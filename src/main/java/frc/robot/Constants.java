@@ -33,12 +33,12 @@ public final class Constants {
         public static final boolean kIsTuningMode = true;
 
         // Shooter and Arm Setpoints
-        public static final Setpoints STOWED = new Setpoints(0.0, 0.0, 0.0, GameState.STOWED);
-        public static final Setpoints INTAKE = new Setpoints(0.0, 0.0, 0.0, GameState.INTAKE);
-        public static final Setpoints SUBWOOFER = new Setpoints(0.0, 30.0,30.0,  GameState.SUBWOOFER);
-        public static final Setpoints AMP = new Setpoints(0.0, 20.0,20.0,  GameState.AMP);
+        public static final Setpoints STOWED = new Setpoints(1.0, 0.0, 0.0, GameState.STOWED);
+        public static final Setpoints INTAKE = new Setpoints(3.0, 0.0, 0.0, GameState.INTAKE);
+        public static final Setpoints SUBWOOFER = new Setpoints(1.0, 30.0,30.0,  GameState.SUBWOOFER);
+        public static final Setpoints AMP = new Setpoints(88.0, 30.0,30.0,  GameState.AMP);
         public static final Setpoints PODIUM = new Setpoints(0.0, 50.0,50.0,  GameState.PODIUM);
-        public static final Setpoints WING = new Setpoints(0.0, 70.0,65.0,  GameState.WING);
+        public static final Setpoints WING = new Setpoints(26.0, 70.0,60.0,  GameState.WING);
         public static final Setpoints PREPCLIMB = new Setpoints(0.0, 0.0,0.0,  GameState.PREPCLIMB);
         public static final Setpoints CLIMB = new Setpoints(0.0, 0.0,0.0,  GameState.CLIMB);
         public static final Setpoints TRAP = new Setpoints(0.0, 20.0,20.0,  GameState.TRAP);
@@ -128,9 +128,9 @@ public final class Constants {
  */
         // Observed Arm Offsets
         // Measured against the hardstop when the Arm is in the STOWED position
-        public static final double kARM_STARTING_OFFSET = 99.45;
+        public static final double kARM_STARTING_OFFSET = 98.0;
         // Measured when the Arm is exactly horizontal
-        public static final double kARM_HORIZONTAL_OFFSET = 154.86;
+        public static final double kARM_HORIZONTAL_OFFSET = 115.0;
 
         // Feedforward Gains
         public static final double kS = .5;  // The Static Gain, in volts
@@ -139,13 +139,14 @@ public final class Constants {
         public static final double kA = .01;  // The acceleration gain, in volt seconds^2 per radian
 
         // PID Control Gains
-        public static final double kP = 0.02; // P Gain - Volts
-        public static final double kI = 0.0;  // I Gain - Volts
-        public static final double kD = 0.0;  // D Gain - Volts
+        public static final double kP = 18.0; // P Gain - Volts
+        public static final double kI = 0.00;  // I Gain - Volts
+        public static final double kD = 0.2;  // D Gain - Volts
+
 
         // Profiled PID Constants
-        public static final double kArm_Cruise = 5.0;           // Radians per second
-        public static final double kArm_Acceleration = 100.0;   // Radians per second^2
+        public static final double kArm_Cruise = 4.0;           // Radians per second
+        public static final double kArm_Acceleration = 10.0;   // Radians per second^2
 
         public static final double kDuty_Cycle_Min = 1.0/1025.0;
         public static final double kDuty_Cycle_Max = 1024.0/1025.0;
@@ -154,7 +155,7 @@ public final class Constants {
         public static final double kNeutral_Deadband = 0.005;
 
         // PID Tolerance in Degrees
-        public static final double kTolerance_Pos = 2.0;
+        public static final double kTolerance_Pos = 0.4;
 	}
 	
     public static class Vision {

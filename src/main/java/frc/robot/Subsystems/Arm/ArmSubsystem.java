@@ -88,7 +88,7 @@ public class ArmSubsystem extends ProfiledPIDSubsystem {
         followerConfiguration.MotorOutput.DutyCycleNeutralDeadband = ArmConstants.kNeutral_Deadband;
 
         /* Set the turning direction */
-        leadConfiguration.MotorOutput.Inverted = InvertedValue.CounterClockwise_Positive;
+        leadConfiguration.MotorOutput.Inverted = InvertedValue.Clockwise_Positive;
 
         /*
          * Apply the configurations to the motors, and set one to follow the other in
@@ -109,12 +109,12 @@ public class ArmSubsystem extends ProfiledPIDSubsystem {
         super.periodic();
 
         // Validate current encoder reading; stop motors if out of range
-        double armPos = getArmJointDegrees();
+    /*    double armPos = getArmJointDegrees();
         if (!m_encoder.isConnected() || ( armPos < 0.0 || armPos >= 360.0)) {
             System.out.println("Arm Encoder error reported in periodic().");
             neutralOutput();
         }
-
+*/
         // Display useful info on the SmartDashboard
         SmartDashboard.putData("Arm Controller", m_armLeader);
         SmartDashboard.putBoolean("Arm Joint at Setpoint?", isArmJointAtSetpoint());
@@ -178,6 +178,7 @@ public class ArmSubsystem extends ProfiledPIDSubsystem {
     public void updateArmSetpoint(double setpointDegrees) {
 
         // Convert degrees to radians and set the profile goal
+        m_armSetpoint = setpointDegrees;
         setGoal(degreesToRadians(setpointDegrees));
     }
 

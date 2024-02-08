@@ -38,7 +38,7 @@ public class prepareToShoot extends Command {
     public void execute() {
 
         // Bring Arm to requested position
-        m_armSubsystem.enable();
+        if (!m_armSubsystem.isEnabled()) m_armSubsystem.enable();
         m_armSubsystem.updateArmSetpoint(m_setpoints.arm);
 
         // Bring Shooter to requested speed

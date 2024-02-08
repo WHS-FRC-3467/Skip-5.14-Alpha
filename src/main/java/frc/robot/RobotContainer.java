@@ -289,13 +289,13 @@ public class RobotContainer {
          m_driverCtrl.povLeft().onTrue(new prepareToShoot(RobotConstants.STOWED, m_armSubsystem, m_shooterSubsystem));
 
          // Driver: DPad Up: Shooter/Arm to Subwoofer Position & Speed (when pressed)
-         m_driverCtrl.povLeft().onTrue(new prepareToShoot(RobotConstants.SUBWOOFER, m_armSubsystem, m_shooterSubsystem));
+         m_driverCtrl.povUp().onTrue(new prepareToShoot(RobotConstants.SUBWOOFER, m_armSubsystem, m_shooterSubsystem));
 
          // Driver: DPad Right: Shooter/Arm to Podium Position & Speed (when pressed)
-         m_driverCtrl.povLeft().onTrue(new prepareToShoot(RobotConstants.PODIUM, m_armSubsystem, m_shooterSubsystem));
+         m_driverCtrl.povRight().onTrue(new prepareToShoot(RobotConstants.AMP, m_armSubsystem, m_shooterSubsystem));
 
          // Driver: DPad Down: Shooter/Arm to Wing Position & Speed (when pressed)
-         m_driverCtrl.povLeft().onTrue(new prepareToShoot(RobotConstants.WING, m_armSubsystem, m_shooterSubsystem));
+         m_driverCtrl.povDown().onTrue(new prepareToShoot(RobotConstants.WING, m_armSubsystem, m_shooterSubsystem));
 
         /*
          * OPERATOR Controls
@@ -313,13 +313,13 @@ public class RobotContainer {
          m_operatorCtrl.povLeft().onTrue(m_armSubsystem.runOnce(()->m_armSubsystem.updateArmSetpoint(RobotConstants.STOWED.arm)));
 
          // Operator: DPad Up: Arm to Subwoofer Position (when pressed)
-         m_operatorCtrl.povLeft().onTrue(m_armSubsystem.runOnce(()->m_armSubsystem.updateArmSetpoint(RobotConstants.SUBWOOFER.arm)));
+         m_operatorCtrl.povUp().onTrue(m_armSubsystem.runOnce(()->m_armSubsystem.updateArmSetpoint(RobotConstants.SUBWOOFER.arm)));
 
          // Operator: DPad Right: Arm to Podium Position (when pressed)
-         m_operatorCtrl.povLeft().onTrue(m_armSubsystem.runOnce(()->m_armSubsystem.updateArmSetpoint(RobotConstants.PODIUM.arm)));
+         m_operatorCtrl.povRight().onTrue(m_armSubsystem.runOnce(()->m_armSubsystem.updateArmSetpoint(RobotConstants.AMP.arm)));
 
          // Operator: DPad Down: Arm to Wing Position(when pressed)
-         m_operatorCtrl.povLeft().onTrue(m_armSubsystem.runOnce(()->m_armSubsystem.updateArmSetpoint(RobotConstants.WING.arm)));
+         m_operatorCtrl.povDown().onTrue(m_armSubsystem.runOnce(()->m_armSubsystem.updateArmSetpoint(RobotConstants.WING.arm)));
 
 
 

@@ -32,7 +32,7 @@ public class ArmDefault extends Command {
     @Override
     public void initialize() {
         // Start with PID Controller enabled
-        m_arm.enable();
+        if (!m_arm.isEnabled()) m_arm.enable();
     }
 
     // Called every time the scheduler runs while the command is scheduled.

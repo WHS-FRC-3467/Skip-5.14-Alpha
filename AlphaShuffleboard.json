@@ -918,20 +918,6 @@
               1
             ],
             "content": {
-              "_type": "Motor Controller",
-              "_source0": "network_table:///SmartDashboard/Arm Controller",
-              "_title": "/SmartDashboard/Arm Controller",
-              "_glyph": 148,
-              "_showGlyph": false,
-              "Visuals/Orientation": "HORIZONTAL"
-            }
-          },
-          "3,1": {
-            "size": [
-              2,
-              1
-            ],
-            "content": {
               "_type": "Text View",
               "_source0": "network_table:///SmartDashboard/Arm Angle Uncorrected",
               "_title": "/SmartDashboard/Arm Angle Uncorrected",
@@ -939,7 +925,7 @@
               "_showGlyph": false
             }
           },
-          "3,2": {
+          "3,1": {
             "size": [
               2,
               1
@@ -965,7 +951,7 @@
               "_showGlyph": false
             }
           },
-          "5,2": {
+          "5,1": {
             "size": [
               2,
               1
@@ -978,7 +964,7 @@
               "_showGlyph": false
             }
           },
-          "3,3": {
+          "3,2": {
             "size": [
               2,
               1
@@ -991,7 +977,7 @@
               "_showGlyph": false
             }
           },
-          "5,3": {
+          "5,2": {
             "size": [
               2,
               1
@@ -1032,7 +1018,7 @@
               "_showGlyph": false
             }
           },
-          "5,1": {
+          "5,0": {
             "size": [
               2,
               1
