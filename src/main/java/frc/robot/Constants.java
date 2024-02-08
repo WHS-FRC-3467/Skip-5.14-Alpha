@@ -33,16 +33,16 @@ public final class Constants {
         public static final boolean kIsTuningMode = true;
 
         // Shooter and Arm Setpoints
-        public static final Setpoints STOWED = new Setpoints(1.0, 0.0, 0.0, GameState.STOWED);
-        public static final Setpoints INTAKE = new Setpoints(3.0, 0.0, 0.0, GameState.INTAKE);
-        public static final Setpoints SUBWOOFER = new Setpoints(1.0, 30.0,30.0,  GameState.SUBWOOFER);
-        public static final Setpoints AMP = new Setpoints(88.0, 30.0,30.0,  GameState.AMP);
-        public static final Setpoints PODIUM = new Setpoints(0.0, 50.0,50.0,  GameState.PODIUM);
-        public static final Setpoints WING = new Setpoints(26.0, 70.0,60.0,  GameState.WING);
-        public static final Setpoints PREPCLIMB = new Setpoints(0.0, 0.0,0.0,  GameState.PREPCLIMB);
-        public static final Setpoints CLIMB = new Setpoints(0.0, 0.0,0.0,  GameState.CLIMB);
-        public static final Setpoints TRAP = new Setpoints(0.0, 20.0,20.0,  GameState.TRAP);
-        public static final Setpoints OTHER = new Setpoints(0.0, 0.0,0.0,  GameState.OTHER);
+        public static final Setpoints STOWED = new Setpoints(1.0, 0.4, 0.0, 0.0, GameState.STOWED);
+        public static final Setpoints INTAKE = new Setpoints(3.0, 2.0, 0.0, 0.0, GameState.INTAKE);
+        public static final Setpoints SUBWOOFER = new Setpoints(1.0, 0.4, 30.0,30.0,  GameState.SUBWOOFER);
+        public static final Setpoints AMP = new Setpoints(88.0, 0.4, 30.0,30.0,  GameState.AMP);
+        public static final Setpoints PODIUM = new Setpoints(0.0, 0.4, 50.0,50.0,  GameState.PODIUM);
+        public static final Setpoints WING = new Setpoints(26.0, 0.4, 70.0,60.0,  GameState.WING);
+        public static final Setpoints PREPCLIMB = new Setpoints(0.0, 0.4, 0.0,0.0,  GameState.PREPCLIMB);
+        public static final Setpoints CLIMB = new Setpoints(0.0, 0.4, 0.0,0.0,  GameState.CLIMB);
+        public static final Setpoints TRAP = new Setpoints(0.0, 0.4, 20.0,20.0,  GameState.TRAP);
+        public static final Setpoints OTHER = new Setpoints(0.0, 0.4, 0.0,0.0,  GameState.OTHER);
     }
     
     public static final class CanConstants {
@@ -112,17 +112,19 @@ public final class Constants {
 /*
  * Calibrating the Arm Angle
  * 
- * 1. Turn the robot off and push the Arm against its hard stop in the STOWED position <br>
- * 2. Turn the robot on and connect to the robot (Do not enable) <br>
- * 3. Open Shuffleboard and find the box with the value for "Arm Angle Uncorrected" <br>
- * 4. Copy this value into the constant named kARM_STARTING_OFFSET in the "ArmConstants" section of Constants.java <br>
- * 5. The value should be > 0.0 (i.e. not negative). If it is 0.0 or less, then there is an encoder issue.
- * 6. The value should be between 30-120 degrees. Anything over 200 likely means the encoder zero point is not in the right spot)<br>
- * 7. Move the Arm to the horizontal position and again check the value in the "Arm Angle Uncorrected" box. <br>
- * 8. Copy this value into the constant named kARM_HORIZONTAL_OFFSET. (It should be between 90-160 degrees).<br>
- * 9. Save the file and deploy code to the robot. Make sure the Arm starts in the STOWED position. <br>
- * 10. If the value for Arm Current Angle is a negative value do not enable, and try to do the offsets again <br>
- * 11. If it is still negative, then there is an issue with the encoder. <br>
+ * - Turn the robot off and push the Arm against its hard stop in the STOWED position <br>
+ * - Turn the robot on and connect to the robot (Do not enable) <br>
+ * - Open Shuffleboard and find the box with the value for "Arm Angle Uncorrected" <br>
+ * - Copy this value into the constant named kARM_STARTING_OFFSET in the "ArmConstants" section of Constants.java <br>
+ * - The value should be > 0.0 (i.e. not negative). If it is 0.0 or less, then there is an encoder issue.
+ * - The value should be between 30-120 degrees. Anything over 200 likely means the encoder zero point is not in the right spot)<br>
+ * - You want to make sure the value you choose is just slightly smaller than the lowest number that appears in "Arm Angle Uncorrected".
+ * - Otherwise you may get negative readings for the Arm Current Angle, and error checking may prevent the Arm motors from moving.
+ * - Move the Arm to the horizontal position and again check the value in the "Arm Angle Uncorrected" box. <br>
+ * - Copy this value into the constant named kARM_HORIZONTAL_OFFSET. (It should be between 90-160 degrees).<br>
+ * - Save the file and deploy code to the robot. Make sure the Arm starts in the STOWED position. <br>
+ * - If the value for Arm Current Angle is a negative value do not enable, and try to do the offsets again <br>
+ * - If it is still negative, then there is an issue with the encoder. <br>
  * 
  * 
  */
@@ -154,8 +156,6 @@ public final class Constants {
         // Motor Neutral dead-band : Range 0.001 -> 0.25
         public static final double kNeutral_Deadband = 0.005;
 
-        // PID Tolerance in Degrees
-        public static final double kTolerance_Pos = 0.4;
 	}
 	
     public static class Vision {

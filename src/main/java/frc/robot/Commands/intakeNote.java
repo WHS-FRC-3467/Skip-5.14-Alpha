@@ -6,7 +6,6 @@ package frc.robot.Commands;
 
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.Constants.IntakeConstants;
-import frc.robot.Constants.RobotConstants;
 import frc.robot.Subsystems.Arm.ArmSubsystem;
 import frc.robot.Subsystems.Intake.UBIntakeSubsystem;
 import frc.robot.Subsystems.Stage.StageSubsystem;
@@ -43,10 +42,10 @@ public class intakeNote extends Command {
     public void execute() {
 
         // Make sure the Arm is in the INTAKE position
-        m_armSubsystem.updateArmSetpoint(RobotConstants.INTAKE.arm);
+        //m_armSubsystem.updateArmSetpoint(RobotConstants.INTAKE);
         // If Arm is not down yet, return and loop back until it is.
-        if (!m_armSubsystem.isArmJointAtSetpoint())
-            return;
+        //if (!m_armSubsystem.isArmJointAtSetpoint())
+        //    return;
 
         // Turn on the Intake
         m_intakeSubsystem.runIntake(IntakeConstants.kIntakeSpeed);

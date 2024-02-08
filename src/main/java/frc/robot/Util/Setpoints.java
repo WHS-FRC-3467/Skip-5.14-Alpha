@@ -13,12 +13,14 @@ package frc.robot.Util;
  */
 public class Setpoints {
     public double arm;
+    public double tolerance;
     public double shooterLeft;
     public double shooterRight;
     public GameState state;
 
-    public Setpoints(double arm, double shooterLeft, double shooterRight, GameState state) {
+    public Setpoints(double arm, double tolerance, double shooterLeft, double shooterRight, GameState state) {
         this.arm = arm;
+        this.tolerance = tolerance;
         this.shooterLeft = shooterLeft;
         this.shooterRight = shooterRight;
         this.state = state;

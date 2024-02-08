@@ -7,6 +7,7 @@ package frc.robot.Commands;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.Subsystems.Arm.ArmSubsystem;
 import frc.robot.Subsystems.Shooter.ShooterSubsystem;
+import frc.robot.Subsystems.Stage.StageSubsystem;
 import frc.robot.Util.Setpoints;
 import frc.robot.Util.Setpoints.GameState;
 
@@ -15,15 +16,18 @@ public class prepareToShoot extends Command {
     Setpoints m_setpoints;
     ArmSubsystem m_armSubsystem;
     ShooterSubsystem m_shooterSubsystem;
+    StageSubsystem m_stageSubsystem;
     boolean m_isDone;
 
     /** Constructor - Creates a new prepareToShoot. */
-    public prepareToShoot(Setpoints setpoints, ArmSubsystem armSub, ShooterSubsystem shootSub) {
+    public prepareToShoot(Setpoints setpoints, ArmSubsystem armSub, ShooterSubsystem shootSub, StageSubsystem stageSub) {
     
         m_setpoints = setpoints;
         m_armSubsystem = armSub;
         m_shooterSubsystem = shootSub;
+        m_stageSubsystem = stageSub;
 
+        // Do NOT require the StageSubsystem here, because we are only querying it
         addRequirements(armSub, shootSub);
     }
 
@@ -31,18 +35,20 @@ public class prepareToShoot extends Command {
     @Override
     public void initialize() {
         m_isDone = false;
+        if (!m_armSubsystem.isEnabled()) m_armSubsystem.enable();
     }
 
     // Called every time the scheduler runs while the command is scheduled.
     @Override
     public void execute() {
 
-        // Bring Arm to requested position
-        if (!m_armSubsystem.isEnabled()) m_armSubsystem.enable();
-        m_armSubsystem.updateArmSetpoint(m_setpoints.arm);
-
         // Bring Shooter to requested speed
         m_shooterSubsystem.runShooter(m_setpoints.shooterLeft, m_setpoints.shooterRight);
+
+        // After we have a Note in the Stage, bring Arm to requested position
+        if (m_stageSubsystem.isNoteInStage()) {
+            m_armSubsystem.updateArmSetpoint(m_setpoints);
+        }
 
         // Check both subsystems 
         if (m_armSubsystem.isArmJointAtSetpoint() && m_shooterSubsystem.areWheelsAtSpeed()) {
