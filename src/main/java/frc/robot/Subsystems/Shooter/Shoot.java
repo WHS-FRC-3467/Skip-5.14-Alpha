@@ -34,9 +34,9 @@ public class Shoot extends Command {
         // The goal is to have the shooter get up to speed
         m_shooter.runShooterCommand();
         // To have the stage push the note
-        m_ready = m_shooter.isWheelAtSpeed();
+        m_ready = m_shooter.areWheelsAtSpeed();
         if (m_ready){ // and arm in shoot position
-            m_stage.ejectFrontCommand(StageConstants.kStageSpeed);
+            m_stage.feedNote2ShooterCommand();
         }
 
     }

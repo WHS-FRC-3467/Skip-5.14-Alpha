@@ -60,7 +60,7 @@ public class PrepareToShoot extends Command {
     // Returns true when the command should end.
     @Override
     public boolean isFinished() {
-        m_end = m_shooter.isWheelAtSpeed();
+        m_end = m_shooter.areWheelsAtSpeed();
         return m_end;
     }
 

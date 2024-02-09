@@ -198,7 +198,7 @@ public class ShooterSubsystem extends SubsystemBase {
      * Command Factories
      */
     public Command runShooterCommand(double velocity) {
-        return new StartEndCommand(()->this.runShooter(velocity), ()->this.stopShooter(), this);
+        return new StartEndCommand(()->this.runShooter(velocity, velocity), ()->this.stopShooter(), this);
     }
 
     public Command runShooterCommand() {
