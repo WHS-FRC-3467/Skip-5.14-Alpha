@@ -32,6 +32,7 @@ import frc.robot.Subsystems.Arm.ArmDefault;
 import frc.robot.Subsystems.Arm.ArmSubsystem;
 import frc.robot.Subsystems.Drivetrain.CommandSwerveDrivetrain;
 import frc.robot.Subsystems.Drivetrain.Telemetry;
+import frc.robot.Subsystems.Intake.IntakeDefault;
 import frc.robot.Subsystems.Intake.UBIntakeSubsystem;
 import frc.robot.Subsystems.Shooter.ShooterSubsystem;
 import frc.robot.Subsystems.Stage.StageSubsystem;
@@ -117,7 +118,7 @@ public class RobotContainer {
         DriverStation.silenceJoystickConnectionWarning(true);
 
         // Change this to specify Limelight is in use
-        m_vision.useLimelight(true);
+        m_vision.useLimelight(false);
         m_vision.setAlliance(Alliance.Blue);
         m_vision.trustLL(true);
 
@@ -262,41 +263,42 @@ public class RobotContainer {
                         .withRotationalDeadband(m_AngularRate * 0.1)));
 
         // Driver: When X button is pressed, release Note to shooter
-        m_driverCtrl.x().onTrue(m_stageSubsystem.feedNote2ShooterCommand());
+        m_driverCtrl.rightTrigger(0.5).onTrue(m_stageSubsystem.feedNote2ShooterCommand());
 
         // Driver: While Y button is pressed, run the Intake and Stage until a Note is found
         //m_driverCtrl.y().whileTrue(new intakeNote(m_armSubsystem, m_intakeSubsystem, m_stageSubsystem));
 
         // Driver: When Y button is pressed, position the Arm and then run the Intake and Stage until a Note is found
-        m_driverCtrl.y().onTrue(m_armSubsystem.prepareForIntakeCommand()
+        m_driverCtrl.leftTrigger(0.5).onTrue(m_armSubsystem.prepareForIntakeCommand()
             .andThen(new intakeNote(m_armSubsystem, m_intakeSubsystem, m_stageSubsystem)));
 
         // Driver: On Start button press, reset the field-centric heading
-        m_driverCtrl.start().onTrue(m_drivetrain.runOnce(() -> m_drivetrain.seedFieldRelative()));
+        m_driverCtrl.povUp().onTrue(m_drivetrain.runOnce(() -> m_drivetrain.seedFieldRelative()));
 
         // Driver: While Left Bumper is held, drive in Turtle Mode
-        m_driverCtrl.leftBumper().onTrue(runOnce(() -> m_MaxSpeed = TunerConstants.kSpeedAt12VoltsMps * m_TurtleSpeed)
+        /* m_driverCtrl.leftBumper().onTrue(runOnce(() -> m_MaxSpeed = TunerConstants.kSpeedAt12VoltsMps * m_TurtleSpeed)
                 .andThen(() -> m_AngularRate = m_TurtleAngularRate));
         m_driverCtrl.leftBumper()
                 .onFalse(runOnce(() -> m_MaxSpeed = TunerConstants.kSpeedAt12VoltsMps * speedChooser.getSelected())
                         .andThen(() -> m_AngularRate = m_MaxAngularRate));
-
+        */
+        
         // Driver: Use Left and Right Triggers to run Intake at variable speed (left = in, right = out)
-/*        m_intakeSubsystem.setDefaultCommand(new IntakeDefault(m_intakeSubsystem,
-                                            ()-> m_driverCtrl.getLeftTriggerAxis(),
-                                            () -> m_driverCtrl.getRightTriggerAxis()));
-*/        
+        m_intakeSubsystem.setDefaultCommand(new IntakeDefault(m_intakeSubsystem,
+                                            ()-> m_operatorCtrl.getLeftTriggerAxis(),
+                                            () -> m_operatorCtrl.getRightTriggerAxis()));
+        
          // Driver: DPad Left: Shooter Off/ Arm Home (when pressed)
-         m_driverCtrl.povLeft().onTrue(new prepareToShoot(RobotConstants.STOWED, m_armSubsystem, m_shooterSubsystem, m_stageSubsystem));
+         //m_driverCtrl.povLeft().onTrue(new prepareToShoot(RobotConstants.INTAKE, m_armSubsystem, m_shooterSubsystem, m_stageSubsystem));
 
          // Driver: DPad Up: Shooter/Arm to Subwoofer Position & Speed (when pressed)
-         m_driverCtrl.povUp().onTrue(new prepareToShoot(RobotConstants.SUBWOOFER, m_armSubsystem, m_shooterSubsystem, m_stageSubsystem));
+        // m_driverCtrl.povUp().onTrue(new prepareToShoot(RobotConstants.SUBWOOFER, m_armSubsystem, m_shooterSubsystem, m_stageSubsystem));
 
          // Driver: DPad Right: Shooter/Arm to Podium Position & Speed (when pressed)
-         m_driverCtrl.povRight().onTrue(new prepareToShoot(RobotConstants.AMP, m_armSubsystem, m_shooterSubsystem, m_stageSubsystem));
+        m_driverCtrl.povRight().onTrue(new prepareToShoot(RobotConstants.AMP, m_armSubsystem, m_shooterSubsystem, m_stageSubsystem));
 
          // Driver: DPad Down: Shooter/Arm to Wing Position & Speed (when pressed)
-         m_driverCtrl.povDown().onTrue(new prepareToShoot(RobotConstants.WING, m_armSubsystem, m_shooterSubsystem, m_stageSubsystem));
+        // m_driverCtrl.povDown().onTrue(new prepareToShoot(RobotConstants.WING, m_armSubsystem, m_shooterSubsystem, m_stageSubsystem));
 
         /*
          * OPERATOR Controls
@@ -310,17 +312,22 @@ public class RobotContainer {
             new ArmDefault(m_armSubsystem, m_operatorCtrl.leftBumper(), () -> m_operatorCtrl.getLeftY())
         );
 
-         // Operator: DPad Left: Arm to Stowed position (when pressed)
-         m_operatorCtrl.povLeft().onTrue(m_armSubsystem.runOnce(()->m_armSubsystem.updateArmSetpoint(RobotConstants.STOWED)));
+         // Operator: DPad Left: Arm to Podium position (when pressed)
+         //m_operatorCtrl.povLeft().onTrue(m_armSubsystem.runOnce(()->m_armSubsystem.updateArmSetpoint(RobotConstants.STOWED)));
+        
+         m_operatorCtrl.povLeft().onTrue(new prepareToShoot(RobotConstants.PODIUM, m_armSubsystem, m_shooterSubsystem, m_stageSubsystem));
 
-         // Operator: DPad Up: Arm to Subwoofer Position (when pressed)
-         m_operatorCtrl.povUp().onTrue(m_armSubsystem.runOnce(()->m_armSubsystem.updateArmSetpoint(RobotConstants.SUBWOOFER)));
+         // Operator: DPad Up: Arm to Wing Position (when pressed)
+         //m_operatorCtrl.povUp().onTrue(m_armSubsystem.runOnce(()->m_armSubsystem.updateArmSetpoint(RobotConstants.SUBWOOFER)));
+         m_operatorCtrl.povUp().onTrue(new prepareToShoot(RobotConstants.WING, m_armSubsystem, m_shooterSubsystem, m_stageSubsystem));
 
-         // Operator: DPad Right: Arm to Podium Position (when pressed)
-         m_operatorCtrl.povRight().onTrue(m_armSubsystem.runOnce(()->m_armSubsystem.updateArmSetpoint(RobotConstants.AMP)));
+         // Operator: DPad Right: Arm to Subwoofer Position (when pressed)
+         //m_operatorCtrl.povRight().onTrue(m_armSubsystem.runOnce(()->m_armSubsystem.updateArmSetpoint(RobotConstants.AMP)));
+         m_operatorCtrl.povRight().onTrue(new prepareToShoot(RobotConstants.SUBWOOFER, m_armSubsystem, m_shooterSubsystem, m_stageSubsystem));
 
-         // Operator: DPad Down: Arm to Wing Position(when pressed)
-         m_operatorCtrl.povDown().onTrue(m_armSubsystem.runOnce(()->m_armSubsystem.updateArmSetpoint(RobotConstants.WING)));
+         // Operator: DPad Down: Arm to Stowed Position(when pressed)
+         //m_operatorCtrl.povDown().onTrue(m_armSubsystem.runOnce(()->m_armSubsystem.updateArmSetpoint(RobotConstants.WING)));
+         m_operatorCtrl.povDown().onTrue(new prepareToShoot(RobotConstants.STOWED, m_armSubsystem, m_shooterSubsystem, m_stageSubsystem));
 
 
         /*
