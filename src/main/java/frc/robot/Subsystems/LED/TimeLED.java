@@ -1,4 +1,3 @@
- 
 package frc.robot.Subsystems.LED;
 
 // Copyright (c) FIRST and other WPILib contributors.
@@ -22,34 +21,8 @@ public class TimeLED extends Command {
     // Use addRequirements() here to declare subsystem dependencies.
   }
 
-  public enum AnimationTypes {
-    ColorFlow,
-    Strobe,
-    Twinkle,
-    TwinkleOff,
-    Empty
-}
-private AnimationTypes m_currentAnimation;
 
-
-public void incrementAnimation() {
-    switch(m_currentAnimation) {
-        case Twinkle: changeAnimation(AnimationTypes.TwinkleOff); break;
-        case TwinkleOff: changeAnimation(AnimationTypes.Empty); break;
-        case Empty: changeAnimation(AnimationTypes.ColorFlow); break;
-    }
-}
-
-public void decrementAnimation() {
-    switch(m_currentAnimation) {
-        case Twinkle: changeAnimation(AnimationTypes.Strobe); break;
-        case TwinkleOff: changeAnimation(AnimationTypes.Twinkle); break;
-        case Empty: changeAnimation(AnimationTypes.TwinkleOff); break;
-    }
-}
-    public void changeAnimation(AnimationTypes toChange) {
-        m_currentAnimation = toChange;
-    }
+    
   // Called when the command is initially scheduled.
   @Override
   public void initialize() {  
