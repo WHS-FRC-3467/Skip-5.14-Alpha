@@ -9,18 +9,19 @@ import frc.robot.Subsystems.Arm.ArmSubsystem;
 import frc.robot.Subsystems.Shooter.ShooterSubsystem;
 import frc.robot.Util.Setpoints;
 import frc.robot.Util.Setpoints.GameState;
+import frc.robot.Util.ShooterPreset;
+import frc.robot.Util.VisionLookUpTable;
 
-public class prepareToShoot extends Command {
+public class LookUpShot extends Command {
 
     Setpoints m_setpoints;
     ArmSubsystem m_armSubsystem;
     ShooterSubsystem m_shooterSubsystem;
+    VisionLookUpTable mVisionLookUpTable = new VisionLookUpTable();
     boolean m_isDone;
 
     /** Constructor - Creates a new prepareToShoot. */
-    public prepareToShoot(Setpoints setpoints, ArmSubsystem armSub, ShooterSubsystem shootSub) {
-    
-        m_setpoints = setpoints;
+    public LookUpShot(ArmSubsystem armSub, ShooterSubsystem shootSub) {
         m_armSubsystem = armSub;
         m_shooterSubsystem = shootSub;
 
@@ -38,11 +39,12 @@ public class prepareToShoot extends Command {
     public void execute() {
 
         // Bring Arm to requested position
-        if (!m_armSubsystem.isEnabled()) m_armSubsystem.enable();
-        m_armSubsystem.updateArmSetpoint(m_setpoints.arm);
+        m_armSubsystem.enable();
+        ShooterPreset shotInfo = mVisionLookUpTable.getShooterPreset(0);
+        m_armSubsystem.updateArmSetpoint(shotInfo.getArmAngle());
 
         // Bring Shooter to requested speed
-        m_shooterSubsystem.runShooter(m_setpoints.shooterLeft, m_setpoints.shooterRight);
+        m_shooterSubsystem.runShooter(shotInfo.getLeftShooter(), shotInfo.getRightShooter());
 
         // Check both subsystems 
         if (m_armSubsystem.isArmJointAtSetpoint() && m_shooterSubsystem.areWheelsAtSpeed()) {

@@ -27,6 +27,7 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
+import frc.robot.Commands.LookUpShot;
 import frc.robot.Commands.intakeNote;
 import frc.robot.Commands.prepareToShoot;
 /* Local */
@@ -296,6 +297,8 @@ public class RobotContainer {
 
          // Driver: DPad Down: Shooter/Arm to Wing Position & Speed (when pressed)
          m_driverCtrl.povLeft().onTrue(new prepareToShoot(RobotConstants.WING, m_armSubsystem, m_shooterSubsystem));
+         // Driver: Right Bumper: Auto Shoot using the Look Up Table (when pressed)
+         m_driverCtrl.rightBumper().onTrue(new LookUpShot(m_armSubsystem, m_shooterSubsystem));
 
         /*
          * OPERATOR Controls
