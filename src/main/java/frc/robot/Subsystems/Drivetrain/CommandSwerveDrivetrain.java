@@ -67,7 +67,7 @@ public class CommandSwerveDrivetrain extends SwerveDrivetrain implements Subsyst
          * distance from the center of the robot to the furthest
          * module.
          */
-        double driveBaseRadius = .762;
+        double driveBaseRadius = .74;
         for (var moduleLocation : m_moduleLocations) {
             driveBaseRadius = Math.max(driveBaseRadius, moduleLocation.getNorm());
         }
@@ -90,7 +90,7 @@ public class CommandSwerveDrivetrain extends SwerveDrivetrain implements Subsyst
                 (speeds) -> this.setControl(autoRequest.withSpeeds(speeds)),
 
                 // Method for configuring the path following commands
-                new HolonomicPathFollowerConfig(new PIDConstants(1.3, 0, 0), new PIDConstants(2, 0, 0),
+                new HolonomicPathFollowerConfig(new PIDConstants(.6, 0, .08), new PIDConstants(5, 0, 0),
                         TunerConstants.kSpeedAt12VoltsMps,
                         driveBaseRadius, new ReplanningConfig()),
 

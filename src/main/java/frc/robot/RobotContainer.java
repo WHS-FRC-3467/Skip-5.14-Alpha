@@ -24,6 +24,7 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
+import frc.robot.AutoCommands.autoShoot;
 import frc.robot.Commands.intakeNote;
 import frc.robot.Commands.prepareToShoot;
 /* Local */
@@ -156,8 +157,17 @@ public class RobotContainer {
     private void registerNamedCommands() {
 
         // Register Named Commands for use in PathPlanner autos
-        NamedCommands.registerCommand("IntakeNote", new intakeNote(m_intakeSubsystem, m_stageSubsystem));
+        NamedCommands.registerCommand("RunIntake", (new intakeNote(m_intakeSubsystem, m_stageSubsystem)));
+        NamedCommands.registerCommand("DownIntake", m_armSubsystem.prepareForIntakeCommand());
         NamedCommands.registerCommand("StopIntake", m_intakeSubsystem.stopIntakeCommand());
+        NamedCommands.registerCommand("RunShooter", m_shooterSubsystem.runShooterCommand(30, 35));
+        NamedCommands.registerCommand("RunShooter2", m_shooterSubsystem.runShooterCommand());
+        NamedCommands.registerCommand("StopShooter", m_shooterSubsystem.stopShooterCommand());
+        NamedCommands.registerCommand("ShootNote", m_stageSubsystem.feedNote2ShooterCommand());
+        NamedCommands.registerCommand("WingShot", new prepareToShoot(RobotConstants.WING, ()->m_stageSubsystem.isNoteInStage(),
+                m_armSubsystem, m_shooterSubsystem));
+
+        
         // TODO: decide on additional commands needed for auto
     }
 
@@ -327,12 +337,14 @@ public class RobotContainer {
         m_driverCtrl.rightTrigger(0.4).onTrue(m_stageSubsystem.feedNote2ShooterCommand()
             .andThen(m_armSubsystem.prepareForIntakeCommand()));
 
+        //m_driverCtrl.start().onTrue(new autoShoot(m_armSubsystem,m_stageSubsystem,m_intakeSubsystem,m_shooterSubsystem));
+
         /*
          * OPERATOR Controls
          */
         // Operator: While A button is held, run Shooter at fixed speed (as determined by Shuffleboard settings)
-        m_driverCtrl.a().onTrue(m_shooterSubsystem.runShooterCommand());
-        m_driverCtrl.a().onFalse(m_shooterSubsystem.stopShooterCommand());
+        m_operatorCtrl.a().onTrue(m_shooterSubsystem.runShooterCommand());
+        m_operatorCtrl.a().onFalse(m_shooterSubsystem.stopShooterCommand());
 
         // Operator: Use Left Bumper and Left Stick Y-Axis to manually control Arm
         m_armSubsystem.setDefaultCommand(

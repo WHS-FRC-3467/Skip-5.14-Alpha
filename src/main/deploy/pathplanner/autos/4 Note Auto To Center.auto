@@ -61,7 +61,7 @@
               {
                 "type": "path",
                 "data": {
-                  "pathName": "Second Collect"
+                  "pathName": "Second Collect Wing"
                 }
               },
               {
@@ -82,7 +82,7 @@
         {
           "type": "path",
           "data": {
-            "pathName": "Second Shot"
+            "pathName": "Second Shot Wing"
           }
         },
         {

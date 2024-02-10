@@ -117,6 +117,7 @@ public class ShooterSubsystem extends SubsystemBase {
         // Put actual velocities to smart dashboard
         SmartDashboard.putNumber("Shooter Velocity L", getShooterVelocity(kShooterSide.kLEFT));
         SmartDashboard.putNumber("Shooter Velocity R", getShooterVelocity(kShooterSide.kRIGHT));
+        SmartDashboard.putBoolean("isAtSpeed", areWheelsAtSpeed());
     }
 
     /**

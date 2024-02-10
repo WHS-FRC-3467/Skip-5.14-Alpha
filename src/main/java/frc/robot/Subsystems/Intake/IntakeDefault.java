@@ -22,7 +22,8 @@ public class IntakeDefault extends Command {
     m_stage = stage;
     m_fwd = fwd;
     m_rev = rev;
-    addRequirements(m_intake, m_stage);
+//    addRequirements(m_intake, m_stage);
+    addRequirements(m_intake);
   }
 
   // Called when the command is initially scheduled.
@@ -38,15 +39,15 @@ public class IntakeDefault extends Command {
     // Run both Intake and Stage, with Stage running slightly slower both ways
     if ((speed = m_fwd.getAsDouble()) > 0.1) {
         m_intake.runIntake(speed);
-        m_stage.runStage(speed * StageConstants.kIntakeSpeed);
+ //       m_stage.runStage(speed * StageConstants.kIntakeSpeed);
 
     } else if ((speed = m_rev.getAsDouble()) > 0.1) {
         m_intake.runIntake(-speed);
-        m_stage.runStage(-speed * StageConstants.kIntakeSpeed);
+ //       m_stage.runStage(-speed * StageConstants.kIntakeSpeed);
 
     } else {
         m_intake.stopIntake();
-        m_stage.stopStage();
+  //      m_stage.stopStage();
 
     }
 
