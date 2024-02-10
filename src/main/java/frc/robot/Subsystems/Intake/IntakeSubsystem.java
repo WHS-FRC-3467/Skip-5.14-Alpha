@@ -29,7 +29,7 @@ import frc.robot.Constants.CanConstants;
 import frc.robot.Constants.IntakeConstants;
 import frc.robot.sim.PhysicsSim;
 
-public class UBIntakeSubsystem extends SubsystemBase {
+public class IntakeSubsystem extends SubsystemBase {
 
     /* Initialize Talons */
     TalonFX m_intakeMotor = new TalonFX(CanConstants.ID_IntakeMotor);
@@ -45,7 +45,7 @@ public class UBIntakeSubsystem extends SubsystemBase {
     private final NeutralOut m_brake = new NeutralOut();
 
     /** Creates a new IntakeSubsystem. */
-    public UBIntakeSubsystem() {
+    public IntakeSubsystem() {
 
          /* If running in Simulation, setup simulated Talons */
          if (Utils.isSimulation()) {
@@ -113,15 +113,14 @@ public class UBIntakeSubsystem extends SubsystemBase {
 
     @Override
     public void periodic() {
-
-        // If running in simulation, update the sims
-        if (Utils.isSimulation()) {
-            PhysicsSim.getInstance().run();
-        }
-
         // This method will be called once per scheduler run
         SmartDashboard.putNumber("Intake Current Draw", m_intakeMotor.getSupplyCurrent().getValueAsDouble());
         SmartDashboard.putNumber("Intake Center Current Draw", m_centeringMotor.getSupplyCurrent());
+    }
+
+    public void simulationPeriodic() {
+        // If running in simulation, update the sims
+            PhysicsSim.getInstance().run();
     }
 
     /**

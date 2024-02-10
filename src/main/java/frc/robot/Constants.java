@@ -79,9 +79,9 @@ public final class Constants {
         public static final double kFeedToAmpSpeed = 0.7;
         public static final double kFeedToTrapSpeed = 0.5;
 
-        public static final double kFeedToShooterTime = 1.0;
-        public static final double kFeedToAmpTime = 4.0;
-        public static final double kFeedToTrapTime = 4.0;
+        public static final double kFeedToShooterTime = 3.0;
+        public static final double kFeedToAmpTime = 3.0;
+        public static final double kFeedToTrapTime = 5.0;
     }
 
     public static final class IntakeConstants {

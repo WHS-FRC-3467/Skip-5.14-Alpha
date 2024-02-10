@@ -7,18 +7,22 @@ package frc.robot.Subsystems.Intake;
 import java.util.function.DoubleSupplier;
 
 import edu.wpi.first.wpilibj2.command.Command;
+import frc.robot.Constants.StageConstants;
+import frc.robot.Subsystems.Stage.StageSubsystem;
 
 public class IntakeDefault extends Command {
 
   DoubleSupplier m_fwd, m_rev;
-  UBIntakeSubsystem m_intake;
+  IntakeSubsystem m_intake;
+  StageSubsystem m_stage;
 
   /** Creates a new IntakeDefault. */
-  public IntakeDefault(UBIntakeSubsystem intake, DoubleSupplier fwd, DoubleSupplier rev){
+  public IntakeDefault(IntakeSubsystem intake, StageSubsystem stage, DoubleSupplier fwd, DoubleSupplier rev){
     m_intake = intake;
+    m_stage = stage;
     m_fwd = fwd;
     m_rev = rev;
-    addRequirements(m_intake);
+    addRequirements(m_intake, m_stage);
   }
 
   // Called when the command is initially scheduled.
@@ -31,12 +35,19 @@ public class IntakeDefault extends Command {
 
     double speed;
  
+    // Run both Intake and Stage, with Stage running slightly slower both ways
     if ((speed = m_fwd.getAsDouble()) > 0.1) {
         m_intake.runIntake(speed);
+        m_stage.runStage(speed * StageConstants.kIntakeSpeed);
+
     } else if ((speed = m_rev.getAsDouble()) > 0.1) {
         m_intake.runIntake(-speed);
+        m_stage.runStage(-speed * StageConstants.kIntakeSpeed);
+
     } else {
         m_intake.stopIntake();
+        m_stage.stopStage();
+
     }
 
   }
@@ -45,6 +56,7 @@ public class IntakeDefault extends Command {
   @Override
   public void end(boolean interrupted) {
     m_intake.stopIntake();
+    m_stage.stopStage();
   }
 
   // Returns true when the command should end.
