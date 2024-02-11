@@ -4,10 +4,11 @@
 
 package frc.robot.Commands;
 
+import java.util.function.BooleanSupplier;
+
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.Subsystems.Arm.ArmSubsystem;
 import frc.robot.Subsystems.Shooter.ShooterSubsystem;
-import frc.robot.Subsystems.Stage.StageSubsystem;
 import frc.robot.Util.Setpoints;
 import frc.robot.Util.Setpoints.GameState;
 
@@ -16,18 +17,17 @@ public class prepareToShoot extends Command {
     Setpoints m_setpoints;
     ArmSubsystem m_armSubsystem;
     ShooterSubsystem m_shooterSubsystem;
-    StageSubsystem m_stageSubsystem;
+    BooleanSupplier m_haveNote;
     boolean m_isDone;
 
     /** Constructor - Creates a new prepareToShoot. */
-    public prepareToShoot(Setpoints setpoints, ArmSubsystem armSub, ShooterSubsystem shootSub, StageSubsystem stageSub) {
+    public prepareToShoot(Setpoints setpoints, BooleanSupplier haveNote, ArmSubsystem armSub, ShooterSubsystem shootSub) {
     
         m_setpoints = setpoints;
         m_armSubsystem = armSub;
         m_shooterSubsystem = shootSub;
-        m_stageSubsystem = stageSub;
+        m_haveNote = haveNote;
 
-        // Do NOT require the StageSubsystem here, because we are only querying it
         addRequirements(armSub, shootSub);
     }
 
@@ -42,16 +42,16 @@ public class prepareToShoot extends Command {
     @Override
     public void execute() {
 
-        // Bring Shooter to requested speed
-        m_shooterSubsystem.runShooter(m_setpoints.shooterLeft, m_setpoints.shooterRight);
+        // Set Shooter setpoints - DO NOT start it yet
+        m_shooterSubsystem.setShooterSetpoints(m_setpoints);
 
         // After we have a Note in the Stage, bring Arm to requested position
-        if (m_stageSubsystem.isNoteInStage()) {
+        if (m_haveNote.getAsBoolean()) {
             m_armSubsystem.updateArmSetpoint(m_setpoints);
         }
 
-        // Check both subsystems 
-        if (m_armSubsystem.isArmJointAtSetpoint() && m_shooterSubsystem.areWheelsAtSpeed()) {
+        // Exit once Arm is at setpoint 
+        if (m_armSubsystem.isArmJointAtSetpoint()) {
             m_isDone = true;
         }
     }

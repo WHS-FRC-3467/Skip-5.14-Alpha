@@ -62,16 +62,17 @@ public class StageSubsystem extends SubsystemBase {
     @Override
     public void periodic() {
 
-        // If running in simulation, update the sims
-        if (Utils.isSimulation()) {
-            PhysicsSim.getInstance().run();
-        }
-
+    
         // Default action is to hold the note in place if sensor detects note
         m_noteInStage = m_stageBeamBreak.get() ? false : true;
 
         SmartDashboard.putNumber("Stage Current Draw", m_stageMotor.getSupplyCurrent());
-        SmartDashboard.putBoolean("Note In Stage", m_noteInStage);
+        SmartDashboard.putBoolean("Note In Stage?", m_noteInStage);
+    }
+
+    public void simulationPeriodic() {
+        // If running in simulation, update the sims
+        PhysicsSim.getInstance().run();
     }
 
     /**

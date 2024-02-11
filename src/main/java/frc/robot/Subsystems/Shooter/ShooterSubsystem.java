@@ -17,6 +17,7 @@ import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants.CanConstants;
 import frc.robot.Constants.ShooterConstants;
+import frc.robot.Util.Setpoints;
 import frc.robot.Util.TunableNumber;
 import frc.robot.sim.PhysicsSim;
 
@@ -116,6 +117,7 @@ public class ShooterSubsystem extends SubsystemBase {
         // Put actual velocities to smart dashboard
         SmartDashboard.putNumber("Shooter Velocity L", getShooterVelocity(kShooterSide.kLEFT));
         SmartDashboard.putNumber("Shooter Velocity R", getShooterVelocity(kShooterSide.kRIGHT));
+        SmartDashboard.putBoolean("isAtSpeed", areWheelsAtSpeed());
     }
 
     /**
@@ -154,6 +156,16 @@ public class ShooterSubsystem extends SubsystemBase {
     public void stopShooter() {
         m_motorLeft.setControl(m_brake);
         m_motorRight.setControl(m_brake);
+    }
+
+    /**
+     * @param setpoints - Reference to a Setpoints class instance
+     */
+    public void setShooterSetpoints(Setpoints setpoints) {
+
+        m_ShooterSetpointL.set(setpoints.shooterLeft);
+        m_ShooterSetpointR.set(setpoints.shooterRight);
+
     }
 
     /**
