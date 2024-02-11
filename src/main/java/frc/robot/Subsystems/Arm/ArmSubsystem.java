@@ -21,8 +21,11 @@ import frc.robot.Constants.ArmConstants;
 import frc.robot.Constants.CanConstants;
 import frc.robot.Constants.DIOConstants;
 import frc.robot.Constants.RobotConstants;
+import frc.robot.Util.Setpoints;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.ProfiledPIDSubsystem;
+import edu.wpi.first.wpilibj2.command.RunCommand;
 
 /* 
  * ArmSubsystem - Subsystem to control all Arm motion using a Trapezoidal Profiled PID controller
@@ -56,6 +59,9 @@ public class ArmSubsystem extends ProfiledPIDSubsystem {
     /* Working (current) setpoint */
     private double m_armSetpoint;
 
+    /* Working (current) tolerance */
+    private double m_tolerance;
+
     /*
      * Constructor
      */
@@ -70,7 +76,7 @@ public class ArmSubsystem extends ProfiledPIDSubsystem {
                         new TrapezoidProfile.Constraints(ArmConstants.kArm_Cruise, ArmConstants.kArm_Acceleration)));
 
         // Start arm at rest in STOWED position
-        updateArmSetpoint(RobotConstants.STOWED.arm);
+        updateArmSetpoint(RobotConstants.STOWED);
 
         // Config Duty Cycle Range for the encoders
         m_encoder.setDutyCycleRange(ArmConstants.kDuty_Cycle_Min, ArmConstants.kDuty_Cycle_Max);
@@ -88,7 +94,7 @@ public class ArmSubsystem extends ProfiledPIDSubsystem {
         followerConfiguration.MotorOutput.DutyCycleNeutralDeadband = ArmConstants.kNeutral_Deadband;
 
         /* Set the turning direction */
-        leadConfiguration.MotorOutput.Inverted = InvertedValue.CounterClockwise_Positive;
+        leadConfiguration.MotorOutput.Inverted = InvertedValue.Clockwise_Positive;
 
         /*
          * Apply the configurations to the motors, and set one to follow the other in
@@ -109,12 +115,13 @@ public class ArmSubsystem extends ProfiledPIDSubsystem {
         super.periodic();
 
         // Validate current encoder reading; stop motors if out of range
-        double armPos = getArmJointDegrees();
-        if (!m_encoder.isConnected() || ( armPos < 0.0 || armPos >= 360.0)) {
-            System.out.println("Arm Encoder error reported in periodic().");
-            neutralOutput();
-        }
-
+        /*
+         * double armPos = getArmJointDegrees();
+         * if (!m_encoder.isConnected() || ( armPos < 0.0 || armPos >= 360.0)) {
+         * System.out.println("Arm Encoder error reported in periodic().");
+         * neutralOutput();
+         * }
+         */
         // Display useful info on the SmartDashboard
         SmartDashboard.putData("Arm Controller", m_armLeader);
         SmartDashboard.putBoolean("Arm Joint at Setpoint?", isArmJointAtSetpoint());
@@ -140,9 +147,9 @@ public class ArmSubsystem extends ProfiledPIDSubsystem {
     @Override
     public void useOutput(double output, TrapezoidProfile.State setpoint) {
 
-        // Correct the passed-in current setpoint before calculating the feedforward 
+        // Correct the passed-in current setpoint before calculating the feedforward
         double correctedPosition = correctArmJointRadiansForFeedFwd(setpoint.position);
-        
+
         // Calculate the feedforward using the corrected setpoint
         double feedforward = m_feedforward.calculate(correctedPosition, setpoint.velocity);
 
@@ -157,13 +164,14 @@ public class ArmSubsystem extends ProfiledPIDSubsystem {
     }
 
     /**
-     * Returns the measurement of the process variable used by the ProfiledPIDController.
+     * Returns the measurement of the process variable used by the
+     * ProfiledPIDController.
      * 
-     * The PIDSubsystem will automatically call this method from its periodic() block,
-     * and pass the returned value to the control loop.
+     * The PIDSubsystem will automatically call this method from its periodic()
+     * block, and pass the returned value to the control loop.
      * 
      * @return the measurement of the process variable, in this case, the Arm angle,
-     *  in radians corrected to 0.0 at the STOWED position
+     *         in radians corrected to 0.0 at the STOWED position
      */
     @Override
     public double getMeasurement() {
@@ -175,10 +183,25 @@ public class ArmSubsystem extends ProfiledPIDSubsystem {
      * 
      * @param setpointDegrees - the desired position in degrees
      */
-    public void updateArmSetpoint(double setpointDegrees) {
+    public void updateArmSetpoint(Setpoints setpoints) {
 
         // Convert degrees to radians and set the profile goal
-        setGoal(degreesToRadians(setpointDegrees));
+        m_armSetpoint = setpoints.arm;
+        m_tolerance = setpoints.tolerance;
+        setGoal(degreesToRadians(setpoints.arm));
+    }
+
+    /** Override the enable() method so we can set the goal to the current position
+     * 
+     *  The super method resets the controller and sets its current setpoint to the 
+     *  current position, but it does not reset the goal, which will cause the Arm
+     *  to jump from the current position to the old goal. 
+     */
+    @Override
+    public void enable() {
+        super.enable();
+        m_armSetpoint = getArmJointDegrees(); 
+        setGoal(getArmJointRadians());
     }
 
     // Get the current Arm Joint position error (in degrees)
@@ -188,10 +211,10 @@ public class ArmSubsystem extends ProfiledPIDSubsystem {
 
     // Check if Arm is at the setpoint (or within tolerance)
     public boolean isArmJointAtSetpoint() {
-        return getArmJointError() < ArmConstants.kTolerance_Pos;
+        return getArmJointError() < m_tolerance;
     }
 
-    // Drive the Arm directly by providing a supply voltage value 
+    // Drive the Arm directly by providing a supply voltage value
     public void setArmVoltage(double voltage) {
         m_armLeader.setControl(m_VoltageOutput.withOutput(voltage));
     }
@@ -211,7 +234,8 @@ public class ArmSubsystem extends ProfiledPIDSubsystem {
         return dutyCyclePos * 360;
     }
 
-    // Converts the current encoder reading to Degrees, and corrects relative to a STOWED position of zero.
+    // Converts the current encoder reading to Degrees, and corrects relative to a
+    // STOWED position of zero.
     public double getArmJointDegrees() {
         return dutyCycleToDegrees(getJointPosAbsolute()) - ArmConstants.kARM_STARTING_OFFSET;
     }
@@ -226,16 +250,28 @@ public class ArmSubsystem extends ProfiledPIDSubsystem {
         return (degrees * Math.PI) / 180.0;
     }
 
-    // Converts the current encoder reading to Degrees, and corrects relative to a STOWED position of zero.
+    // Converts the current encoder reading to Degrees, and corrects relative to a
+    // STOWED position of zero.
     public double getArmJointRadians() {
         return dutyCycleToRadians(getJointPosAbsolute()) - degreesToRadians(ArmConstants.kARM_STARTING_OFFSET);
     }
 
-    // Takes a position in radians relative to STOWED, and corrects it to be relative to a HORIZONTAL position of zero.
-    // This is used for Feedforward only, where we account for gravity using a cosine function
-    public double correctArmJointRadiansForFeedFwd( double position) {
+    // Takes a position in radians relative to STOWED, and corrects it to be
+    // relative to a HORIZONTAL position of zero.
+    // This is used for Feedforward only, where we account for gravity using a
+    // cosine function
+    public double correctArmJointRadiansForFeedFwd(double position) {
         return position - degreesToRadians(ArmConstants.kARM_HORIZONTAL_OFFSET - ArmConstants.kARM_STARTING_OFFSET);
     }
 
+    /*
+     * Command Factories
+     */
+
+    // To position for Intake, move Arm to INTAKE position
+    public Command prepareForIntakeCommand() {
+        return new RunCommand(()-> this.updateArmSetpoint(RobotConstants.INTAKE), this)
+            .until(()->this.isArmJointAtSetpoint());
+    }
 
 }

@@ -6,30 +6,25 @@ package frc.robot.Commands;
 
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.Constants.IntakeConstants;
-import frc.robot.Constants.RobotConstants;
-import frc.robot.Subsystems.Arm.ArmSubsystem;
-import frc.robot.Subsystems.Intake.UBIntakeSubsystem;
+import frc.robot.Subsystems.Intake.IntakeSubsystem;
 import frc.robot.Subsystems.Stage.StageSubsystem;
 /**
  *  Intake a Note
- * - Bring Arm to Intake position
  * - Run Intake & Stage
  * - Stop everything when a Note is in the stage
  */
 public class intakeNote extends Command {
 
-    ArmSubsystem m_armSubsystem;
-    UBIntakeSubsystem m_intakeSubsystem;
+    IntakeSubsystem m_intakeSubsystem;
     StageSubsystem m_stageSubsystem;
     boolean m_isDone;
 
     /** Constructor - Creates a new intakeNote */
-    public intakeNote(ArmSubsystem armSub, UBIntakeSubsystem intakeSub, StageSubsystem stageSub) {
+    public intakeNote(IntakeSubsystem intakeSub, StageSubsystem stageSub) {
 
-        m_armSubsystem = armSub;
         m_intakeSubsystem = intakeSub;
         m_stageSubsystem = stageSub;
-        addRequirements(armSub, intakeSub, stageSub);
+        addRequirements(intakeSub, stageSub);
     }
 
     // Called when the command is initially scheduled.
@@ -41,12 +36,6 @@ public class intakeNote extends Command {
     // Called every time the scheduler runs while the command is scheduled.
     @Override
     public void execute() {
-
-        // Make sure the Arm is in the INTAKE position
-        m_armSubsystem.updateArmSetpoint(RobotConstants.INTAKE.arm);
-        // If Arm is not down yet, return and loop back until it is.
-        if (!m_armSubsystem.isArmJointAtSetpoint())
-            return;
 
         // Turn on the Intake
         m_intakeSubsystem.runIntake(IntakeConstants.kIntakeSpeed);

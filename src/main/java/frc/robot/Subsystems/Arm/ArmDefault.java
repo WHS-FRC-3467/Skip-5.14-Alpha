@@ -30,10 +30,7 @@ public class ArmDefault extends Command {
 
     // Called when the command is initially scheduled.
     @Override
-    public void initialize() {
-        // Start with PID Controller enabled
-        m_arm.enable();
-    }
+    public void initialize() {}
 
     // Called every time the scheduler runs while the command is scheduled.
     @Override
