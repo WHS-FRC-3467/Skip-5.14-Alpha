@@ -191,6 +191,13 @@ public class ArmSubsystem extends ProfiledPIDSubsystem {
         setGoal(degreesToRadians(setpoints.arm));
     }
 
+    public void updateArmLookUp(double degrees) {
+
+        // Convert degrees to radians and set the profile goal
+        m_armSetpoint = degrees;
+        setGoal(degreesToRadians(degrees));
+    }
+
     /** Override the enable() method so we can set the goal to the current position
      * 
      *  The super method resets the controller and sets its current setpoint to the 
@@ -271,6 +278,11 @@ public class ArmSubsystem extends ProfiledPIDSubsystem {
     // To position for Intake, move Arm to INTAKE position
     public Command prepareForIntakeCommand() {
         return new RunCommand(()-> this.updateArmSetpoint(RobotConstants.INTAKE), this)
+            .until(()->this.isArmJointAtSetpoint());
+    }
+    // To tune the lookup table using SmartDashboard
+    public Command tuneArmSetPointCommand(double degrees) {
+        return new RunCommand(()-> this.updateArmLookUp(degrees), this)
             .until(()->this.isArmJointAtSetpoint());
     }
 

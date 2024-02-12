@@ -38,6 +38,7 @@ import frc.robot.Subsystems.Intake.IntakeSubsystem;
 import frc.robot.Subsystems.Shooter.ShooterSubsystem;
 import frc.robot.Subsystems.Stage.StageSubsystem;
 import frc.robot.Util.CommandXboxPS5Controller;
+import frc.robot.Util.TunableNumber;
 import frc.robot.Vision.Limelight;
 import frc.robot.Vision.PhotonVision;
 import frc.robot.generated.TunerConstants;
@@ -379,6 +380,12 @@ public class RobotContainer {
         SmartDashboard.putData("Run Shooter", m_shooterSubsystem.runShooterCommand());
         SmartDashboard.putData("Stop Shooter", m_shooterSubsystem.stopShooterCommand());
 
+        /*
+         * Tuning Lookup Table
+         */
+
+        TunableNumber tuneLookUp = new TunableNumber("Tune Look Up Setpoint", 0.0);
+        SmartDashboard.putData("Move Arm To Setpoint", m_armSubsystem.tuneArmSetPointCommand(tuneLookUp.get()));
     }
 
     private void configureSysIDProfiling() {
