@@ -25,6 +25,7 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
 import frc.robot.AutoCommands.autoShoot;
+import frc.robot.Commands.LookUpShot;
 import frc.robot.Commands.intakeNote;
 import frc.robot.Commands.prepareToShoot;
 /* Local */
@@ -386,6 +387,7 @@ public class RobotContainer {
 
         TunableNumber tuneLookUp = new TunableNumber("Tune Look Up Setpoint", 0.0);
         SmartDashboard.putData("Move Arm To Setpoint", m_armSubsystem.tuneArmSetPointCommand(tuneLookUp.get()));
+        SmartDashboard.putData("Test Lookup Table", new LookUpShot(m_armSubsystem, m_shooterSubsystem, m_drivetrain));
     }
 
     private void configureSysIDProfiling() {

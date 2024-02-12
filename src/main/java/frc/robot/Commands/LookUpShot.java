@@ -11,6 +11,7 @@ import frc.robot.Util.Setpoints;
 import frc.robot.Util.Setpoints.GameState;
 import frc.robot.Util.ShooterPreset;
 import frc.robot.Util.VisionLookUpTable;
+import frc.robot.Subsystems.Drivetrain.CommandSwerveDrivetrain;
 
 public class LookUpShot extends Command {
 
@@ -18,12 +19,14 @@ public class LookUpShot extends Command {
     ArmSubsystem m_armSubsystem;
     ShooterSubsystem m_shooterSubsystem;
     VisionLookUpTable mVisionLookUpTable = new VisionLookUpTable();
+    CommandSwerveDrivetrain m_Drivetrain;
     boolean m_isDone;
 
     /** Constructor - Creates a new prepareToShoot. */
-    public LookUpShot(ArmSubsystem armSub, ShooterSubsystem shootSub) {
+    public LookUpShot(ArmSubsystem armSub, ShooterSubsystem shootSub, CommandSwerveDrivetrain drivetrain) {
         m_armSubsystem = armSub;
         m_shooterSubsystem = shootSub;
+        m_Drivetrain = drivetrain;
 
         addRequirements(armSub, shootSub);
     }
@@ -40,7 +43,7 @@ public class LookUpShot extends Command {
 
         // Bring Arm to requested position
         m_armSubsystem.enable();
-        ShooterPreset shotInfo = mVisionLookUpTable.getShooterPreset(0);
+        ShooterPreset shotInfo = mVisionLookUpTable.getShooterPreset(m_Drivetrain.calcDistToSpeaker());
         m_armSubsystem.updateArmLookUp(shotInfo.getArmAngle());
 
         // Bring Shooter to requested speed
