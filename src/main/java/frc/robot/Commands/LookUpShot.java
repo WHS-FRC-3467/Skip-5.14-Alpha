@@ -41,7 +41,7 @@ public class LookUpShot extends Command {
         // Bring Arm to requested position
         m_armSubsystem.enable();
         ShooterPreset shotInfo = mVisionLookUpTable.getShooterPreset(0);
-        m_armSubsystem.updateArmSetpoint(shotInfo.getArmAngle());
+        m_armSubsystem.updateArmLookUp(shotInfo.getArmAngle());
 
         // Bring Shooter to requested speed
         m_shooterSubsystem.runShooter(shotInfo.getLeftShooter(), shotInfo.getRightShooter());
