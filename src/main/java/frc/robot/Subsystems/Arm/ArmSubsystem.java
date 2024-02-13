@@ -22,6 +22,7 @@ import frc.robot.Constants.CanConstants;
 import frc.robot.Constants.DIOConstants;
 import frc.robot.Constants.RobotConstants;
 import frc.robot.Util.Setpoints;
+import frc.robot.Util.TunableNumber;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.ProfiledPIDSubsystem;
@@ -35,6 +36,8 @@ import edu.wpi.first.wpilibj2.command.RunCommand;
  *
  */
 public class ArmSubsystem extends ProfiledPIDSubsystem {
+
+    private static TunableNumber tuneLookUp = new TunableNumber("Tune Look Up Setpoint", 0.0);
 
     /* Creates a new ArmSubsystem */
     private TalonFX m_armLeader = new TalonFX(CanConstants.ID_ArmLeader);
@@ -104,6 +107,8 @@ public class ArmSubsystem extends ProfiledPIDSubsystem {
         m_armFollower.getConfigurator().apply(followerConfiguration);
         m_armFollower.setControl(new Follower(m_armLeader.getDeviceID(), false));
 
+        //TunableNumber tuneLookUp = new TunableNumber("Tune Look Up Setpoint", 0.0);
+        
     }
 
     @Override
@@ -123,10 +128,11 @@ public class ArmSubsystem extends ProfiledPIDSubsystem {
          * }
          */
         // Display useful info on the SmartDashboard
-        SmartDashboard.putData("Arm Controller", m_armLeader);
+        SmartDashboard.putData("Arm Controller", this.getController());
         SmartDashboard.putBoolean("Arm Joint at Setpoint?", isArmJointAtSetpoint());
         SmartDashboard.putNumber("Raw Arm Encoder ", getJointPosAbsolute());
         SmartDashboard.putNumber("Arm Current Angle", getArmJointDegrees());
+        
 
         if (Constants.RobotConstants.kIsTuningMode) {
             SmartDashboard.putNumber("Arm Angle Uncorrected", dutyCycleToDegrees(getJointPosAbsolute()));
@@ -189,6 +195,14 @@ public class ArmSubsystem extends ProfiledPIDSubsystem {
         m_armSetpoint = setpoints.arm;
         m_tolerance = setpoints.tolerance;
         setGoal(degreesToRadians(setpoints.arm));
+    }
+
+    public void updateArmLookUp(double degrees) {
+
+        // Convert degrees to radians and set the profile goal
+        m_armSetpoint = degrees;
+        setGoal(degreesToRadians(degrees));
+        System.out.println("We are Updating to" + degrees);
     }
 
     /** Override the enable() method so we can set the goal to the current position
@@ -271,6 +285,11 @@ public class ArmSubsystem extends ProfiledPIDSubsystem {
     // To position for Intake, move Arm to INTAKE position
     public Command prepareForIntakeCommand() {
         return new RunCommand(()-> this.updateArmSetpoint(RobotConstants.INTAKE), this)
+            .until(()->this.isArmJointAtSetpoint());
+    }   
+    // To tune the lookup table using SmartDashboard
+    public Command tuneArmSetPointCommand() {
+        return new RunCommand(()-> this.updateArmLookUp(tuneLookUp.get()), this)
             .until(()->this.isArmJointAtSetpoint());
     }
 
