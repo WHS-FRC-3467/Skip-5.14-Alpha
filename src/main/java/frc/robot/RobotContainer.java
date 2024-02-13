@@ -24,11 +24,13 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
+/* Local */
+import frc.robot.Util.ShooterPreset;
+import frc.robot.Util.VisionLookUpTable;
 import frc.robot.AutoCommands.autoShoot;
 import frc.robot.Commands.LookUpShot;
 import frc.robot.Commands.intakeNote;
 import frc.robot.Commands.prepareToShoot;
-/* Local */
 import frc.robot.Constants.RobotConstants;
 import frc.robot.Subsystems.Arm.ArmDefault;
 import frc.robot.Subsystems.Arm.ArmSubsystem;
@@ -52,6 +54,11 @@ public class RobotContainer {
     private SendableChooser<Command> autoChooser;
     private SendableChooser<String> controlChooser = new SendableChooser<>();
     private SendableChooser<Double> speedChooser = new SendableChooser<>();
+
+    /*
+     * Lookup Table
+     */
+    private VisionLookUpTable m_VisionLookUpTable = new VisionLookUpTable();
 
     /*
      * Speed adjustments
@@ -270,32 +277,32 @@ public class RobotContainer {
          * DRIVER Controls
          */
         // Driver: While Y button is pressed, rotate to North
-        m_driverCtrl.y().whileTrue(m_drivetrain.applyRequest(
-                () -> m_cardinal.withVelocityX(-m_driverCtrl.getLeftY() * m_MaxSpeed)
+        m_driverCtrl.y().onTrue(m_drivetrain.applyRequest(
+                () -> m_head.withVelocityX(-m_driverCtrl.getLeftY() * m_MaxSpeed)
                         .withVelocityY(-m_driverCtrl.getLeftX() * m_MaxSpeed)
                         .withTargetDirection(Rotation2d.fromDegrees(0.0))
                         .withDeadband(m_MaxSpeed * 0.1)
                         .withRotationalDeadband(m_AngularRate * 0.1)));
 
         // Driver: While B button is pressed, rotate to East
-        m_driverCtrl.b().whileTrue(m_drivetrain.applyRequest(
-                () -> m_cardinal.withVelocityX(-m_driverCtrl.getLeftY() * m_MaxSpeed)
+        m_driverCtrl.b().onTrue(m_drivetrain.applyRequest(
+                () -> m_head.withVelocityX(-m_driverCtrl.getLeftY() * m_MaxSpeed)
                         .withVelocityY(-m_driverCtrl.getLeftX() * m_MaxSpeed)
                         .withTargetDirection(Rotation2d.fromDegrees(90.0))
                         .withDeadband(m_MaxSpeed * 0.1)
                         .withRotationalDeadband(m_AngularRate * 0.1)));
 
         // Driver: While A button is pressed, rotate to South
-        m_driverCtrl.a().whileTrue(m_drivetrain.applyRequest(
-                () -> m_cardinal.withVelocityX(-m_driverCtrl.getLeftY() * m_MaxSpeed)
+        m_driverCtrl.a().onTrue(m_drivetrain.applyRequest(
+                () -> m_head.withVelocityX(-m_driverCtrl.getLeftY() * m_MaxSpeed)
                         .withVelocityY(-m_driverCtrl.getLeftX() * m_MaxSpeed)
                         .withTargetDirection(Rotation2d.fromDegrees(180.0))
                         .withDeadband(m_MaxSpeed * 0.1)
                         .withRotationalDeadband(m_AngularRate * 0.1)));
 
         // Driver: While X button is pressed, rotate to West
-        m_driverCtrl.x().whileTrue(m_drivetrain.applyRequest(
-                () -> m_cardinal.withVelocityX(-m_driverCtrl.getLeftY() * m_MaxSpeed)
+        m_driverCtrl.x().onTrue(m_drivetrain.applyRequest(
+                () -> m_head.withVelocityX(-m_driverCtrl.getLeftY() * m_MaxSpeed)
                         .withVelocityY(-m_driverCtrl.getLeftX() * m_MaxSpeed)
                         .withTargetDirection(Rotation2d.fromDegrees(270.0))
                         .withDeadband(m_MaxSpeed * 0.1)
@@ -389,8 +396,9 @@ public class RobotContainer {
         //SmartDashboard.putData("Move Arm To Setpoint", m_armSubsystem.tuneArmSetPointCommand(tuneLookUp.get()));
         //m_driverCtrl.start().onTrue(m_armSubsystem.tuneArmSetPointCommand(tuneLookUp.get()));
         //m_driverCtrl.start().onTrue(m_armSubsystem.tuneArmSetPointCommand());
-        m_driverCtrl.start().onTrue(new LookUpShot(m_armSubsystem, m_shooterSubsystem, m_drivetrain));
-        SmartDashboard.putData("Test Lookup Table", new LookUpShot(m_armSubsystem, m_shooterSubsystem, m_drivetrain));
+
+        
+        m_driverCtrl.start().onTrue(new LookUpShot(m_armSubsystem, m_shooterSubsystem, m_VisionLookUpTable.getShooterPreset(m_drivetrain.calcDistToSpeaker())));
     }
 
     private void configureSysIDProfiling() {

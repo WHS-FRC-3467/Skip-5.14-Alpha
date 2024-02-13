@@ -21,19 +21,17 @@ public class LookUpShot extends Command {
     Setpoints m_setpoints;
     ArmSubsystem m_armSubsystem;
     ShooterSubsystem m_shooterSubsystem;
-    VisionLookUpTable mVisionLookUpTable = new VisionLookUpTable();
-    CommandSwerveDrivetrain m_Drivetrain;
     boolean m_isDone;
-    ShooterPreset shotInfo;
     boolean isAtAngle = false;
-    
+    ShooterPreset m_shotInfo;
 
     /** Constructor - Creates a new prepareToShoot. */
-    public LookUpShot(ArmSubsystem armSub, ShooterSubsystem shootSub, CommandSwerveDrivetrain drivetrain) {
+    public LookUpShot(ArmSubsystem armSub, ShooterSubsystem shootSub, ShooterPreset shotInfo) {
         
         m_armSubsystem = armSub;
         m_shooterSubsystem = shootSub;
-        m_Drivetrain = drivetrain;
+        m_shotInfo = shotInfo;
+        
 
         addRequirements(armSub, shootSub);
     }
@@ -41,31 +39,31 @@ public class LookUpShot extends Command {
     // Called when the command is initially scheduled.
     @Override
     public void initialize() {
-        shotInfo = mVisionLookUpTable.getShooterPreset(Math.round(m_Drivetrain.calcDistToSpeaker()));
-        isAtAngle = false;
+        //shotInfo = mVisionLookUpTable.getShooterPreset((m_Drivetrain.calcDistToSpeaker()));
         m_isDone = false;
+        if (!m_armSubsystem.isEnabled()) m_armSubsystem.enable();
     }
 
     // Called every time the scheduler runs while the command is scheduled.
     @Override
     public void execute() {
-        SmartDashboard.putNumber("Shot Info Angle", shotInfo.getArmAngle());
-
-        // Bring Arm to requested position
-        m_armSubsystem.enable();
+        SmartDashboard.putNumber("Shot Info Angle", m_shotInfo.getArmAngle());
         
-        m_armSubsystem.updateArmLookUp(shotInfo.getArmAngle());
+        m_armSubsystem.updateArmLookUp(m_shotInfo.getArmAngle());
 
         // Bring Shooter to requested speed
-        m_shooterSubsystem.runShooter(shotInfo.getLeftShooter(), shotInfo.getRightShooter());
+        m_shooterSubsystem.runShooter(m_shotInfo.getLeftShooter(), m_shotInfo.getRightShooter());
 
-        // Check both subsystems 
+        if (m_armSubsystem.isArmJointAtSetpoint()) {
+            m_isDone = true;
+        }
     }
 
     // Called once the command ends or is interrupted.
     @Override
     public void end(boolean interrupted) {
         // Don't turn off anything unless we have been commanded to STOWED position
+        //m_armSubsystem.disable();
         m_shooterSubsystem.stopShooter();
 
     }

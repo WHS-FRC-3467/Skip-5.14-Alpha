@@ -46,7 +46,7 @@ public class prepareToShoot extends Command {
         m_shooterSubsystem.setShooterSetpoints(m_setpoints);
 
         // After we have a Note in the Stage, bring Arm to requested position
-        if (m_haveNote.getAsBoolean()) {
+        if (m_haveNote.getAsBoolean() || m_setpoints.state == GameState.STOWED) {
             m_armSubsystem.updateArmSetpoint(m_setpoints);
         }
 
