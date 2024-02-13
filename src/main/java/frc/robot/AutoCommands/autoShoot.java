@@ -15,7 +15,6 @@ import frc.robot.Constants.RobotConstants;
 import frc.robot.Subsystems.Intake.IntakeSubsystem;
 import frc.robot.Subsystems.Stage.StageSubsystem;
 import frc.robot.Constants;
-import frc.robot.Commands.*;
 
 public class autoShoot extends Command {
   /** Creates a new autoShoot. */

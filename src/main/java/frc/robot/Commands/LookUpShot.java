@@ -4,17 +4,12 @@
 
 package frc.robot.Commands;
 
-import java.math.*;
-
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.Subsystems.Arm.ArmSubsystem;
 import frc.robot.Subsystems.Shooter.ShooterSubsystem;
 import frc.robot.Util.Setpoints;
-import frc.robot.Util.Setpoints.GameState;
 import frc.robot.Util.ShooterPreset;
-import frc.robot.Util.VisionLookUpTable;
-import frc.robot.Subsystems.Drivetrain.CommandSwerveDrivetrain;
 
 public class LookUpShot extends Command {
 
