@@ -202,7 +202,7 @@ public class ArmSubsystem extends ProfiledPIDSubsystem {
         // Convert degrees to radians and set the profile goal
         m_armSetpoint = degrees;
         setGoal(degreesToRadians(degrees));
-        System.out.println("We are Updating to" + degrees);
+        //System.out.println("We are Updating to" + degrees);
     }
 
     /** Override the enable() method so we can set the goal to the current position
