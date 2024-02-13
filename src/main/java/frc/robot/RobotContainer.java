@@ -385,8 +385,11 @@ public class RobotContainer {
          * Tuning Lookup Table
          */
 
-        TunableNumber tuneLookUp = new TunableNumber("Tune Look Up Setpoint", 0.0);
-        SmartDashboard.putData("Move Arm To Setpoint", m_armSubsystem.tuneArmSetPointCommand(tuneLookUp.get()));
+        //TunableNumber tuneLookUp = new TunableNumber("Tune Look Up Setpoint", 0.0);
+        //SmartDashboard.putData("Move Arm To Setpoint", m_armSubsystem.tuneArmSetPointCommand(tuneLookUp.get()));
+        //m_driverCtrl.start().onTrue(m_armSubsystem.tuneArmSetPointCommand(tuneLookUp.get()));
+        //m_driverCtrl.start().onTrue(m_armSubsystem.tuneArmSetPointCommand());
+        m_driverCtrl.start().onTrue(new LookUpShot(m_armSubsystem, m_shooterSubsystem, m_drivetrain));
         SmartDashboard.putData("Test Lookup Table", new LookUpShot(m_armSubsystem, m_shooterSubsystem, m_drivetrain));
     }
 

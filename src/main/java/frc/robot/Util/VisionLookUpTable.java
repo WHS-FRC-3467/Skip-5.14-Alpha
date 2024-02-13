@@ -13,11 +13,10 @@ public class VisionLookUpTable {
     }
     public VisionLookUpTable() {
         shooterConfig = new ShooterConfig();
-        shooterConfig.getShooterConfigs().add(new ShooterPreset(0, 0, 0, 1)); // Distance -> Bumper
-        shooterConfig.getShooterConfigs().add(new ShooterPreset(0, 0, 0, 2)); // Distance -> Bumper
-        shooterConfig.getShooterConfigs().add(new ShooterPreset(0, 0, 0, 3)); // Distance -> Bumper
-        shooterConfig.getShooterConfigs().add(new ShooterPreset(0, 0, 0, 4)); // Distance -> Bumper
-        shooterConfig.getShooterConfigs().add(new ShooterPreset(0, 0, 0, 5)); // Distance -> Bumper
+        shooterConfig.getShooterConfigs().add(new ShooterPreset(23, 70, 60, 2)); // Distance -> Bumper
+        shooterConfig.getShooterConfigs().add(new ShooterPreset(28, 70, 60, 3)); // Distance -> Bumper
+        shooterConfig.getShooterConfigs().add(new ShooterPreset(34, 70, 60, 4)); // Distance -> Bumper
+        shooterConfig.getShooterConfigs().add(new ShooterPreset(38.3, 70, 60, 5)); // Distance -> Bumper
         shooterConfig.getShooterConfigs().add(new ShooterPreset(0, 0, 0, 6)); // Distance -> Bumper
         shooterConfig.getShooterConfigs().add(new ShooterPreset(0, 0, 0, 7)); // Distance -> Bumper
         shooterConfig.getShooterConfigs().add(new ShooterPreset(0, 0, 0, 8)); // Distance -> Bumper
@@ -27,6 +26,7 @@ public class VisionLookUpTable {
         shooterConfig.getShooterConfigs().add(new ShooterPreset(0, 0, 0, 12)); // Distance -> Bumper
         shooterConfig.getShooterConfigs().add(new ShooterPreset(0, 0, 0, 13)); // Distance -> Bumper
         shooterConfig.getShooterConfigs().add(new ShooterPreset(0, 0, 0, 14)); // Distance -> Bumper
+        shooterConfig.getShooterConfigs().add(new ShooterPreset(0, 0, 0, 15)); // Distance -> Bumper
 
         Collections.sort(shooterConfig.getShooterConfigs());
     }

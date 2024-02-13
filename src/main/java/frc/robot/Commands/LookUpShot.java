@@ -4,6 +4,9 @@
 
 package frc.robot.Commands;
 
+import java.math.*;
+
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.Subsystems.Arm.ArmSubsystem;
 import frc.robot.Subsystems.Shooter.ShooterSubsystem;
@@ -21,9 +24,13 @@ public class LookUpShot extends Command {
     VisionLookUpTable mVisionLookUpTable = new VisionLookUpTable();
     CommandSwerveDrivetrain m_Drivetrain;
     boolean m_isDone;
+    ShooterPreset shotInfo;
+    boolean isAtAngle = false;
+    
 
     /** Constructor - Creates a new prepareToShoot. */
     public LookUpShot(ArmSubsystem armSub, ShooterSubsystem shootSub, CommandSwerveDrivetrain drivetrain) {
+        
         m_armSubsystem = armSub;
         m_shooterSubsystem = shootSub;
         m_Drivetrain = drivetrain;
@@ -34,35 +41,32 @@ public class LookUpShot extends Command {
     // Called when the command is initially scheduled.
     @Override
     public void initialize() {
+        shotInfo = mVisionLookUpTable.getShooterPreset(Math.round(m_Drivetrain.calcDistToSpeaker()));
+        isAtAngle = false;
         m_isDone = false;
     }
 
     // Called every time the scheduler runs while the command is scheduled.
     @Override
     public void execute() {
+        SmartDashboard.putNumber("Shot Info Angle", shotInfo.getArmAngle());
 
         // Bring Arm to requested position
         m_armSubsystem.enable();
-        ShooterPreset shotInfo = mVisionLookUpTable.getShooterPreset(m_Drivetrain.calcDistToSpeaker());
+        
         m_armSubsystem.updateArmLookUp(shotInfo.getArmAngle());
 
         // Bring Shooter to requested speed
         m_shooterSubsystem.runShooter(shotInfo.getLeftShooter(), shotInfo.getRightShooter());
 
         // Check both subsystems 
-        if (m_armSubsystem.isArmJointAtSetpoint() && m_shooterSubsystem.areWheelsAtSpeed()) {
-            m_isDone = true;
-        }
     }
 
     // Called once the command ends or is interrupted.
     @Override
     public void end(boolean interrupted) {
         // Don't turn off anything unless we have been commanded to STOWED position
-        if (m_setpoints.state == GameState.STOWED) {
-            m_armSubsystem.disable();
-            m_shooterSubsystem.stopShooter();
-        }
+        m_shooterSubsystem.stopShooter();
 
     }
 
