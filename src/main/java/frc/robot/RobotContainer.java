@@ -398,7 +398,7 @@ public class RobotContainer {
         //m_driverCtrl.start().onTrue(m_armSubsystem.tuneArmSetPointCommand());
 
         
-        m_driverCtrl.start().onTrue(new LookUpShot(m_armSubsystem, m_shooterSubsystem, m_VisionLookUpTable.getShooterPreset(m_drivetrain.calcDistToSpeaker())));
+        m_driverCtrl.start().onTrue(new LookUpShot(m_armSubsystem, m_shooterSubsystem, () -> m_drivetrain.calcDistToSpeaker()));
     }
 
     private void configureSysIDProfiling() {
