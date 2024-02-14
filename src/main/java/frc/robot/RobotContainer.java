@@ -25,7 +25,7 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
 /* Local */
-import frc.robot.Util.VisionLookUpTable;
+//import frc.robot.Util.VisionLookUpTable;
 import frc.robot.Commands.LookUpShot;
 import frc.robot.Commands.intakeNote;
 import frc.robot.Commands.prepareToShoot;
@@ -55,7 +55,7 @@ public class RobotContainer {
     /*
      * Lookup Table
      */
-    private VisionLookUpTable m_VisionLookUpTable = new VisionLookUpTable();
+    //private VisionLookUpTable m_VisionLookUpTable = new VisionLookUpTable();
 
     /*
      * Speed adjustments
@@ -393,7 +393,7 @@ public class RobotContainer {
         //m_driverCtrl.start().onTrue(m_armSubsystem.tuneArmSetPointCommand());
 
         
-        m_driverCtrl.start().onTrue(new LookUpShot(m_armSubsystem, m_shooterSubsystem, m_VisionLookUpTable.getShooterPreset(m_drivetrain.calcDistToSpeaker())));
+        m_driverCtrl.start().onTrue(new LookUpShot(m_armSubsystem, m_shooterSubsystem, () -> m_drivetrain.calcDistToSpeaker()));
     }
 
     private void configureSysIDProfiling() {

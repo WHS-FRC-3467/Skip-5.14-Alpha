@@ -19,6 +19,7 @@ public class prepareToShoot extends Command {
     ShooterSubsystem m_shooterSubsystem;
     BooleanSupplier m_haveNote;
     boolean m_isDone;
+    boolean m_runShooter;
 
     /** Constructor - Creates a new prepareToShoot. */
     public prepareToShoot(Setpoints setpoints, BooleanSupplier haveNote, ArmSubsystem armSub, ShooterSubsystem shootSub) {
@@ -27,6 +28,8 @@ public class prepareToShoot extends Command {
         m_armSubsystem = armSub;
         m_shooterSubsystem = shootSub;
         m_haveNote = haveNote;
+        // If Shooter setpoints are zero, don't bother to check if it is up to speed
+        m_runShooter = (m_setpoints.shooterLeft != 0.0 || m_setpoints.shooterRight != 0.0);
 
         addRequirements(armSub, shootSub);
     }
@@ -53,11 +56,8 @@ public class prepareToShoot extends Command {
             m_armSubsystem.updateArmSetpoint(m_setpoints);
         }
 
-        // If Shooter setpoint is 0.0, don't require Shooter to be total stopped before finishing
-        boolean isShooterAtSetpoint =
-            (m_setpoints.shooterLeft == 0.0 && m_setpoints.shooterRight == 0.0) ? true : m_shooterSubsystem.areWheelsAtSpeed();
-        // Exit once Arm is at setpoint and Shooter is up to speed
-        if (m_armSubsystem.isArmJointAtSetpoint() && isShooterAtSetpoint) {
+        // Exit once Arm is at setpoint and Shooter setpoint is != 0 and Shooter is up to speed 
+        if (m_armSubsystem.isArmJointAtSetpoint() && (m_runShooter && m_shooterSubsystem.areWheelsAtSpeed())) {
             m_isDone = true;
         }
     }

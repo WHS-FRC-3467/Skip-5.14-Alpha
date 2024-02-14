@@ -4,12 +4,15 @@
 
 package frc.robot.Commands;
 
+import java.util.function.DoubleSupplier;
+
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.Subsystems.Arm.ArmSubsystem;
 import frc.robot.Subsystems.Shooter.ShooterSubsystem;
 import frc.robot.Util.Setpoints;
 import frc.robot.Util.ShooterPreset;
+import frc.robot.Util.VisionLookUpTable;
 
 public class LookUpShot extends Command {
 
@@ -19,13 +22,18 @@ public class LookUpShot extends Command {
     boolean m_isDone;
     boolean isAtAngle = false;
     ShooterPreset m_shotInfo;
+    VisionLookUpTable m_VisionLookUpTable;
+    DoubleSupplier m_distance;
+    
 
     /** Constructor - Creates a new prepareToShoot. */
-    public LookUpShot(ArmSubsystem armSub, ShooterSubsystem shootSub, ShooterPreset shotInfo) {
+    public LookUpShot(ArmSubsystem armSub, ShooterSubsystem shootSub, DoubleSupplier distance) {
         
         m_armSubsystem = armSub;
         m_shooterSubsystem = shootSub;
-        m_shotInfo = shotInfo;
+        m_VisionLookUpTable = new VisionLookUpTable();
+        m_distance = distance;
+        //m_shotInfo = m_VisionLookUpTable.getShooterPreset(distance);
         
 
         addRequirements(armSub, shootSub);
@@ -42,6 +50,8 @@ public class LookUpShot extends Command {
     // Called every time the scheduler runs while the command is scheduled.
     @Override
     public void execute() {
+        m_shotInfo = m_VisionLookUpTable.getShooterPreset(m_distance.getAsDouble());
+        SmartDashboard.putNumber("LookUp Distance", m_distance.getAsDouble());
         SmartDashboard.putNumber("Shot Info Angle", m_shotInfo.getArmAngle());
         
         m_armSubsystem.updateArmLookUp(m_shotInfo.getArmAngle());
@@ -50,7 +60,7 @@ public class LookUpShot extends Command {
         m_shooterSubsystem.runShooter(m_shotInfo.getLeftShooter(), m_shotInfo.getRightShooter());
 
         if (m_armSubsystem.isArmJointAtSetpoint()) {
-            m_isDone = true;
+            //m_isDone = true;
         }
     }
 
