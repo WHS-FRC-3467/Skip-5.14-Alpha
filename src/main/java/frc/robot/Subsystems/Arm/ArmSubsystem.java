@@ -23,8 +23,6 @@ import com.ctre.phoenix6.signals.NeutralModeValue;
 /* WPI */
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.controller.ArmFeedforward;
-import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import edu.wpi.first.wpilibj.DutyCycleEncoder;
 import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.numbers.N2;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
@@ -37,7 +35,6 @@ import frc.robot.Constants.DIOConstants;
 import frc.robot.Subsystems.Arm.Setpoint.ArmState;
 import frc.robot.Constants;
 import frc.robot.Constants.ArmConstants;
-
 public class ArmSubsystem extends SubsystemBase {
     /* Creates a new ArmSubsystem */
     private TalonFX m_armLeader = new TalonFX(CanConstants.ID_ArmLeader);
@@ -53,13 +50,19 @@ public class ArmSubsystem extends SubsystemBase {
     private JointConfig armJoint = new JointConfig(ArmConstants.MASS, ArmConstants.LENGTH, 
         ArmConstants.MOI, ArmConstants.CGRadius, ArmConstants.MOTOR);
     
+    private JointConfig armJoint = new JointConfig(ArmConstants.MASS, ArmConstants.LENGTH, 
+        ArmConstants.MOI, ArmConstants.CGRadius, ArmConstants.MOTOR);
+    
     double kS;  // The Static Gain, in volts
     double kG;  // The Gravity Gain, in volts
     double kV;  // The Velocity Gain, in volt seconds per radian
     double kA;  // The acceleration gain, in volt seconds^2 per radian
     private ArmFeedforward feedforward = new ArmFeedforward(kS, kG, kV, kA); // double kS, double kG, double kV, double kA
+    double kG;  // The Gravity Gain, in volts
+    double kV;  // The Velocity Gain, in volt seconds per radian
+    double kA;  // The acceleration gain, in volt seconds^2 per radian
+    private ArmFeedforward feedforward = new ArmFeedforward(kS, kG, kV, kA); // double kS, double kG, double kV, double kA
 
-    private Setpoint m_setpoint;
     private double armDegrees;
     
     public ArmSubsystem() {
@@ -85,16 +88,14 @@ public class ArmSubsystem extends SubsystemBase {
 
         //leadConfiguration.configFeedbackNotContinuous(true, ArmConstants.TIMEOUT);
 
-        //leadConfiguration.configForwardSoftLimitThreshold(ArmConstants.FORWARD_SOFT_LIMIT_UPPER, ArmConstants.TIMEOUT);
-        //leadConfiguration.configReverseSoftLimitThreshold(ArmConstants.REVERSE_SOFT_LIMIT_UPPER, ArmConstants.TIMEOUT);
+        Timer.delay(1.5);
 
         Timer.delay(1.5);
         armConstraints = new TrapezoidProfile.Constraints(ArmConstants.ARM_CRUISE,
-            ArmConstants.ARM_ACCELERATION);
 
-        m_armLeader.getConfigurator().apply(leadConfiguration);
         m_armLeader.getConfigurator().apply(followerConfiguration);
-
+        m_armLeader.getConfigurator().apply(leadConfiguration);
+        m_armLeader.setControl(new Follower(m_armLeader.getDeviceID(), true));
         m_armLeader.setControl(new Follower(m_armLeader.getDeviceID(), true));
 
         reset();
@@ -103,16 +104,14 @@ public class ArmSubsystem extends SubsystemBase {
     @Override
     public void periodic() {
         // This method will be called once per scheduler run
-
         if(getArmJointDegrees() <= 0.0 || getArmJointDegrees() <= 0.0) {
             //m_armLeader.nuetralOutput();
-        }
+            //m_armLeader.nuetralOutput();
+        
         
         //SmartDashboard.putBoolean("Upper at Setpoint", getUpperAtSetpoint());
         SmartDashboard.putBoolean("Arm Joint at Setpoint", getArmJointAtSetpoint());
         //SmartDashboard.putNumber("Upper Angle", getUpperJointDegrees());
-        SmartDashboard.putNumber("Arm Joint Angle", getArmJointDegrees());
-
         if (Constants.RobotConstants.kIsTuningMode) {
             SmartDashboard.putNumber("Arm Angle Uncorrected", dutyCycleToDegrees(getArmJointPos()));
             SmartDashboard.putNumber("Arm Joint Error", getArmJointError());
@@ -123,6 +122,7 @@ public class ArmSubsystem extends SubsystemBase {
     public void reset() {
         armDegrees = getArmJointDegrees();
         m_controllerarmLeader.reset(getArmJointDegrees());
+        // public Setpoint(double home, double amp, double climb, ArmState state
         // public Setpoint(double home, double amp, double climb, ArmState state
         m_setpoint = new Setpoint(armDegrees, ArmState.OTHER);
         
@@ -143,6 +143,7 @@ public class ArmSubsystem extends SubsystemBase {
         double ff = feedforward.calculate(pidOutput, 0);
         if(Constants.RobotConstants.kIsTuningMode){
             //SmartDashboard.putNumber("upper ff", (ff));
+            SmartDashboard.putNumber("Arm PID", pidOutput);
             SmartDashboard.putNumber("Arm PID", pidOutput);
         }
         System.out.println("Upper PID" + pidOutput);
@@ -172,20 +173,21 @@ public class ArmSubsystem extends SubsystemBase {
     public void setPercentOutputUpper(double speed) {
         m_armLeader.setControl(m_PercentOutput.withOutput(speed));
     }
-
     //public void neutralUpper() {
         //m_armLeader.neutralOutput();
     //}
-
-    public double getArmJointPos() {
-        return m_encoder.getAbsolutePosition();
     }
 
     public double getArmJointDegrees() {
         return dutyCycleToDegrees(getArmJointPos()) + ArmConstants.ARM_ANGLE_OFFSET;
     }
 
+        return dutyCycleToDegrees(getArmJointPos()) + ArmConstants.ARM_ANGLE_OFFSET;
+    }
+
     public double dutyCycleToCTREUnits(double dutyCyclePos) {
+        // 4096 units per rotation = raw sensor units for Pulse width encoder
+        return dutyCyclePos * 4096;
         // 4096 units per rotation = raw sensor units for Pulse width encoder
         return dutyCyclePos * 4096;
     }
