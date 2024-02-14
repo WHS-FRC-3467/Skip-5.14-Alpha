@@ -37,7 +37,7 @@ import edu.wpi.first.wpilibj2.command.RunCommand;
  */
 public class ArmSubsystem extends ProfiledPIDSubsystem {
 
-    private static TunableNumber tuneLookUp = new TunableNumber("Tune Look Up Setpoint", 0.0);
+    private static TunableNumber tuneArmSetpoint = new TunableNumber("Tunable Arm Setpoint", 0.0);
 
     /* Creates a new ArmSubsystem */
     private TalonFX m_armLeader = new TalonFX(CanConstants.ID_ArmLeader);
@@ -58,6 +58,9 @@ public class ArmSubsystem extends ProfiledPIDSubsystem {
             Constants.ArmConstants.kG,
             Constants.ArmConstants.kV,
             Constants.ArmConstants.kA);
+
+    /* Create our own TP State object so a new one is not created on every setGoal() call  */
+    private TrapezoidProfile.State m_tpState = new TrapezoidProfile.State(0.0, 0.0);
 
     /* Working (current) setpoint */
     private double m_armSetpoint;
@@ -107,8 +110,8 @@ public class ArmSubsystem extends ProfiledPIDSubsystem {
         m_armFollower.getConfigurator().apply(followerConfiguration);
         m_armFollower.setControl(new Follower(m_armLeader.getDeviceID(), false));
 
-        //TunableNumber tuneLookUp = new TunableNumber("Tune Look Up Setpoint", 0.0);
-        
+        // Put controls for the PID controller on the dashboard
+        SmartDashboard.putData(this.m_controller);        
     }
 
     @Override
@@ -185,24 +188,31 @@ public class ArmSubsystem extends ProfiledPIDSubsystem {
     }
 
     /**
-     * Update the PID controller's current Arm setpoint in radians
+     * Update the PID controller's current Arm setpoint and Tolerance
      * 
-     * @param setpointDegrees - the desired position in degrees
+     * @param setpoints - the desired position as a Setpoints object
      */
     public void updateArmSetpoint(Setpoints setpoints) {
 
         // Convert degrees to radians and set the profile goal
         m_armSetpoint = setpoints.arm;
         m_tolerance = setpoints.tolerance;
-        setGoal(degreesToRadians(setpoints.arm));
+        // Arm setpoint must be passed  in radians
+        m_tpState.position = degreesToRadians(setpoints.arm);
+        setGoal(m_tpState);
     }
 
-    public void updateArmLookUp(double degrees) {
+    /**
+     * Update the PID controller's current Arm setpoint in degrees
+     * 
+     * @param degrees - the desired Arm position in degrees
+     */
+    public void updateArmInDegrees(double degrees) {
 
         // Convert degrees to radians and set the profile goal
         m_armSetpoint = degrees;
-        setGoal(degreesToRadians(degrees));
-        //System.out.println("We are Updating to" + degrees);
+        m_tpState.position = degreesToRadians(degrees);
+        setGoal(m_tpState);
     }
 
     /** Override the enable() method so we can set the goal to the current position
@@ -289,7 +299,7 @@ public class ArmSubsystem extends ProfiledPIDSubsystem {
     }   
     // To tune the lookup table using SmartDashboard
     public Command tuneArmSetPointCommand() {
-        return new RunCommand(()-> this.updateArmLookUp(tuneLookUp.get()), this)
+        return new RunCommand(()-> this.updateArmInDegrees(tuneArmSetpoint.get()), this)
             .until(()->this.isArmJointAtSetpoint());
     }
 

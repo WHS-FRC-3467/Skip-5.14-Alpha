@@ -31,6 +31,10 @@ public final class Constants {
     public static final class RobotConstants {
 
         public static final boolean kIsTuningMode = true;
+        public static final boolean kIsDriveTuningMode = true;
+        public static final boolean kIsArmTuningMode = true;
+        public static final boolean kIsIntakeTuningMode = true;
+        public static final boolean kIsStageTuningMode = true;
 
         // Shooter and Arm Setpoints
         public static final Setpoints STOWED = new Setpoints(1.0, 0.4, 0.0, 0.0, GameState.STOWED);
@@ -79,8 +83,8 @@ public final class Constants {
         public static final double kFeedToAmpSpeed = 0.7;
         public static final double kFeedToTrapSpeed = 0.5;
 
-        public static final double kFeedToShooterTime = 3.0;
-        public static final double kFeedToAmpTime = 3.0;
+        public static final double kFeedToShooterTime = 1.0;
+        public static final double kFeedToAmpTime = 1.0;
         public static final double kFeedToTrapTime = 5.0;
     }
 
@@ -92,15 +96,9 @@ public final class Constants {
 
     public static final class ShooterConstants {
 
-        public static final double kSubwooferVelocity = 50.0;
-        public static final double kPodiumVelocity = 70.0;
-        public static final double kShooterTolerance = 10.0;
+        // Shooter speeds are set in the individual position Setpoints at the top of this file
         
-        public static final double kShooterSpeed = 10.0;
-        public static final double kPodiumRangeMin = .5;
-        public static final double kPodiumRangeMax = 1;
-        public static final double kSubwooferRangeMin = .01;
-        public static final double kSubwooferRangeMax = .5;
+        public static final double kShooterTolerance = 10.0;
     }
 
     public static final Pose2d BLUE_SPEAKER = new Pose2d(Units.inchesToMeters(-1.5), Units.inchesToMeters(218.42), new Rotation2d(0));

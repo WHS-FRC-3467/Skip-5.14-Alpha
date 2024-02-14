@@ -108,6 +108,7 @@ public class RobotContainer {
             .withDriveRequestType(DriveRequestType.OpenLoopVoltage);
     SwerveRequest.PointWheelsAt m_point = new SwerveRequest.PointWheelsAt();
     SwerveRequest.FieldCentricFacingAngle m_head = new SwerveRequest.FieldCentricFacingAngle();
+    SwerveRequest.FieldCentricFacingAngle m_cardinal = new SwerveRequest.FieldCentricFacingAngle();
 
     // Set up Drivetrain Telemetry
     Telemetry m_logger = new Telemetry(m_MaxSpeed);
@@ -136,6 +137,11 @@ public class RobotContainer {
         // Sets autoAim Rot PID
         SmartDashboard.putData("Auto Turning PID", m_head.HeadingController);
         m_head.HeadingController.setPID(10, 0, 0);
+
+        // Sets Cardinal Rotation PID
+        SmartDashboard.putData("Cardinal Turning PID", m_cardinal.HeadingController);
+        m_cardinal.HeadingController.enableContinuousInput(-180.0, 180.0);
+        m_cardinal.HeadingController.setPID(2, 0, 0);
 
         // Register NamedCommands for use in PathPlanner autos
         registerNamedCommands();
@@ -273,33 +279,33 @@ public class RobotContainer {
          */
         // Driver: While Y button is pressed, rotate to North
         m_driverCtrl.y().onTrue(m_drivetrain.applyRequest(
-                () -> m_head.withVelocityX(-m_driverCtrl.getLeftY() * m_MaxSpeed)
-                        .withVelocityY(-m_driverCtrl.getLeftX() * m_MaxSpeed)
+                () -> m_cardinal.withVelocityX(0.0)
+                        .withVelocityY(0.0)
                         .withTargetDirection(Rotation2d.fromDegrees(0.0))
                         .withDeadband(m_MaxSpeed * 0.1)
                         .withRotationalDeadband(m_AngularRate * 0.1)));
 
         // Driver: While B button is pressed, rotate to East
         m_driverCtrl.b().onTrue(m_drivetrain.applyRequest(
-                () -> m_head.withVelocityX(-m_driverCtrl.getLeftY() * m_MaxSpeed)
-                        .withVelocityY(-m_driverCtrl.getLeftX() * m_MaxSpeed)
-                        .withTargetDirection(Rotation2d.fromDegrees(90.0))
+                () -> m_cardinal.withVelocityX(0.0)
+                        .withVelocityY(0.0)
+                        .withTargetDirection(Rotation2d.fromDegrees(-90.0))
                         .withDeadband(m_MaxSpeed * 0.1)
                         .withRotationalDeadband(m_AngularRate * 0.1)));
 
         // Driver: While A button is pressed, rotate to South
         m_driverCtrl.a().onTrue(m_drivetrain.applyRequest(
-                () -> m_head.withVelocityX(-m_driverCtrl.getLeftY() * m_MaxSpeed)
-                        .withVelocityY(-m_driverCtrl.getLeftX() * m_MaxSpeed)
+                () -> m_cardinal.withVelocityX(0.0)
+                        .withVelocityY(0.0)
                         .withTargetDirection(Rotation2d.fromDegrees(180.0))
                         .withDeadband(m_MaxSpeed * 0.1)
                         .withRotationalDeadband(m_AngularRate * 0.1)));
 
         // Driver: While X button is pressed, rotate to West
         m_driverCtrl.x().onTrue(m_drivetrain.applyRequest(
-                () -> m_head.withVelocityX(-m_driverCtrl.getLeftY() * m_MaxSpeed)
-                        .withVelocityY(-m_driverCtrl.getLeftX() * m_MaxSpeed)
-                        .withTargetDirection(Rotation2d.fromDegrees(270.0))
+                () -> m_cardinal.withVelocityX(0.0)
+                        .withVelocityY(0.0)
+                        .withTargetDirection(Rotation2d.fromDegrees(90.0))
                         .withDeadband(m_MaxSpeed * 0.1)
                         .withRotationalDeadband(m_AngularRate * 0.1)));
 
@@ -337,7 +343,8 @@ public class RobotContainer {
         m_driverCtrl.rightTrigger(0.4).onTrue(m_stageSubsystem.feedNote2ShooterCommand()
             .andThen(m_armSubsystem.prepareForIntakeCommand()));
 
-        //m_driverCtrl.start().onTrue(new autoShoot(m_armSubsystem,m_stageSubsystem,m_intakeSubsystem,m_shooterSubsystem));
+        // Driver: While start button held, adjust Arm elevation based on goal
+        m_driverCtrl.start().onTrue(new LookUpShot(m_armSubsystem, m_shooterSubsystem, () -> m_drivetrain.calcDistToSpeaker()));
 
         /*
          * OPERATOR Controls
@@ -382,18 +389,8 @@ public class RobotContainer {
         SmartDashboard.putData("Update Shooter Gains", m_shooterSubsystem.updateShooterGainsCommand());
         SmartDashboard.putData("Run Shooter", m_shooterSubsystem.runShooterCommand());
         SmartDashboard.putData("Stop Shooter", m_shooterSubsystem.stopShooterCommand());
-
-        /*
-         * Tuning Lookup Table
-         */
-
-        //TunableNumber tuneLookUp = new TunableNumber("Tune Look Up Setpoint", 0.0);
-        //SmartDashboard.putData("Move Arm To Setpoint", m_armSubsystem.tuneArmSetPointCommand(tuneLookUp.get()));
-        //m_driverCtrl.start().onTrue(m_armSubsystem.tuneArmSetPointCommand(tuneLookUp.get()));
-        //m_driverCtrl.start().onTrue(m_armSubsystem.tuneArmSetPointCommand());
-
-        
-        m_driverCtrl.start().onTrue(new LookUpShot(m_armSubsystem, m_shooterSubsystem, () -> m_drivetrain.calcDistToSpeaker()));
+        SmartDashboard.putData("Move Arm To Setpoint", m_armSubsystem.tuneArmSetPointCommand());
+       
     }
 
     private void configureSysIDProfiling() {

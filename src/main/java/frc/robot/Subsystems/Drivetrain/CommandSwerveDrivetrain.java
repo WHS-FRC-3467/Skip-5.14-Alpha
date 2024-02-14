@@ -205,7 +205,7 @@ public class CommandSwerveDrivetrain extends SwerveDrivetrain implements Subsyst
 
     private double calcAngleToSpeakerForBlue() {
         Pose2d robotPose = m_odometry.getEstimatedPosition();
-        Pose2d speakerPos = Constants.RED_SPEAKER;
+        Pose2d speakerPos = Constants.BLUE_SPEAKER;
         double xDiff = robotPose.getX() - speakerPos.getX();
         double yDiff = speakerPos.getY() - robotPose.getY();
         //System.out.print(xDiff);
