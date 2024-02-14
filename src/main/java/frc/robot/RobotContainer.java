@@ -25,9 +25,7 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
 /* Local */
-import frc.robot.Util.ShooterPreset;
-import frc.robot.Util.VisionLookUpTable;
-import frc.robot.AutoCommands.autoShoot;
+//import frc.robot.Util.VisionLookUpTable;
 import frc.robot.Commands.LookUpShot;
 import frc.robot.Commands.intakeNote;
 import frc.robot.Commands.prepareToShoot;
@@ -41,7 +39,6 @@ import frc.robot.Subsystems.Intake.IntakeSubsystem;
 import frc.robot.Subsystems.Shooter.ShooterSubsystem;
 import frc.robot.Subsystems.Stage.StageSubsystem;
 import frc.robot.Util.CommandXboxPS5Controller;
-import frc.robot.Util.TunableNumber;
 import frc.robot.Vision.Limelight;
 import frc.robot.Vision.PhotonVision;
 import frc.robot.generated.TunerConstants;
@@ -58,7 +55,7 @@ public class RobotContainer {
     /*
      * Lookup Table
      */
-    private VisionLookUpTable m_VisionLookUpTable = new VisionLookUpTable();
+    //private VisionLookUpTable m_VisionLookUpTable = new VisionLookUpTable();
 
     /*
      * Speed adjustments
@@ -111,7 +108,6 @@ public class RobotContainer {
             .withDriveRequestType(DriveRequestType.OpenLoopVoltage);
     SwerveRequest.PointWheelsAt m_point = new SwerveRequest.PointWheelsAt();
     SwerveRequest.FieldCentricFacingAngle m_head = new SwerveRequest.FieldCentricFacingAngle();
-    SwerveRequest.FieldCentricFacingAngle m_cardinal = new SwerveRequest.FieldCentricFacingAngle();
 
     // Set up Drivetrain Telemetry
     Telemetry m_logger = new Telemetry(m_MaxSpeed);
@@ -177,7 +173,6 @@ public class RobotContainer {
                 m_armSubsystem, m_shooterSubsystem));
 
         
-        // TODO: decide on additional commands needed for auto
     }
 
     /**
@@ -236,19 +231,19 @@ public class RobotContainer {
 
         /*
          * Driver Controls:
-         * Y Button: Rotate to North
-         * B Button: Rotate to East
-         * A Button: Rotate to South
-         * X Button: Rotate to West
+         * Y Button: Rotate to North <when pressed>
+         * B Button: Rotate to East <when pressed>
+         * A Button: Rotate to South <when pressed>
+         * X Button: Rotate to West <when pressed>
          * Start Button: <no-op>
          * DPad Left: Brake in "X" position (while held)
          * DPad Up: Reset field orientation (when pressed)
-         * DPad Right: Arm to AMP Position & Set Shooter Speed (when pressed)
+         * DPad Right:<no-op>>
          * DPad Down: <no-op>
          * Left Bumper: Reduce Speed to 50% (while held)
          * Right Bumper: Reduce Speed to 25% (while held)
-         * Left Trigger: Intake Note
-         * Right Trigger: Shoot Note
+         * Left Trigger: Intake Note <when pressed>
+         * Right Trigger: Shoot Note <when pressed>
          * Left Stick: <no-op>
          * Right Stick: Auto Rotate to Speaker / Drive using Left Stick (while held)
          * 
@@ -257,12 +252,12 @@ public class RobotContainer {
          * Y Button: <no-op>
          * B Button: <no-op>
          * A Button: Run Shooter at set speed (while held)
-         * X Button: <no-op>
+         * X Button: Arm to STOWED Position (when pressed)
          * Start Button: <no-op>
-         * DPad Left: Arm to PODIUM position & Set Shooter Speed (when pressed)
-         * DPad Up: Arm to WING Position & Set Shooter Speed (when pressed)
-         * DPad Right: Arm to SUBWOOFER Position & Set Shooter Speed (when pressed)
-         * DPad Down: Arm to STOWED Position(when pressed)
+         * DPad Left: Arm to PODIUM position & Start Shooter (when pressed)
+         * DPad Up: Arm to AMP Position & Start Shooter (when pressed)
+         * DPad Down: Arm to SUBWOOFER Position & Start Shooter (when pressed)
+         * DPad Down: Arm to INTAKE Position (when pressed)
          * Left Bumper: Activate "Manual Arm" mode
          * Left Stick: Y-Axis will drive Arm up and down
          * Right Bumper: <no-op>
@@ -322,10 +317,6 @@ public class RobotContainer {
          // Driver: DPad Up: Reset the field-centric heading (when pressed)
         m_driverCtrl.povUp().onTrue(m_drivetrain.runOnce(() -> m_drivetrain.seedFieldRelative()));
 
-         // Driver: DPad Right: Shooter/Arm to AMP Position & Speed (when pressed)
-        m_driverCtrl.povRight().onTrue(new prepareToShoot(RobotConstants.AMP, ()->m_stageSubsystem.isNoteInStage(),
-                m_armSubsystem, m_shooterSubsystem));
-
         // Driver: While Left Bumper is held, reduce speed by 50%
          m_driverCtrl.leftBumper().onTrue(runOnce(() -> m_MaxSpeed = TunerConstants.kSpeedAt12VoltsMps * m_HalfSpeed)
                 .andThen(() -> m_AngularRate = m_HalfAngularRate));
@@ -355,6 +346,10 @@ public class RobotContainer {
         m_operatorCtrl.a().onTrue(m_shooterSubsystem.runShooterCommand());
         m_operatorCtrl.a().onFalse(m_shooterSubsystem.stopShooterCommand());
 
+         // Operator: X Button: Arm to Stowed Position (when pressed)
+         m_operatorCtrl.x().onTrue(new prepareToShoot(RobotConstants.STOWED, ()->m_stageSubsystem.isNoteInStage(),
+                m_armSubsystem, m_shooterSubsystem));
+
         // Operator: Use Left Bumper and Left Stick Y-Axis to manually control Arm
         m_armSubsystem.setDefaultCommand(
             new ArmDefault(m_armSubsystem, m_operatorCtrl.leftBumper(), () -> (-1.0)*m_operatorCtrl.getLeftY())
@@ -364,16 +359,16 @@ public class RobotContainer {
          m_operatorCtrl.povLeft().onTrue(new prepareToShoot(RobotConstants.PODIUM, ()->m_stageSubsystem.isNoteInStage(),
                 m_armSubsystem, m_shooterSubsystem));
 
-         // Operator: DPad Up: Arm to Wing Position (when pressed)
-         m_operatorCtrl.povUp().onTrue(new prepareToShoot(RobotConstants.WING, ()->m_stageSubsystem.isNoteInStage(),
+         // Operator: DPad Up: Shooter/Arm to AMP Position & Speed (when pressed)
+        m_driverCtrl.povUp().onTrue(new prepareToShoot(RobotConstants.AMP, ()->m_stageSubsystem.isNoteInStage(),
                 m_armSubsystem, m_shooterSubsystem));
 
-         // Operator: DPad Right: Arm to Subwoofer Position (when pressed)
-         m_operatorCtrl.povRight().onTrue(new prepareToShoot(RobotConstants.SUBWOOFER, ()->m_stageSubsystem.isNoteInStage(),
+         // Operator: DPad Right: Arm to Wing Position (when pressed)
+         m_operatorCtrl.povRight().onTrue(new prepareToShoot(RobotConstants.WING, ()->m_stageSubsystem.isNoteInStage(),
                 m_armSubsystem, m_shooterSubsystem));
 
-         // Operator: DPad Down: Arm to Stowed Position(when pressed)
-         m_operatorCtrl.povDown().onTrue(new prepareToShoot(RobotConstants.STOWED, ()->m_stageSubsystem.isNoteInStage(),
+         // Operator: DPad Down: Arm to Subwoofer Position (when pressed)
+         m_operatorCtrl.povDown().onTrue(new prepareToShoot(RobotConstants.SUBWOOFER, ()->m_stageSubsystem.isNoteInStage(),
                 m_armSubsystem, m_shooterSubsystem));
 
         // Operator: Use Left and Right Triggers to run Intake at variable speed (left = in, right = out)

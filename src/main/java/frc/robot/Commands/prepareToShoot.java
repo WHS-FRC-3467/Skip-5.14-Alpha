@@ -19,6 +19,7 @@ public class prepareToShoot extends Command {
     ShooterSubsystem m_shooterSubsystem;
     BooleanSupplier m_haveNote;
     boolean m_isDone;
+    boolean m_runShooter;
 
     /** Constructor - Creates a new prepareToShoot. */
     public prepareToShoot(Setpoints setpoints, BooleanSupplier haveNote, ArmSubsystem armSub, ShooterSubsystem shootSub) {
@@ -27,6 +28,8 @@ public class prepareToShoot extends Command {
         m_armSubsystem = armSub;
         m_shooterSubsystem = shootSub;
         m_haveNote = haveNote;
+        // If Shooter setpoints are zero, don't bother to check if it is up to speed
+        m_runShooter = (m_setpoints.shooterLeft != 0.0 || m_setpoints.shooterRight != 0.0);
 
         addRequirements(armSub, shootSub);
     }
@@ -42,16 +45,19 @@ public class prepareToShoot extends Command {
     @Override
     public void execute() {
 
-        // Set Shooter setpoints - DO NOT start it yet
+        // Set Shooter setpoints...
         m_shooterSubsystem.setShooterSetpoints(m_setpoints);
+        // ... then run the Shooter
+        m_shooterSubsystem.runShooter();
 
         // After we have a Note in the Stage, bring Arm to requested position
+        // Don't require a Note if we are trying to STOW the arm
         if (m_haveNote.getAsBoolean() || m_setpoints.state == GameState.STOWED) {
             m_armSubsystem.updateArmSetpoint(m_setpoints);
         }
 
-        // Exit once Arm is at setpoint 
-        if (m_armSubsystem.isArmJointAtSetpoint()) {
+        // Exit once Arm is at setpoint and Shooter setpoint is != 0 and Shooter is up to speed 
+        if (m_armSubsystem.isArmJointAtSetpoint() && (m_runShooter && m_shooterSubsystem.areWheelsAtSpeed())) {
             m_isDone = true;
         }
     }

@@ -7,7 +7,7 @@ public class ShooterConfig {
     private List<ShooterPreset> shooterConfigs;
 
     public ShooterConfig() {
-        shooterConfigs = new ArrayList();
+        shooterConfigs = new ArrayList<ShooterPreset>();
     }
 
     public ShooterConfig(ArrayList<ShooterPreset> pShooterConfigs) {
