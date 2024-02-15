@@ -31,10 +31,11 @@ public final class Constants {
     public static final class RobotConstants {
 
         public static final boolean kIsTuningMode = true;
-        public static final boolean kIsDriveTuningMode = true;
-        public static final boolean kIsArmTuningMode = true;
-        public static final boolean kIsIntakeTuningMode = true;
-        public static final boolean kIsStageTuningMode = true;
+        public static final boolean kIsDriveTuningMode = false;
+        public static final boolean kIsArmTuningMode = false;
+        public static final boolean kIsIntakeTuningMode = false;
+        public static final boolean kIsStageTuningMode = false;
+        public static final boolean kIsShooterTuningMode = false;
 
         // Shooter and Arm Setpoints
         public static final Setpoints STOWED = new Setpoints(1.0, 0.4, 0.0, 0.0, GameState.STOWED);
@@ -46,7 +47,7 @@ public final class Constants {
         public static final Setpoints PREPCLIMB = new Setpoints(0.0, 0.4, 0.0,0.0,  GameState.PREPCLIMB);
         public static final Setpoints CLIMB = new Setpoints(0.0, 0.4, 0.0,0.0,  GameState.CLIMB);
         public static final Setpoints TRAP = new Setpoints(0.0, 0.4, 20.0,20.0,  GameState.TRAP);
-        public static final Setpoints OTHER = new Setpoints(0.0, 0.4, 20.0,25.0,  GameState.OTHER);
+        public static final Setpoints LOOKUP = new Setpoints(0.0, 0.4, 20.0,25.0,  GameState.LOOKUP);
     }
     
     public static final class CanConstants {

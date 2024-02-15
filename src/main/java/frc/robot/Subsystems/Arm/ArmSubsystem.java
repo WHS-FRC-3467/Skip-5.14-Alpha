@@ -110,8 +110,14 @@ public class ArmSubsystem extends ProfiledPIDSubsystem {
         m_armFollower.getConfigurator().apply(followerConfiguration);
         m_armFollower.setControl(new Follower(m_armLeader.getDeviceID(), false));
 
+        // optimize StatusSignal rates for the Talons
+        m_armLeader.getSupplyVoltage().setUpdateFrequency(4);
+        m_armLeader.optimizeBusUtilization();
+        m_armFollower.getSupplyVoltage().setUpdateFrequency(4);
+        m_armFollower.optimizeBusUtilization();
+
         // Put controls for the PID controller on the dashboard
-        SmartDashboard.putData(this.m_controller);        
+        if (RobotConstants.kIsArmTuningMode) SmartDashboard.putData(this.m_controller);        
     }
 
     @Override
@@ -131,16 +137,14 @@ public class ArmSubsystem extends ProfiledPIDSubsystem {
          * }
          */
         // Display useful info on the SmartDashboard
-        SmartDashboard.putData("Arm Controller", this.getController());
         SmartDashboard.putBoolean("Arm Joint at Setpoint?", isArmJointAtSetpoint());
-        SmartDashboard.putNumber("Raw Arm Encoder ", getJointPosAbsolute());
-        SmartDashboard.putNumber("Arm Current Angle", getArmJointDegrees());
-        
 
         if (Constants.RobotConstants.kIsTuningMode) {
-            SmartDashboard.putNumber("Arm Angle Uncorrected", dutyCycleToDegrees(getJointPosAbsolute()));
-            SmartDashboard.putNumber("Arm Joint Error", getArmJointError());
             SmartDashboard.putNumber("Arm Joint Setpoint", m_armSetpoint);
+            SmartDashboard.putNumber("Raw Arm Encoder ", getJointPosAbsolute());
+            SmartDashboard.putNumber("Arm Angle Uncorrected", dutyCycleToDegrees(getJointPosAbsolute()));
+            SmartDashboard.putNumber("Arm Current Angle", getArmJointDegrees());
+            SmartDashboard.putNumber("Arm Joint Error", getArmJointError());
         }
     }
 
@@ -162,7 +166,7 @@ public class ArmSubsystem extends ProfiledPIDSubsystem {
         // Calculate the feedforward using the corrected setpoint
         double feedforward = m_feedforward.calculate(correctedPosition, setpoint.velocity);
 
-        if (Constants.RobotConstants.kIsTuningMode) {
+        if (Constants.RobotConstants.kIsArmTuningMode) {
             SmartDashboard.putNumber("Arm corrected FF position", correctedPosition);
             SmartDashboard.putNumber("Arm PID output", output);
             SmartDashboard.putNumber("Arm Feed Forward Output", feedforward);
@@ -200,6 +204,9 @@ public class ArmSubsystem extends ProfiledPIDSubsystem {
         // Arm setpoint must be passed  in radians
         m_tpState.position = degreesToRadians(setpoints.arm);
         setGoal(m_tpState);
+
+        // Display requested Arm State to dashboard
+        Setpoints.displayArmState(setpoints.state);
     }
 
     /**

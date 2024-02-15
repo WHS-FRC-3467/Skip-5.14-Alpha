@@ -1,6 +1,5 @@
 package frc.robot.Subsystems.Shooter;
 
-import com.ctre.phoenix6.Utils;
 //import com.ctre.phoenix6.configs.CurrentLimitsConfigs;
 import com.ctre.phoenix6.configs.Slot0Configs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
@@ -16,6 +15,7 @@ import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants.CanConstants;
+import frc.robot.Constants.RobotConstants;
 import frc.robot.Constants.ShooterConstants;
 import frc.robot.Util.Setpoints;
 import frc.robot.Util.TunableNumber;
@@ -64,12 +64,6 @@ public class ShooterSubsystem extends SubsystemBase {
 
     public ShooterSubsystem() {
 
-        /* If running in Simulation, setup simulated Falcons */
-        if (Utils.isSimulation()) {
-            PhysicsSim.getInstance().addTalonFX(m_motorLeft, 0.001);
-            PhysicsSim.getInstance().addTalonFX(m_motorRight, 0.001);
-        }
-
         /* Configure the motors */
         var leadConfiguration = new TalonFXConfiguration();
 
@@ -104,21 +98,38 @@ public class ShooterSubsystem extends SubsystemBase {
         leadConfiguration.MotorOutput.Inverted = InvertedValue.Clockwise_Positive;
         m_motorRight.getConfigurator().apply(leadConfiguration);
 
+        // optimize StatusSignal rates for the Talons
+        m_motorLeft.getVelocity().setUpdateFrequency(50);
+        m_motorLeft.optimizeBusUtilization();
+        m_motorRight.getVelocity().setUpdateFrequency(50);
+        m_motorRight.optimizeBusUtilization();
+
     }
+
+    public void simulationInit() {
+        /* If running in Simulation, setup simulated Falcons */
+        PhysicsSim.getInstance().addTalonFX(m_motorLeft, 0.001);
+        PhysicsSim.getInstance().addTalonFX(m_motorRight, 0.001);
+    }
+
 
     @Override
     public void periodic() {
  
-        // If running in simulation, update the sims
-        if (Utils.isSimulation()) {
-            PhysicsSim.getInstance().run();
-        }
+        SmartDashboard.putBoolean("Shooter at Speed?", areWheelsAtSpeed());
 
-        // Put actual velocities to smart dashboard
-        SmartDashboard.putNumber("Shooter Velocity L", getShooterVelocity(kShooterSide.kLEFT));
-        SmartDashboard.putNumber("Shooter Velocity R", getShooterVelocity(kShooterSide.kRIGHT));
-        SmartDashboard.putBoolean("isAtSpeed", areWheelsAtSpeed());
+        if (RobotConstants.kIsShooterTuningMode) {
+            // Put actual velocities to smart dashboard
+            SmartDashboard.putNumber("Shooter Velocity L", getShooterVelocity(kShooterSide.kLEFT));
+            SmartDashboard.putNumber("Shooter Velocity R", getShooterVelocity(kShooterSide.kRIGHT));
+        }
     }
+
+    public void simulationPeriodic() {
+        // If running in simulation, update the sims
+        PhysicsSim.getInstance().run();
+    }
+
 
     /**
      * Update Shooter Gains from TunableNumbers

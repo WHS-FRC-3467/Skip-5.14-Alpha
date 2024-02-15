@@ -32,6 +32,7 @@ public class LookUpShot extends Command {
         m_shooterSubsystem = shootSub;
         m_VisionLookUpTable = new VisionLookUpTable();
         m_distance = distance;
+        m_setpoints = RobotConstants.LOOKUP;
 
         addRequirements(armSub, shootSub);
     }
@@ -45,17 +46,23 @@ public class LookUpShot extends Command {
     // Called every time the scheduler runs while the command is scheduled.
     @Override
     public void execute() {
-        m_shotInfo = m_VisionLookUpTable.getShooterPreset(m_distance.getAsDouble());
+
+        double distance = m_distance.getAsDouble();
+        m_shotInfo = m_VisionLookUpTable.getShooterPreset(distance);
         
+        m_setpoints.arm = m_shotInfo.getArmAngle();
+        m_setpoints.shooterLeft = m_shotInfo.getLeftShooter();
+        m_setpoints.shooterRight = m_shotInfo.getRightShooter();
+
         if (RobotConstants.kIsArmTuningMode) {
-            SmartDashboard.putNumber("LookUp Distance", m_distance.getAsDouble());
-            SmartDashboard.putNumber("Shot Info Angle", m_shotInfo.getArmAngle());
+            SmartDashboard.putNumber("LookUp Distance", distance);
+            SmartDashboard.putNumber("Shot Info Angle", m_setpoints.arm);
         }
 
-        m_armSubsystem.updateArmInDegrees(m_shotInfo.getArmAngle());
+        m_armSubsystem.updateArmSetpoint(m_setpoints);
 
         // Bring Shooter to requested speed
-        m_shooterSubsystem.runShooter(m_shotInfo.getLeftShooter(), m_shotInfo.getRightShooter());
+        m_shooterSubsystem.runShooter(m_setpoints.shooterLeft, m_setpoints.shooterRight);
 
     }
 

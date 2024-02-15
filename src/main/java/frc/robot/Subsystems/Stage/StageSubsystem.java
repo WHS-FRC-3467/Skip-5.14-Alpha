@@ -6,7 +6,6 @@ import com.ctre.phoenix.motorcontrol.StatusFrame;
 //import com.ctre.phoenix.motorcontrol.SupplyCurrentLimitConfiguration;
 import com.ctre.phoenix.motorcontrol.can.TalonSRX;
 import com.ctre.phoenix.motorcontrol.can.WPI_TalonSRX;
-import com.ctre.phoenix6.Utils;
 
 import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
@@ -16,6 +15,7 @@ import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants.CanConstants;
 import frc.robot.Constants.DIOConstants;
+import frc.robot.Constants.RobotConstants;
 import frc.robot.Constants.StageConstants;
 import frc.robot.sim.PhysicsSim;
 
@@ -28,11 +28,6 @@ public class StageSubsystem extends SubsystemBase {
 
     /** Creates a new StageSubsystem. */
     public StageSubsystem() {
-
-         /* If running in Simulation, setup simulated Falcons */
-        if (Utils.isSimulation()) {
-            PhysicsSim.getInstance().addTalonSRX(m_stageMotor, 1.0, 89975.0);
-        }
 
         // Set motor to factory defaults
         m_stageMotor.configFactoryDefault();
@@ -58,16 +53,22 @@ public class StageSubsystem extends SubsystemBase {
         m_stageMotor.setStatusFramePeriod(StatusFrame.Status_9_MotProfBuffer, 255);
 
     }
+    public void simulationInit() {
+        /* If running in Simulation, setup simulated Falcons */
+        PhysicsSim.getInstance().addTalonSRX(m_stageMotor, 1.0, 89975.0);
+    }
 
     @Override
     public void periodic() {
-
-    
+   
         // Default action is to hold the note in place if sensor detects note
         m_noteInStage = m_stageBeamBreak.get() ? false : true;
 
-        SmartDashboard.putNumber("Stage Current Draw", m_stageMotor.getSupplyCurrent());
         SmartDashboard.putBoolean("Note In Stage?", m_noteInStage);
+
+        if (RobotConstants.kIsStageTuningMode) {
+            SmartDashboard.putNumber("Stage Current Draw", m_stageMotor.getSupplyCurrent());
+        }
     }
 
     public void simulationPeriodic() {

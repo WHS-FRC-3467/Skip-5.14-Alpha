@@ -23,9 +23,9 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
-import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
+//import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
+
 /* Local */
-//import frc.robot.Util.VisionLookUpTable;
 import frc.robot.Commands.LookUpShot;
 import frc.robot.Commands.intakeNote;
 import frc.robot.Commands.prepareToShoot;
@@ -39,6 +39,7 @@ import frc.robot.Subsystems.Intake.IntakeSubsystem;
 import frc.robot.Subsystems.Shooter.ShooterSubsystem;
 import frc.robot.Subsystems.Stage.StageSubsystem;
 import frc.robot.Util.CommandXboxPS5Controller;
+//import frc.robot.Util.VisionLookUpTable;
 //import frc.robot.Vision.Limelight;
 //import frc.robot.Vision.PhotonVision;
 import frc.robot.generated.TunerConstants;
@@ -135,13 +136,16 @@ public class RobotContainer {
         //m_vision.trustLL(true);
 
         // Sets autoAim Rot PID
-        SmartDashboard.putData("Auto Turning PID", m_head.HeadingController);
         m_head.HeadingController.setPID(10, 0, 0);
 
         // Sets Cardinal Rotation PID
-        SmartDashboard.putData("Cardinal Turning PID", m_cardinal.HeadingController);
-        m_cardinal.HeadingController.enableContinuousInput(-180.0, 180.0);
+        m_cardinal.HeadingController.enableContinuousInput(-Math.PI, Math.PI);
         m_cardinal.HeadingController.setPID(6.0, 0, 0.6);
+
+        if (RobotConstants.kIsTuningMode) {
+            SmartDashboard.putData("Auto Turning PID", m_head.HeadingController);
+            SmartDashboard.putData("Cardinal Turning PID", m_cardinal.HeadingController);
+        }
 
         // Register NamedCommands for use in PathPlanner autos
         registerNamedCommands();
@@ -205,7 +209,7 @@ public class RobotContainer {
         // Configure a Trigger to change the Control Style when a selection is made on the Control Style Chooser
         Trigger controlPick = new Trigger(() -> m_lastControl != controlChooser.getSelected());
         controlPick.onTrue(runOnce(() -> newControlStyle()));
-
+        
         // Set the initial Drive Control Style
         newControlStyle();
 
@@ -241,7 +245,7 @@ public class RobotContainer {
          * B Button: Rotate to East <when pressed>
          * A Button: Rotate to South <when pressed>
          * X Button: Rotate to West <when pressed>
-         * Start Button: <no-op>
+         * Start Button: Lookup shot (adjust Arm based on distance to goal)
          * DPad Left: Brake in "X" position (while held)
          * DPad Up: Reset field orientation (when pressed)
          * DPad Right:<no-op>>
@@ -250,14 +254,14 @@ public class RobotContainer {
          * Right Bumper: Reduce Speed to 25% (while held)
          * Left Trigger: Intake Note <when pressed>
          * Right Trigger: Shoot Note <when pressed>
-         * Left Stick: <no-op>
-         * Right Stick: Auto Rotate to Speaker / Drive using Left Stick (while held)
+         * Left Stick Button: <no-op>
+         * Right Stick Button: Auto Rotate to Speaker / Drive using Left Stick (while held)
          * 
          * 
          * Operator Controls:
          * Y Button: <no-op>
          * B Button: <no-op>
-         * A Button: Run Shooter at set speed (while held)
+         * A Button: Stop Shooter 
          * X Button: Arm to STOWED Position (when pressed)
          * Start Button: <no-op>
          * DPad Left: Arm to PODIUM position & Start Shooter (when pressed)
@@ -269,8 +273,8 @@ public class RobotContainer {
          * Right Bumper: <no-op>
          * Left Trigger: Manual Intake (in)
          * Right Trigger: Manual Intake (out)
-         * Left Stick: <no-op>
-         * Right Stick: <no-op>
+         * Left Stick Button: <no-op>
+         * Right Stick Button: <no-op>
          * *
          */
 
@@ -278,7 +282,7 @@ public class RobotContainer {
          * DRIVER Controls
          */
         // Driver: While Y button is pressed, rotate to North
-        m_driverCtrl.y().whileTrue(m_drivetrain.applyRequest(
+        m_driverCtrl.y().onTrue(m_drivetrain.applyRequest(
                 () -> m_cardinal.withVelocityX(0.0)
                         .withVelocityY(0.0)
                         .withTargetDirection(Rotation2d.fromDegrees(0.0))
@@ -286,7 +290,7 @@ public class RobotContainer {
                         .withRotationalDeadband(m_AngularRate * 0.1)));
 
         // Driver: While B button is pressed, rotate to East
-        m_driverCtrl.b().whileTrue(m_drivetrain.applyRequest(
+        m_driverCtrl.b().onTrue(m_drivetrain.applyRequest(
                 () -> m_cardinal.withVelocityX(0.0)
                         .withVelocityY(0.0)
                         .withTargetDirection(Rotation2d.fromDegrees(-90.0))
@@ -294,7 +298,7 @@ public class RobotContainer {
                         .withRotationalDeadband(m_AngularRate * 0.1)));
 
         // Driver: While A button is pressed, rotate to South
-        m_driverCtrl.a().whileTrue(m_drivetrain.applyRequest(
+        m_driverCtrl.a().onTrue(m_drivetrain.applyRequest(
                 () -> m_cardinal.withVelocityX(0.0)
                         .withVelocityY(0.0)
                         .withTargetDirection(Rotation2d.fromDegrees(180.0))
@@ -302,7 +306,7 @@ public class RobotContainer {
                         .withRotationalDeadband(m_AngularRate * 0.1)));
 
         // Driver: While X button is pressed, rotate to West
-        m_driverCtrl.x().whileTrue(m_drivetrain.applyRequest(
+        m_driverCtrl.x().onTrue(m_drivetrain.applyRequest(
                 () -> m_cardinal.withVelocityX(0.0)
                         .withVelocityY(0.0)
                         .withTargetDirection(Rotation2d.fromDegrees(90.0))
@@ -354,8 +358,8 @@ public class RobotContainer {
         /*
          * OPERATOR Controls
          */
-        // Operator: While A button is held, run Shooter at fixed speed (as determined by Shuffleboard settings)
-        m_operatorCtrl.a().onTrue(m_shooterSubsystem.runShooterCommand());
+        // Operator: When A button is pressed, stop Shooter
+        //m_operatorCtrl.a().onTrue(m_shooterSubsystem.runShooterCommand());
         m_operatorCtrl.a().onFalse(m_shooterSubsystem.stopShooterCommand());
 
          // Operator: X Button: Arm to Stowed Position (when pressed)
@@ -391,9 +395,11 @@ public class RobotContainer {
         /*
          * Put Commands on Shuffleboard
          */
-        SmartDashboard.putData("Update Shooter Gains", m_shooterSubsystem.updateShooterGainsCommand());
-        SmartDashboard.putData("Run Shooter", m_shooterSubsystem.runShooterCommand());
-        SmartDashboard.putData("Stop Shooter", m_shooterSubsystem.stopShooterCommand());
+        if (RobotConstants.kIsShooterTuningMode) {
+            SmartDashboard.putData("Update Shooter Gains", m_shooterSubsystem.updateShooterGainsCommand());
+            SmartDashboard.putData("Run Shooter", m_shooterSubsystem.runShooterCommand());
+            SmartDashboard.putData("Stop Shooter", m_shooterSubsystem.stopShooterCommand());
+        }
         SmartDashboard.putData("Move Arm To Setpoint", m_armSubsystem.tuneArmSetPointCommand());
        
     }
@@ -404,6 +410,7 @@ public class RobotContainer {
          * These bindings will only be used when characterizing the Drivetrain. They can
          * eventually be commented out.
          */
+/*
         m_driverCtrl.x().and(m_driverCtrl.pov(0)).whileTrue(m_drivetrain.runDriveQuasiTest(Direction.kForward));
         m_driverCtrl.x().and(m_driverCtrl.pov(180)).whileTrue(m_drivetrain.runDriveQuasiTest(Direction.kReverse));
 
@@ -419,6 +426,7 @@ public class RobotContainer {
         // Drivetrain needs to be placed against a sturdy wall and test stopped
         // immediately upon wheel slip
         m_driverCtrl.back().and(m_driverCtrl.pov(0)).whileTrue(m_drivetrain.runDriveSlipTest());
+    */
     }
 
     public Command getAutonomousCommand() {
