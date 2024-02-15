@@ -18,10 +18,10 @@ import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.wpilibj.DriverStation;
-import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
 /* Local */
@@ -39,8 +39,8 @@ import frc.robot.Subsystems.Intake.IntakeSubsystem;
 import frc.robot.Subsystems.Shooter.ShooterSubsystem;
 import frc.robot.Subsystems.Stage.StageSubsystem;
 import frc.robot.Util.CommandXboxPS5Controller;
-import frc.robot.Vision.Limelight;
-import frc.robot.Vision.PhotonVision;
+//import frc.robot.Vision.Limelight;
+//import frc.robot.Vision.PhotonVision;
 import frc.robot.generated.TunerConstants;
 
 public class RobotContainer {
@@ -119,10 +119,10 @@ public class RobotContainer {
     IntakeSubsystem m_intakeSubsystem = new IntakeSubsystem();
     StageSubsystem m_stageSubsystem = new StageSubsystem();
     ArmSubsystem m_armSubsystem = new ArmSubsystem();
-    PhotonVision m_PhotonVision = new PhotonVision();
+    //PhotonVision m_PhotonVision = new PhotonVision();
 
     // Setup Limelight periodic query (defaults to disabled)
-    Limelight m_vision = new Limelight(m_drivetrain);
+    //Limelight m_vision = new Limelight(m_drivetrain);
 
     public RobotContainer() {
 
@@ -130,9 +130,9 @@ public class RobotContainer {
         DriverStation.silenceJoystickConnectionWarning(true);
 
         // Change this to specify Limelight is in use
-        m_vision.useLimelight(false);
-        m_vision.setAlliance(Alliance.Blue);
-        m_vision.trustLL(true);
+        //m_vision.useLimelight(false);
+        // m_vision.setAlliance(Alliance.Blue);
+        //m_vision.trustLL(true);
 
         // Sets autoAim Rot PID
         SmartDashboard.putData("Auto Turning PID", m_head.HeadingController);
@@ -141,7 +141,7 @@ public class RobotContainer {
         // Sets Cardinal Rotation PID
         SmartDashboard.putData("Cardinal Turning PID", m_cardinal.HeadingController);
         m_cardinal.HeadingController.enableContinuousInput(-180.0, 180.0);
-        m_cardinal.HeadingController.setPID(2, 0, 0);
+        m_cardinal.HeadingController.setPID(6.0, 0, 0.6);
 
         // Register NamedCommands for use in PathPlanner autos
         registerNamedCommands();
@@ -278,7 +278,7 @@ public class RobotContainer {
          * DRIVER Controls
          */
         // Driver: While Y button is pressed, rotate to North
-        m_driverCtrl.y().onTrue(m_drivetrain.applyRequest(
+        m_driverCtrl.y().whileTrue(m_drivetrain.applyRequest(
                 () -> m_cardinal.withVelocityX(0.0)
                         .withVelocityY(0.0)
                         .withTargetDirection(Rotation2d.fromDegrees(0.0))
@@ -286,7 +286,7 @@ public class RobotContainer {
                         .withRotationalDeadband(m_AngularRate * 0.1)));
 
         // Driver: While B button is pressed, rotate to East
-        m_driverCtrl.b().onTrue(m_drivetrain.applyRequest(
+        m_driverCtrl.b().whileTrue(m_drivetrain.applyRequest(
                 () -> m_cardinal.withVelocityX(0.0)
                         .withVelocityY(0.0)
                         .withTargetDirection(Rotation2d.fromDegrees(-90.0))
@@ -294,7 +294,7 @@ public class RobotContainer {
                         .withRotationalDeadband(m_AngularRate * 0.1)));
 
         // Driver: While A button is pressed, rotate to South
-        m_driverCtrl.a().onTrue(m_drivetrain.applyRequest(
+        m_driverCtrl.a().whileTrue(m_drivetrain.applyRequest(
                 () -> m_cardinal.withVelocityX(0.0)
                         .withVelocityY(0.0)
                         .withTargetDirection(Rotation2d.fromDegrees(180.0))
@@ -302,7 +302,7 @@ public class RobotContainer {
                         .withRotationalDeadband(m_AngularRate * 0.1)));
 
         // Driver: While X button is pressed, rotate to West
-        m_driverCtrl.x().onTrue(m_drivetrain.applyRequest(
+        m_driverCtrl.x().whileTrue(m_drivetrain.applyRequest(
                 () -> m_cardinal.withVelocityX(0.0)
                         .withVelocityY(0.0)
                         .withTargetDirection(Rotation2d.fromDegrees(90.0))
@@ -310,12 +310,17 @@ public class RobotContainer {
                         .withRotationalDeadband(m_AngularRate * 0.1)));
 
         // Driver: While Right Stick button is pressed, drive while pointing to alliance speaker
-        m_driverCtrl.rightStick().whileTrue(m_drivetrain.applyRequest(
+        // AND adjusting Arm angle AND running Shooter
+        m_driverCtrl.rightStick().whileTrue(Commands.parallel(
+            m_drivetrain.applyRequest(
                 () -> m_head.withVelocityX(-m_driverCtrl.getLeftY() * m_MaxSpeed)
                         .withVelocityY(-m_driverCtrl.getLeftX() * m_MaxSpeed)
                         .withTargetDirection(m_drivetrain.RotToSpeaker())
                         .withDeadband(m_MaxSpeed * 0.1)
-                        .withRotationalDeadband(m_AngularRate * 0.1)));
+                        .withRotationalDeadband(m_AngularRate * 0.1)
+            ),
+            new LookUpShot(m_armSubsystem, m_shooterSubsystem, () -> m_drivetrain.calcDistToSpeaker())
+        ));
 
          // Driver: DPad Left: put swerve modules in Brake mode (modules make an 'X') (while pressed)
         m_driverCtrl.povLeft().whileTrue(m_drivetrain.applyRequest(() -> m_brake));
@@ -367,7 +372,7 @@ public class RobotContainer {
                 m_armSubsystem, m_shooterSubsystem));
 
          // Operator: DPad Up: Shooter/Arm to AMP Position & Speed (when pressed)
-        m_driverCtrl.povUp().onTrue(new prepareToShoot(RobotConstants.AMP, ()->m_stageSubsystem.isNoteInStage(),
+        m_operatorCtrl.povUp().onTrue(new prepareToShoot(RobotConstants.AMP, ()->m_stageSubsystem.isNoteInStage(),
                 m_armSubsystem, m_shooterSubsystem));
 
          // Operator: DPad Right: Arm to Wing Position (when pressed)

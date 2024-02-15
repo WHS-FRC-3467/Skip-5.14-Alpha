@@ -80,6 +80,9 @@ public class IntakeSubsystem extends SubsystemBase {
         /* Apply Intake motor configs */
         m_intakeMotor.getConfigurator().apply(m_configuration);
 
+        // optimize StatusSignal rates for the Talon
+        //m_intakeMotor.optimizeBusUtilization();
+ 
         // Set Centering motors to factory defaults
         m_centeringMotor.configFactoryDefault();
 

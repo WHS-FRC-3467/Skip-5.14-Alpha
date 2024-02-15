@@ -68,6 +68,7 @@ public final class Constants {
         // Arm CAN IDs
         public static final int ID_ArmLeader = 25;
         public static final int ID_ArmFollower = 26;
+        public static final int LED_CANDLE = 27;
     }
 
     public static final class DIOConstants {
