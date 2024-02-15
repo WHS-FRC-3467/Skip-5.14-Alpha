@@ -13,6 +13,7 @@ public class VisionLookUpTable {
     }
     public VisionLookUpTable() {
         shooterConfig = new ShooterConfig();
+        shooterConfig.getShooterConfigs().add(new ShooterPreset(1, 40, 30, 1)); // Distance -> Bumper
         shooterConfig.getShooterConfigs().add(new ShooterPreset(23, 70, 60, 2)); // Distance -> Bumper
         shooterConfig.getShooterConfigs().add(new ShooterPreset(28, 70, 60, 3)); // Distance -> Bumper
         shooterConfig.getShooterConfigs().add(new ShooterPreset(34, 70, 60, 4)); // Distance -> Bumper
