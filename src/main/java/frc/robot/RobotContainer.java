@@ -171,6 +171,7 @@ public class RobotContainer {
         NamedCommands.registerCommand("ShootNote", m_stageSubsystem.feedNote2ShooterCommand());
         NamedCommands.registerCommand("WingShot", new prepareToShoot(RobotConstants.WING, ()->m_stageSubsystem.isNoteInStage(),
                 m_armSubsystem, m_shooterSubsystem));
+        NamedCommands.registerCommand("LookUpShot", new LookUpShot(m_armSubsystem, m_shooterSubsystem, () -> m_drivetrain.calcDistToSpeaker()));
 
         
     }

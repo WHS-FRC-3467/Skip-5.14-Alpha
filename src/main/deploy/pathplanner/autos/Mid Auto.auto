@@ -12,6 +12,12 @@
     "data": {
       "commands": [
         {
+          "type": "named",
+          "data": {
+            "name": null
+          }
+        },
+        {
           "type": "path",
           "data": {
             "pathName": "MA Collect1"
@@ -27,12 +33,6 @@
           "type": "path",
           "data": {
             "pathName": "MA Collect3"
-          }
-        },
-        {
-          "type": "path",
-          "data": {
-            "pathName": "MA Run"
           }
         }
       ]
