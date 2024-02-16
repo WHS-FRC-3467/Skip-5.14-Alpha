@@ -353,7 +353,7 @@ public class RobotContainer {
             .andThen(m_armSubsystem.prepareForIntakeCommand()));
 
         // Driver: While start button held, adjust Arm elevation based on goal
-        m_driverCtrl.start().onTrue(new LookUpShot(m_armSubsystem, m_shooterSubsystem, () -> m_drivetrain.calcDistToSpeaker()));
+        m_driverCtrl.start().onTrue(Commands.parallel(m_shooterSubsystem.runShooterCommand(),m_armSubsystem.moveToDegreeCommand()));
 
         /*
          * OPERATOR Controls
@@ -361,6 +361,8 @@ public class RobotContainer {
         // Operator: When A button is pressed, stop Shooter
         //m_operatorCtrl.a().onTrue(m_shooterSubsystem.runShooterCommand());
         m_operatorCtrl.a().onFalse(m_shooterSubsystem.stopShooterCommand());
+
+        
 
          // Operator: X Button: Arm to Stowed Position (when pressed)
          m_operatorCtrl.x().onTrue(new prepareToShoot(RobotConstants.STOWED, ()->m_stageSubsystem.isNoteInStage(),
@@ -399,6 +401,7 @@ public class RobotContainer {
             SmartDashboard.putData("Update Shooter Gains", m_shooterSubsystem.updateShooterGainsCommand());
             SmartDashboard.putData("Run Shooter", m_shooterSubsystem.runShooterCommand());
             SmartDashboard.putData("Stop Shooter", m_shooterSubsystem.stopShooterCommand());
+            SmartDashboard.putData("Arm to Angle", m_armSubsystem.moveToDegreeCommand());
         }
         SmartDashboard.putData("Move Arm To Setpoint", m_armSubsystem.tuneArmSetPointCommand());
        

@@ -1,5 +1,7 @@
 package frc.robot.Subsystems.Stage;
 
+import java.util.function.BooleanSupplier;
+
 import com.ctre.phoenix.motorcontrol.ControlMode;
 import com.ctre.phoenix.motorcontrol.NeutralMode;
 import com.ctre.phoenix.motorcontrol.StatusFrame;
@@ -18,7 +20,6 @@ import frc.robot.Constants.DIOConstants;
 import frc.robot.Constants.RobotConstants;
 import frc.robot.Constants.StageConstants;
 import frc.robot.sim.PhysicsSim;
-
 public class StageSubsystem extends SubsystemBase {
 
     // Initialize devices
@@ -122,9 +123,12 @@ public class StageSubsystem extends SubsystemBase {
     
     // Pass the Note to the Shooter
     public Command feedNote2ShooterCommand() {
-        return new RunCommand(() -> this.ejectFront(StageConstants.kFeedToShooterSpeed), this)
-            .withTimeout(StageConstants.kFeedToShooterTime)
-            .andThen(()->this.stopStage());
+        if (true) {
+            return new RunCommand(() -> this.ejectFront(StageConstants.kFeedToShooterSpeed), this)
+                .withTimeout(StageConstants.kFeedToShooterTime)
+                .andThen(()->this.stopStage());
+        }
+        return new RunCommand(()->this.stopStage());
     }
 
     // Feed the Note to the Amp

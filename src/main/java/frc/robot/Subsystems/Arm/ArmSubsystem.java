@@ -68,6 +68,8 @@ public class ArmSubsystem extends ProfiledPIDSubsystem {
     /* Working (current) tolerance */
     private double m_tolerance;
 
+    TunableNumber tempDegree = new TunableNumber("Arm go to degrees", 0.0);
+
     /*
      * Constructor
      */
@@ -115,6 +117,7 @@ public class ArmSubsystem extends ProfiledPIDSubsystem {
         m_armLeader.optimizeBusUtilization();
         m_armFollower.getSupplyVoltage().setUpdateFrequency(4);
         m_armFollower.optimizeBusUtilization();
+
 
         // Put controls for the PID controller on the dashboard
         if (RobotConstants.kIsArmTuningMode) SmartDashboard.putData(this.m_controller);        
@@ -222,6 +225,12 @@ public class ArmSubsystem extends ProfiledPIDSubsystem {
         setGoal(m_tpState);
     }
 
+    public double getDegrees() {
+        // Get the smart dashboard
+        return tempDegree.get();
+
+    }
+
     /** Override the enable() method so we can set the goal to the current position
      * 
      *  The super method resets the controller and sets its current setpoint to the 
@@ -310,4 +319,7 @@ public class ArmSubsystem extends ProfiledPIDSubsystem {
             .until(()->this.isArmJointAtSetpoint());
     }
 
+    public Command moveToDegreeCommand() {
+        return new RunCommand(()-> this.updateArmInDegrees(this.getDegrees()));
+    }
 }

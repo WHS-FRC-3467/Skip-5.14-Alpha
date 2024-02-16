@@ -30,8 +30,8 @@ public final class Constants {
 
     public static final class RobotConstants {
 
-        public static final boolean kIsTuningMode = true;
-        public static final boolean kIsDriveTuningMode = false;
+        public static final boolean kIsTuningMode = false;
+        public static final boolean kIsDriveTuningMode = true;
         public static final boolean kIsArmTuningMode = false;
         public static final boolean kIsIntakeTuningMode = false;
         public static final boolean kIsStageTuningMode = false;
