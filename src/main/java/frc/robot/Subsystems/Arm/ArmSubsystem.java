@@ -113,10 +113,10 @@ public class ArmSubsystem extends ProfiledPIDSubsystem {
         m_armFollower.setControl(new Follower(m_armLeader.getDeviceID(), false));
 
         // optimize StatusSignal rates for the Talons
-        m_armLeader.getSupplyVoltage().setUpdateFrequency(4);
-        m_armLeader.optimizeBusUtilization();
-        m_armFollower.getSupplyVoltage().setUpdateFrequency(4);
-        m_armFollower.optimizeBusUtilization();
+        //m_armLeader.getSupplyVoltage().setUpdateFrequency(4);
+        //m_armLeader.optimizeBusUtilization();
+        //m_armFollower.getSupplyVoltage().setUpdateFrequency(4);
+        //m_armFollower.optimizeBusUtilization();
 
 
         // Put controls for the PID controller on the dashboard

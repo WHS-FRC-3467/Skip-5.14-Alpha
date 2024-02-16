@@ -30,7 +30,7 @@ public final class Constants {
 
     public static final class RobotConstants {
 
-        public static final boolean kIsTuningMode = false;
+        public static final boolean kIsTuningMode = true;
         public static final boolean kIsDriveTuningMode = true;
         public static final boolean kIsArmTuningMode = false;
         public static final boolean kIsIntakeTuningMode = false;
@@ -160,9 +160,13 @@ public final class Constants {
 	
     public static class Vision {
         public static final String kCameraName = "front_cam";
+        //public static final String kCameraName = "USB_Camera";
         // Cam mounted facing forward, half a meter forward of center, half a meter up from center.
         public static final Transform3d kRobotToCam =
                 new Transform3d(new Translation3d(.174,-0.186, 0.588), new Rotation3d(0, Math.toRadians(10),0));
+
+        //public static final Transform3d kRobotToCam =
+                //new Transform3d(new Translation3d(0.264922,0.2465578, 0.2182876), new Rotation3d(0, Math.toRadians(22.09),Math.toRadians(5)));
 
         // The layout of the AprilTags on the field
         public static final AprilTagFieldLayout kTagLayout =

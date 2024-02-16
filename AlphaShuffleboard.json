@@ -1183,7 +1183,7 @@
               "_showGlyph": false
             }
           },
-          "14,4": {
+          "14,3": {
             "size": [
               2,
               2
@@ -1285,6 +1285,34 @@
               "_type": "Text View",
               "_source0": "network_table:///SmartDashboard/TunableNumbers/Arm go to degrees",
               "_title": "SmartDashboard/TunableNumbers/Arm go to degrees",
+              "_glyph": 148,
+              "_showGlyph": false
+            }
+          },
+          "14,5": {
+            "size": [
+              2,
+              2
+            ],
+            "content": {
+              "_type": "Boolean Box",
+              "_source0": "network_table:///SmartDashboard/Shooter at Speed?",
+              "_title": "SmartDashboard/Shooter at Speed?",
+              "_glyph": 148,
+              "_showGlyph": false,
+              "Colors/Color when true": "#7CFC00FF",
+              "Colors/Color when false": "#8B0000FF"
+            }
+          },
+          "6,0": {
+            "size": [
+              4,
+              1
+            ],
+            "content": {
+              "_type": "Text View",
+              "_source0": "network_table:///SmartDashboard/Robot Angle To Speaker",
+              "_title": "SmartDashboard/Robot Angle To Speaker",
               "_glyph": 148,
               "_showGlyph": false
             }
