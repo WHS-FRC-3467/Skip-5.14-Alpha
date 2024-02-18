@@ -28,6 +28,7 @@ import edu.wpi.first.wpilibj2.command.Subsystem;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
 import frc.robot.Constants;
+import frc.robot.Constants.RobotConstants;
 import frc.robot.Util.ModifiedSignalLogger;
 import frc.robot.Util.SwerveVoltageRequest;
 import frc.robot.Vision.PhotonVision;
@@ -118,10 +119,15 @@ public class CommandSwerveDrivetrain extends SwerveDrivetrain implements Subsyst
     }
     @Override
     public void periodic(){
-        SmartDashboard.putNumber("Robot Angle To Speaker",calcAngleToSpeaker());
-        SmartDashboard.putNumber("Robot Dist To Speaker",calcDistToSpeaker());
+        
+        if (RobotConstants.kIsDriveTuningMode) {
+            SmartDashboard.putNumber("Robot Angle To Speaker",calcAngleToSpeaker());
+            SmartDashboard.putNumber("Robot Dist To Speaker",calcDistToSpeaker());
+        }
+
         _field.setRobotPose(m_odometry.getEstimatedPosition());
-        SmartDashboard.putData("Field TEst",_field);
+        SmartDashboard.putData("Field Test",_field);
+        
         var visionEst = _vision.getEstimatedGlobalPose();
         visionEst.ifPresent(
                 est -> {
@@ -205,7 +211,7 @@ public class CommandSwerveDrivetrain extends SwerveDrivetrain implements Subsyst
 
     private double calcAngleToSpeakerForBlue() {
         Pose2d robotPose = m_odometry.getEstimatedPosition();
-        Pose2d speakerPos = Constants.RED_SPEAKER;
+        Pose2d speakerPos = Constants.BLUE_SPEAKER;
         double xDiff = robotPose.getX() - speakerPos.getX();
         double yDiff = speakerPos.getY() - robotPose.getY();
         //System.out.print(xDiff);

@@ -28,8 +28,6 @@ public class prepareToShoot extends Command {
         m_armSubsystem = armSub;
         m_shooterSubsystem = shootSub;
         m_haveNote = haveNote;
-        // If Shooter setpoints are zero, don't bother to check if it is up to speed
-        m_runShooter = (m_setpoints.shooterLeft != 0.0 || m_setpoints.shooterRight != 0.0);
 
         addRequirements(armSub, shootSub);
     }
@@ -39,6 +37,9 @@ public class prepareToShoot extends Command {
     public void initialize() {
         m_isDone = false;
         if (!m_armSubsystem.isEnabled()) m_armSubsystem.enable();
+
+        // If Shooter setpoints are zero, don't bother to check if it is up to speed
+        m_runShooter = (m_setpoints.shooterLeft != 0.0 || m_setpoints.shooterRight != 0.0);
     }
 
     // Called every time the scheduler runs while the command is scheduled.
