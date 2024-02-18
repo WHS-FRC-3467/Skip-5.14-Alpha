@@ -106,6 +106,14 @@ public class StageSubsystem extends SubsystemBase {
         }
     }
 
+    public void ejectBackManual(double speed) {
+        this.runStage((-1.0) * speed);
+    }
+
+    public void ejectFrontManual(double speed) {
+        this.runStage((1.0) * speed);
+    }
+
     public boolean isNoteInStage() {
         return m_noteInStage;
     }
@@ -155,6 +163,14 @@ public class StageSubsystem extends SubsystemBase {
     // Command to just stop the Stage
     public Command stopStageCommand() {
         return new InstantCommand(() -> this.stopStage());
+    }
+
+    public Command ejectBackManualCommand() {
+        return new RunCommand(() -> this.ejectBackManual(0.7));
+    }
+
+    public Command ejectFrontManualCommand() {
+        return new RunCommand(() -> this.ejectFrontManual(0.7));
     }
 
 }

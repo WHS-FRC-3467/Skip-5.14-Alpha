@@ -24,7 +24,7 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 //import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
-
+import frc.robot.AutoCommands.AutoLookUpShot;
 /* Local */
 import frc.robot.Commands.LookUpShot;
 import frc.robot.Commands.intakeNote;
@@ -39,6 +39,7 @@ import frc.robot.Subsystems.Intake.IntakeSubsystem;
 import frc.robot.Subsystems.Shooter.ShooterSubsystem;
 import frc.robot.Subsystems.Stage.StageSubsystem;
 import frc.robot.Util.CommandXboxPS5Controller;
+import frc.robot.Vision.PhotonVision;
 //import frc.robot.Util.VisionLookUpTable;
 //import frc.robot.Vision.Limelight;
 //import frc.robot.Vision.PhotonVision;
@@ -76,7 +77,7 @@ public class RobotContainer {
     // Track current AngularRate
     private double m_AngularRate = m_MaxAngularRate;
     // Save last Speed Limit so we know if it needs updating
-    private Double m_lastSpeed = 0.65;
+    private Double m_lastSpeed = 0.90;
 
     /*
      * Driver/Operator controllers
@@ -123,7 +124,7 @@ public class RobotContainer {
     //PhotonVision m_PhotonVision = new PhotonVision();
 
     // Setup Limelight periodic query (defaults to disabled)
-    //Limelight m_vision = new Limelight(m_drivetrain);
+    //Limelight m_vision = new Limelight(m_drivetrai    n);
 
     public RobotContainer() {
 
@@ -137,6 +138,7 @@ public class RobotContainer {
 
         // Sets autoAim Rot PID
         m_head.HeadingController.setPID(10, 0, 0);
+        m_head.HeadingController.enableContinuousInput(-180, 180);
 
         // Sets Cardinal Rotation PID
         m_cardinal.HeadingController.enableContinuousInput(-Math.PI, Math.PI);
@@ -178,10 +180,11 @@ public class RobotContainer {
         NamedCommands.registerCommand("RunShooter", m_shooterSubsystem.runShooterCommand(30, 35));
         NamedCommands.registerCommand("RunShooter2", m_shooterSubsystem.runShooterCommand());
         NamedCommands.registerCommand("StopShooter", m_shooterSubsystem.stopShooterCommand());
-        NamedCommands.registerCommand("ShootNote", m_stageSubsystem.feedNote2ShooterCommand());
+        NamedCommands.registerCommand("ShootNote", m_stageSubsystem.feedNote2ShooterCommand()
+            .andThen(m_armSubsystem.prepareForIntakeCommand()));
         NamedCommands.registerCommand("WingShot", new prepareToShoot(RobotConstants.WING, ()->m_stageSubsystem.isNoteInStage(),
                 m_armSubsystem, m_shooterSubsystem));
-        NamedCommands.registerCommand("LookUpShot", new LookUpShot(m_armSubsystem, m_shooterSubsystem, () -> m_drivetrain.calcDistToSpeaker()));
+        NamedCommands.registerCommand("LookUpShot",new AutoLookUpShot(m_armSubsystem, m_shooterSubsystem, () -> m_drivetrain.calcDistToSpeaker()));
 
         
     }
@@ -327,6 +330,8 @@ public class RobotContainer {
             new LookUpShot(m_armSubsystem, m_shooterSubsystem, () -> m_drivetrain.calcDistToSpeaker())
         ));
 
+        m_driverCtrl.start().onTrue(new LookUpShot(m_armSubsystem, m_shooterSubsystem, () -> m_drivetrain.calcDistToSpeaker()));
+
          // Driver: DPad Left: put swerve modules in Brake mode (modules make an 'X') (while pressed)
         m_driverCtrl.povLeft().whileTrue(m_drivetrain.applyRequest(() -> m_brake));
 
@@ -354,7 +359,7 @@ public class RobotContainer {
             .andThen(m_armSubsystem.prepareForIntakeCommand()));
 
         // Driver: While start button held, adjust Arm elevation based on goal
-        m_driverCtrl.start().onTrue(Commands.parallel(m_shooterSubsystem.runShooterCommand(),m_armSubsystem.moveToDegreeCommand()));
+        //m_driverCtrl.start().onTrue(Commands.parallel(m_shooterSubsystem.runShooterCommand(),m_armSubsystem.moveToDegreeCommand()));
 
         /*
          * OPERATOR Controls
@@ -394,6 +399,12 @@ public class RobotContainer {
         m_intakeSubsystem.setDefaultCommand(new IntakeDefault(m_intakeSubsystem, m_stageSubsystem,
                                             ()-> m_operatorCtrl.getLeftTriggerAxis(),
                                             () -> m_operatorCtrl.getRightTriggerAxis()));
+
+        //
+        m_operatorCtrl.rightTrigger().whileTrue(m_stageSubsystem.ejectBackManualCommand());
+        m_operatorCtrl.leftTrigger().whileTrue(m_stageSubsystem.ejectFrontManualCommand());
+        m_operatorCtrl.b().whileTrue(m_stageSubsystem.ejectFrontManualCommand());
+        m_operatorCtrl.y().onTrue(m_armSubsystem.prepareForIntakeCommand());
 
         /*
          * Put Commands on Shuffleboard

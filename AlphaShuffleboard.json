@@ -1073,15 +1073,15 @@
         "vgap": 16.0,
         "titleType": 0,
         "tiles": {
-          "5,0": {
+          "4,0": {
             "size": [
-              13,
-              8
+              9,
+              6
             ],
             "content": {
               "_type": "Field",
-              "_source0": "network_table:///SmartDashboard/Field TEst",
-              "_title": "/SmartDashboard/Field TEst",
+              "_source0": "network_table:///SmartDashboard/Field Test",
+              "_title": "SmartDashboard/Field Test",
               "_glyph": 148,
               "_showGlyph": false,
               "Game/Game": "k2024Crescendo",
@@ -1316,6 +1316,41 @@
               "_glyph": 148,
               "_showGlyph": false
             }
+          },
+          "0,0": {
+            "size": [
+              4,
+              4
+            ],
+            "content": {
+              "_type": "Graph",
+              "_source0": "network_table:///Pose/robotPose",
+              "_title": "/Pose/robotPose",
+              "_glyph": 148,
+              "_showGlyph": false,
+              "Graph/Visible time": 30.0,
+              "Graph/X-axis auto scrolling": true,
+              "Y-axis/Automatic bounds": true,
+              "Y-axis/Upper bound": 1.0,
+              "Y-axis/Lower bound": -1.0,
+              "Y-axis/Unit": "ul",
+              "Visible data/Pose/robotPose[0]": true,
+              "Visible data/Pose/robotPose[1]": true,
+              "Visible data/Pose/robotPose[2]": true
+            }
+          },
+          "10,6": {
+            "size": [
+              1,
+              1
+            ],
+            "content": {
+              "_type": "Text View",
+              "_source0": "network_table:///SmartDashboard/Raw to Speaker",
+              "_title": "SmartDashboard/Raw to Speaker",
+              "_glyph": 148,
+              "_showGlyph": false
+            }
           }
         }
       }
@@ -1358,10 +1393,10 @@
         "vgap": 16.0,
         "titleType": 0,
         "tiles": {
-          "11,0": {
+          "7,0": {
             "size": [
-              6,
-              4
+              9,
+              6
             ],
             "content": {
               "_type": "Camera Stream",

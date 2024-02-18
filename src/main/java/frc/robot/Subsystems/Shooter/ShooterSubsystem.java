@@ -1,5 +1,6 @@
 package frc.robot.Subsystems.Shooter;
 
+import com.ctre.phoenix.led.CANdle;
 //import com.ctre.phoenix6.configs.CurrentLimitsConfigs;
 import com.ctre.phoenix6.configs.Slot0Configs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
@@ -14,6 +15,7 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.robot.Constants;
 import frc.robot.Constants.CanConstants;
 import frc.robot.Constants.RobotConstants;
 import frc.robot.Constants.ShooterConstants;
@@ -26,6 +28,8 @@ public class ShooterSubsystem extends SubsystemBase {
     /* Hardware */
     TalonFX m_motorLeft = new TalonFX(CanConstants.ID_ShooterLeft);
     TalonFX m_motorRight = new TalonFX(CanConstants.ID_ShooterRight);
+
+    CANdle m_blinker = new CANdle(Constants.CanConstants.LED_CANDLE);
 
     /*
      * Gains for shooter tuning
@@ -122,6 +126,10 @@ public class ShooterSubsystem extends SubsystemBase {
             // Put actual velocities to smart dashboard
             SmartDashboard.putNumber("Shooter Velocity L", getShooterVelocity(kShooterSide.kLEFT));
             SmartDashboard.putNumber("Shooter Velocity R", getShooterVelocity(kShooterSide.kRIGHT));
+        }
+
+        if (this.areWheelsAtSpeed()) {
+            m_blinker.setLEDs(0, 255, 0);
         }
     }
 

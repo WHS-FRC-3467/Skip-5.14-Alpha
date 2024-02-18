@@ -10,6 +10,7 @@ import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.Constants.RobotConstants;
 import frc.robot.Subsystems.Intake.IntakeSubsystem;
 import frc.robot.Subsystems.Shooter.ShooterSubsystem;
+import frc.robot.Subsystems.Stage.StageSubsystem;
 
 
 public class LEDDefault extends Command {
@@ -17,10 +18,12 @@ public class LEDDefault extends Command {
   LEDSubsystem m_led;
   IntakeSubsystem m_intake;
   ShooterSubsystem m_shooter;
-  public LEDDefault(LEDSubsystem led, IntakeSubsystem intake, ShooterSubsystem shooter) {
+  StageSubsystem m_stage;
+  public LEDDefault(LEDSubsystem led, IntakeSubsystem intake, ShooterSubsystem shooter, StageSubsystem stage) {
     m_led = led;
     m_intake = intake;
-    m_shooter = shooter;    
+    m_shooter = shooter; 
+    m_stage = stage;   
     addRequirements(m_led);
     // Use addRequirements() here to declare subsystem dependencies.
   }

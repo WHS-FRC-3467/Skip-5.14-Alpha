@@ -8,8 +8,8 @@
       },
       "prevControl": null,
       "nextControl": {
-        "x": 8.67941967596407,
-        "y": 7.548524155431788
+        "x": 7.950169210609291,
+        "y": 7.422307728735766
       },
       "isLocked": true,
       "linkedName": null
@@ -40,7 +40,7 @@
   "goalEndState": {
     "velocity": 0,
     "rotation": -166.60750224624903,
-    "rotateFast": true
+    "rotateFast": false
   },
   "reversed": false,
   "folder": "Amp Side",

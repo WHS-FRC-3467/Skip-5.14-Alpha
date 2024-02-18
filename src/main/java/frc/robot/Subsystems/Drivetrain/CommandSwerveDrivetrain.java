@@ -124,6 +124,7 @@ public class CommandSwerveDrivetrain extends SwerveDrivetrain implements Subsyst
             SmartDashboard.putNumber("Robot Angle To Speaker",calcAngleToSpeaker());
             SmartDashboard.putNumber("Robot Dist To Speaker",calcDistToSpeaker());
         }
+        SmartDashboard.putNumber("Raw to Speaker", RotToSpeaker().getDegrees());
 
         _field.setRobotPose(m_odometry.getEstimatedPosition());
         SmartDashboard.putData("Field Test",_field);
@@ -213,7 +214,7 @@ public class CommandSwerveDrivetrain extends SwerveDrivetrain implements Subsyst
         Pose2d robotPose = m_odometry.getEstimatedPosition();
         Pose2d speakerPos = Constants.BLUE_SPEAKER;
         double xDiff = robotPose.getX() - speakerPos.getX();
-        double yDiff = speakerPos.getY() - robotPose.getY();
+        double yDiff = robotPose.getY() - speakerPos.getY();
         //System.out.print(xDiff);
         //System.out.print(yDiff);
         //System.out.println(180 - Math.toDegrees(Math.atan(yDiff / xDiff)));
@@ -223,8 +224,8 @@ public class CommandSwerveDrivetrain extends SwerveDrivetrain implements Subsyst
     private double calcAngleToSpeakerForRed() {
         Pose2d robotPose = m_odometry.getEstimatedPosition();
         Pose2d speakerPos = Constants.RED_SPEAKER;
-        double xDiff = speakerPos.getX() - robotPose.getX();
-        double yDiff = speakerPos.getY() - robotPose.getY();
+        double xDiff = robotPose.getX() - speakerPos.getX();
+        double yDiff = robotPose.getY() - speakerPos.getY();
         //System.out.print(xDiff);
         //System.out.print(yDiff);
         //System.out.println(Math.toDegrees(Math.atan(yDiff / xDiff)));
