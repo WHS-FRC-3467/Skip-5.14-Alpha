@@ -12,6 +12,12 @@
     "data": {
       "commands": [
         {
+          "type": "named",
+          "data": {
+            "name": null
+          }
+        },
+        {
           "type": "path",
           "data": {
             "pathName": "MA Collect1"
