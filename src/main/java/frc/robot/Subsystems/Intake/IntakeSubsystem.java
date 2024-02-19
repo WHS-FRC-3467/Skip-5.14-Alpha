@@ -11,7 +11,6 @@ import com.ctre.phoenix.motorcontrol.SupplyCurrentLimitConfiguration;
 import com.ctre.phoenix.motorcontrol.TalonSRXControlMode;
 import com.ctre.phoenix.motorcontrol.can.TalonSRX;
 import com.ctre.phoenix.motorcontrol.can.WPI_TalonSRX;
-import com.ctre.phoenix6.Utils;
 //import com.ctre.phoenix6.configs.CurrentLimitsConfigs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.DutyCycleOut;
@@ -27,6 +26,7 @@ import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants.CanConstants;
 import frc.robot.Constants.IntakeConstants;
+import frc.robot.Constants.RobotConstants;
 import frc.robot.sim.PhysicsSim;
 
 public class IntakeSubsystem extends SubsystemBase {
@@ -46,12 +46,6 @@ public class IntakeSubsystem extends SubsystemBase {
 
     /** Creates a new IntakeSubsystem. */
     public IntakeSubsystem() {
-
-         /* If running in Simulation, setup simulated Talons */
-         if (Utils.isSimulation()) {
-            PhysicsSim.getInstance().addTalonFX(m_intakeMotor, 0.001);
-            PhysicsSim.getInstance().addTalonSRX(m_centeringMotor, 1.0, 89975.0);
-        }
 
         /* Configure the Intake motor */
         var m_configuration = new TalonFXConfiguration();
@@ -80,6 +74,10 @@ public class IntakeSubsystem extends SubsystemBase {
         /* Apply Intake motor configs */
         m_intakeMotor.getConfigurator().apply(m_configuration);
 
+        // optimize StatusSignal rates for the Talon
+        m_intakeMotor.getDutyCycle().setUpdateFrequency(100);
+        m_intakeMotor.optimizeBusUtilization();
+ 
         // Set Centering motors to factory defaults
         m_centeringMotor.configFactoryDefault();
 
@@ -111,11 +109,22 @@ public class IntakeSubsystem extends SubsystemBase {
         m_centeringMotor.setStatusFramePeriod(StatusFrame.Status_9_MotProfBuffer, 255);
     }
 
+    public void simulationInit() {
+        /* If running in Simulation, setup simulated Talons */
+        PhysicsSim.getInstance().addTalonFX(m_intakeMotor, 0.001);
+        PhysicsSim.getInstance().addTalonSRX(m_centeringMotor, 1.0, 89975.0);
+    }
+
+
+
     @Override
     public void periodic() {
+
         // This method will be called once per scheduler run
-        SmartDashboard.putNumber("Intake Current Draw", m_intakeMotor.getSupplyCurrent().getValueAsDouble());
-        SmartDashboard.putNumber("Intake Center Current Draw", m_centeringMotor.getSupplyCurrent());
+        if (RobotConstants.kIsIntakeTuningMode) {
+            SmartDashboard.putNumber("Intake Current Draw", m_intakeMotor.getSupplyCurrent().getValueAsDouble());
+            SmartDashboard.putNumber("Intake Center Current Draw", m_centeringMotor.getSupplyCurrent());
+        }
     }
 
     public void simulationPeriodic() {

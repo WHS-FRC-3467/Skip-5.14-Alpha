@@ -8,20 +8,20 @@
       },
       "prevControl": null,
       "nextControl": {
-        "x": 5.5555914748193125,
-        "y": 6.3155609947583535
+        "x": 5.756013335388493,
+        "y": 6.326537553360007
       },
       "isLocked": false,
       "linkedName": null
     },
     {
       "anchor": {
-        "x": 7.831805481792781,
-        "y": 5.793151222666083
+        "x": 8.667857791556038,
+        "y": 5.332534425752613
       },
       "prevControl": {
-        "x": 7.617244325397741,
-        "y": 5.849123698247398
+        "x": 8.667857791556038,
+        "y": 5.332534425752613
       },
       "nextControl": null,
       "isLocked": false,
@@ -40,7 +40,7 @@
   "goalEndState": {
     "velocity": 0,
     "rotation": -178.89829388479376,
-    "rotateFast": false
+    "rotateFast": true
   },
   "reversed": false,
   "folder": "Amp Side",

@@ -1073,15 +1073,15 @@
         "vgap": 16.0,
         "titleType": 0,
         "tiles": {
-          "5,0": {
+          "4,0": {
             "size": [
-              13,
-              8
+              9,
+              6
             ],
             "content": {
               "_type": "Field",
-              "_source0": "network_table:///SmartDashboard/Field TEst",
-              "_title": "/SmartDashboard/Field TEst",
+              "_source0": "network_table:///SmartDashboard/Field Test",
+              "_title": "SmartDashboard/Field Test",
               "_glyph": 148,
               "_showGlyph": false,
               "Game/Game": "k2024Crescendo",
@@ -1183,7 +1183,7 @@
               "_showGlyph": false
             }
           },
-          "14,4": {
+          "14,3": {
             "size": [
               2,
               2
@@ -1274,6 +1274,144 @@
               "_title": "/SmartDashboard/LookUp Distance",
               "_glyph": 148,
               "_showGlyph": false
+            }
+          },
+          "6,6": {
+            "size": [
+              2,
+              1
+            ],
+            "content": {
+              "_type": "Text View",
+              "_source0": "network_table:///SmartDashboard/TunableNumbers/Arm go to degrees",
+              "_title": "SmartDashboard/TunableNumbers/Arm go to degrees",
+              "_glyph": 148,
+              "_showGlyph": false
+            }
+          },
+          "14,5": {
+            "size": [
+              2,
+              2
+            ],
+            "content": {
+              "_type": "Boolean Box",
+              "_source0": "network_table:///SmartDashboard/Shooter at Speed?",
+              "_title": "SmartDashboard/Shooter at Speed?",
+              "_glyph": 148,
+              "_showGlyph": false,
+              "Colors/Color when true": "#7CFC00FF",
+              "Colors/Color when false": "#8B0000FF"
+            }
+          },
+          "6,0": {
+            "size": [
+              4,
+              1
+            ],
+            "content": {
+              "_type": "Text View",
+              "_source0": "network_table:///SmartDashboard/Robot Angle To Speaker",
+              "_title": "SmartDashboard/Robot Angle To Speaker",
+              "_glyph": 148,
+              "_showGlyph": false
+            }
+          },
+          "0,0": {
+            "size": [
+              4,
+              4
+            ],
+            "content": {
+              "_type": "Graph",
+              "_source0": "network_table:///Pose/robotPose",
+              "_title": "/Pose/robotPose",
+              "_glyph": 148,
+              "_showGlyph": false,
+              "Graph/Visible time": 30.0,
+              "Graph/X-axis auto scrolling": true,
+              "Y-axis/Automatic bounds": true,
+              "Y-axis/Upper bound": 1.0,
+              "Y-axis/Lower bound": -1.0,
+              "Y-axis/Unit": "ul",
+              "Visible data/Pose/robotPose[0]": true,
+              "Visible data/Pose/robotPose[1]": true,
+              "Visible data/Pose/robotPose[2]": true
+            }
+          },
+          "10,6": {
+            "size": [
+              1,
+              1
+            ],
+            "content": {
+              "_type": "Text View",
+              "_source0": "network_table:///SmartDashboard/Raw to Speaker",
+              "_title": "SmartDashboard/Raw to Speaker",
+              "_glyph": 148,
+              "_showGlyph": false
+            }
+          }
+        }
+      }
+    },
+    {
+      "title": "Tab 7",
+      "autoPopulate": false,
+      "autoPopulatePrefix": "",
+      "widgetPane": {
+        "gridSize": 70.0,
+        "showGrid": true,
+        "hgap": 16.0,
+        "vgap": 16.0,
+        "titleType": 0,
+        "tiles": {
+          "8,1": {
+            "size": [
+              2,
+              3
+            ],
+            "content": {
+              "_type": "PID Controller",
+              "_source0": "network_table:///SmartDashboard/Cardinal Turning PID",
+              "_title": "/SmartDashboard/Cardinal Turning PID",
+              "_glyph": 148,
+              "_showGlyph": false
+            }
+          }
+        }
+      }
+    },
+    {
+      "title": "Tab 8",
+      "autoPopulate": false,
+      "autoPopulatePrefix": "",
+      "widgetPane": {
+        "gridSize": 70.0,
+        "showGrid": true,
+        "hgap": 16.0,
+        "vgap": 16.0,
+        "titleType": 0,
+        "tiles": {
+          "7,0": {
+            "size": [
+              9,
+              6
+            ],
+            "content": {
+              "_type": "Camera Stream",
+              "_source0": "camera_server://photonvision_Port_1182_Output_MJPEG_Server",
+              "_title": "photonvision_Port_1182_Output_MJPEG_Server",
+              "_glyph": 148,
+              "_showGlyph": false,
+              "Crosshair/Show crosshair": true,
+              "Crosshair/Crosshair color": "#FFFFFFFF",
+              "Controls/Show controls": true,
+              "Controls/Rotation": "NONE",
+              "compression": -1.0,
+              "fps": -1,
+              "imageWidth": 0,
+              "imageHeight": 0
             }
           }
         }

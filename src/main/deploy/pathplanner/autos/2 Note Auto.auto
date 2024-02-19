@@ -18,7 +18,7 @@
               {
                 "type": "named",
                 "data": {
-                  "name": "RunShooter"
+                  "name": "LookUpShot"
                 }
               },
               {
@@ -56,12 +56,6 @@
           }
         },
         {
-          "type": "wait",
-          "data": {
-            "waitTime": 1.5
-          }
-        },
-        {
           "type": "named",
           "data": {
             "name": "WingShot"
@@ -74,7 +68,7 @@
               {
                 "type": "named",
                 "data": {
-                  "name": "RunShooter2"
+                  "name": "LookUpShot"
                 }
               },
               {

@@ -31,18 +31,23 @@ public final class Constants {
     public static final class RobotConstants {
 
         public static final boolean kIsTuningMode = true;
+        public static final boolean kIsDriveTuningMode = true;
+        public static final boolean kIsArmTuningMode = false;
+        public static final boolean kIsIntakeTuningMode = false;
+        public static final boolean kIsStageTuningMode = false;
+        public static final boolean kIsShooterTuningMode = false;
 
         // Shooter and Arm Setpoints
         public static final Setpoints STOWED = new Setpoints(1.0, 0.4, 0.0, 0.0, GameState.STOWED);
         public static final Setpoints INTAKE = new Setpoints(3.0, 2.0, 0.0, 0.0, GameState.INTAKE);
-        public static final Setpoints SUBWOOFER = new Setpoints(1.0, 0.4, 30.0,30.0,  GameState.SUBWOOFER);
+        public static final Setpoints SUBWOOFER = new Setpoints(1.0, 1.0, 30.0,25.0,  GameState.SUBWOOFER);
         public static final Setpoints AMP = new Setpoints(88.0, 0.4, 30.0,30.0,  GameState.AMP);
         public static final Setpoints PODIUM = new Setpoints(23.0, 0.4, 50.0,50.0,  GameState.PODIUM);
         public static final Setpoints WING = new Setpoints(30.0, 0.4, 70.0,60.0,  GameState.WING);
         public static final Setpoints PREPCLIMB = new Setpoints(0.0, 0.4, 0.0,0.0,  GameState.PREPCLIMB);
         public static final Setpoints CLIMB = new Setpoints(0.0, 0.4, 0.0,0.0,  GameState.CLIMB);
         public static final Setpoints TRAP = new Setpoints(0.0, 0.4, 20.0,20.0,  GameState.TRAP);
-        public static final Setpoints OTHER = new Setpoints(0.0, 0.4, 20.0,25.0,  GameState.OTHER);
+        public static final Setpoints LOOKUP = new Setpoints(0.0, 0.4, 20.0,25.0,  GameState.LOOKUP);
     }
     
     public static final class CanConstants {
@@ -64,6 +69,7 @@ public final class Constants {
         // Arm CAN IDs
         public static final int ID_ArmLeader = 25;
         public static final int ID_ArmFollower = 26;
+        public static final int LED_CANDLE = 27;
     }
 
     public static final class DIOConstants {
@@ -79,8 +85,8 @@ public final class Constants {
         public static final double kFeedToAmpSpeed = 0.7;
         public static final double kFeedToTrapSpeed = 0.5;
 
-        public static final double kFeedToShooterTime = 3.0;
-        public static final double kFeedToAmpTime = 3.0;
+        public static final double kFeedToShooterTime = 1.0;
+        public static final double kFeedToAmpTime = 1.0;
         public static final double kFeedToTrapTime = 5.0;
     }
 
@@ -92,15 +98,9 @@ public final class Constants {
 
     public static final class ShooterConstants {
 
-        public static final double kSubwooferVelocity = 50.0;
-        public static final double kPodiumVelocity = 70.0;
-        public static final double kShooterTolerance = 10.0;
+        // Shooter speeds are set in the individual position Setpoints at the top of this file
         
-        public static final double kShooterSpeed = 10.0;
-        public static final double kPodiumRangeMin = .5;
-        public static final double kPodiumRangeMax = 1;
-        public static final double kSubwooferRangeMin = .01;
-        public static final double kSubwooferRangeMax = .5;
+        public static final double kShooterTolerance = 10.0;
     }
 
     public static final Pose2d BLUE_SPEAKER = new Pose2d(Units.inchesToMeters(-1.5), Units.inchesToMeters(218.42), new Rotation2d(0));
@@ -160,9 +160,13 @@ public final class Constants {
 	
     public static class Vision {
         public static final String kCameraName = "front_cam";
+        //public static final String kCameraName = "USB_Camera";
         // Cam mounted facing forward, half a meter forward of center, half a meter up from center.
         public static final Transform3d kRobotToCam =
                 new Transform3d(new Translation3d(.174,-0.186, 0.588), new Rotation3d(0, Math.toRadians(10),0));
+
+        //public static final Transform3d kRobotToCam =
+                //new Transform3d(new Translation3d(0.264922,0.2465578, 0.2182876), new Rotation3d(0, Math.toRadians(22.09),Math.toRadians(5)));
 
         // The layout of the AprilTags on the field
         public static final AprilTagFieldLayout kTagLayout =
