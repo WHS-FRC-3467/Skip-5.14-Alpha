@@ -11,6 +11,8 @@ import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.Constants.RobotConstants;
 import frc.robot.Subsystems.Arm.ArmSubsystem;
 import frc.robot.Subsystems.Shooter.ShooterSubsystem;
+import frc.robot.Subsystems.LED.LEDSubsystem;
+import frc.robot.Subsystems.LED.LEDSubsystem.LEDSegment;
 import frc.robot.Util.Setpoints;
 import frc.robot.Util.ShooterPreset;
 import frc.robot.Util.VisionLookUpTable;
@@ -21,20 +23,22 @@ public class LookUpShot extends Command {
     ArmSubsystem m_armSubsystem;
     ShooterSubsystem m_shooterSubsystem;
     ShooterPreset m_shotInfo;
+    LEDSubsystem m_blinker;
     VisionLookUpTable m_VisionLookUpTable;
     DoubleSupplier m_distance;
     
 
     /** Constructor - Creates a new prepareToShoot. */
-    public LookUpShot(ArmSubsystem armSub, ShooterSubsystem shootSub, DoubleSupplier distance) {
+    public LookUpShot(ArmSubsystem armSub, ShooterSubsystem shootSub, DoubleSupplier distance, LEDSubsystem blinker) {
         
         m_armSubsystem = armSub;
         m_shooterSubsystem = shootSub;
         m_VisionLookUpTable = new VisionLookUpTable();
         m_distance = distance;
         m_setpoints = RobotConstants.LOOKUP;
+        m_blinker = blinker;
 
-        addRequirements(armSub, shootSub);
+        addRequirements(armSub, shootSub, blinker);
     }
 
     // Called when the command is initially scheduled.
@@ -63,6 +67,11 @@ public class LookUpShot extends Command {
 
         // Bring Shooter to requested speed
         m_shooterSubsystem.runShooter(m_setpoints.shooterLeft, m_setpoints.shooterRight);
+        if(m_shooterSubsystem.areWheelsAtSpeed()) {
+            LEDSegment.MainStrip.setStrobeAnimation(m_blinker.green, 0.7);  // Strobe Green
+        } else {
+            LEDSegment.MainStrip.setStrobeAnimation(m_blinker.red, 0.7);  // Strobe Red
+        }
 
     }
 
@@ -71,6 +80,7 @@ public class LookUpShot extends Command {
     public void end(boolean interrupted) {
         // Stop the Shooter but keep the Arm control going
         m_shooterSubsystem.stopShooter();
+        LEDSegment.MainStrip.setColor(m_blinker.white); // Solid White
         // Don't stop the shooter in auto - copy this file for auto
     }
 
