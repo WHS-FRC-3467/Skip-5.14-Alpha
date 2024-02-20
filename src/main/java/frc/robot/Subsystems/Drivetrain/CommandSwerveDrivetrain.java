@@ -2,6 +2,8 @@ package frc.robot.Subsystems.Drivetrain;
 
 import java.util.function.Supplier;
 
+import javax.sql.rowset.spi.TransactionalWriter;
+
 import com.ctre.phoenix6.mechanisms.swerve.SwerveDrivetrain;
 import com.ctre.phoenix6.mechanisms.swerve.SwerveDrivetrainConstants;
 import com.ctre.phoenix6.mechanisms.swerve.SwerveModuleConstants;
@@ -15,6 +17,8 @@ import com.pathplanner.lib.util.ReplanningConfig;
 
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Transform2d;
+import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.units.Measure;
 import edu.wpi.first.units.Voltage;
@@ -123,6 +127,7 @@ public class CommandSwerveDrivetrain extends SwerveDrivetrain implements Subsyst
         if (RobotConstants.kIsDriveTuningMode) {
             SmartDashboard.putNumber("Robot Angle To Speaker",calcAngleToSpeaker());
             SmartDashboard.putNumber("Robot Dist To Speaker",calcDistToSpeaker());
+            SmartDashboard.putNumber("Robot Dist To Speaker",RotToSpeaker().getDegrees());
         }
 
         _field.setRobotPose(m_odometry.getEstimatedPosition());
@@ -220,6 +225,8 @@ public class CommandSwerveDrivetrain extends SwerveDrivetrain implements Subsyst
         return 180 - Math.toDegrees(Math.atan(yDiff / xDiff));
     }
 
+
+
     private double calcAngleToSpeakerForRed() {
         Pose2d robotPose = m_odometry.getEstimatedPosition();
         Pose2d speakerPos = Constants.RED_SPEAKER;
@@ -231,6 +238,8 @@ public class CommandSwerveDrivetrain extends SwerveDrivetrain implements Subsyst
         return Math.toDegrees(Math.atan(yDiff / xDiff));
     }
 
+
+
     public double calcDistToSpeaker() {
         if(getSpeakerPos()!=null) {
             return getRadiusToSpeakerInMeters(m_odometry.getEstimatedPosition(),getSpeakerPos());
@@ -239,6 +248,64 @@ public class CommandSwerveDrivetrain extends SwerveDrivetrain implements Subsyst
         }
         
     }
+
+    private double calcAngleToSpeakerForRed(double X, double Y) {
+        Pose2d speakerPos = Constants.RED_SPEAKER;
+        double xDiff = speakerPos.getX() - X;
+        double yDiff = speakerPos.getY() - Y;
+        // System.out.print(xDiff);
+        // System.out.print(yDiff);
+        // System.out.println(Math.toDegrees(Math.atan(yDiff / xDiff)));
+        return Math.toDegrees(Math.atan(yDiff / xDiff));
+    }
+
+    private double calcAngleToSpeakerForBlue(double X, double Y) {
+        Pose2d speakerPos = Constants.BLUE_SPEAKER;
+        double xDiff = X - speakerPos.getX();
+        double yDiff = speakerPos.getY() - Y;
+        // System.out.print(xDiff);
+        // System.out.print(yDiff);
+        // System.out.println(180 - Math.toDegrees(Math.atan(yDiff / xDiff)));
+        return 180 - Math.toDegrees(Math.atan(yDiff / xDiff));
+    }
+
+    
+    public ChassisSpeeds getFieldRelativeChassisSpeeds() {
+        return new ChassisSpeeds(
+                getCurrentRobotChassisSpeeds().vxMetersPerSecond * this.getState().Pose.getRotation().getCos()
+                        - getCurrentRobotChassisSpeeds().vyMetersPerSecond * this.getState().Pose.getRotation().getSin(),
+                getCurrentRobotChassisSpeeds().vyMetersPerSecond * this.getState().Pose.getRotation().getCos()
+                        + getCurrentRobotChassisSpeeds().vxMetersPerSecond * this.getState().Pose.getRotation().getSin(),
+                getCurrentRobotChassisSpeeds().omegaRadiansPerSecond);
+    }
+
+    public double getAngularOffset() {
+        Pose2d robotPose = m_odometry.getEstimatedPosition();
+        Translation2d currentPos = robotPose.getTranslation();
+        Double currentAngleToSpeaker = calcAngleToSpeaker();
+        Translation2d futureRobotPose = new Translation2d(0,0);
+        Double futureAngleToSpeaker = 0.0;
+        ChassisSpeeds speeds = this.getFieldRelativeChassisSpeeds();
+        Alliance alliance = this.getAlliance();
+        Double correctionAngle = 0.0;
+
+        futureRobotPose = currentPos;
+        double xDelta = Constants.ShooterConstants.timeToShoot*(speeds.vxMetersPerSecond);
+        double yDelta = Constants.ShooterConstants.timeToShoot*(speeds.vyMetersPerSecond);
+        Translation2d moveDelta = new Translation2d(xDelta,yDelta);
+        futureRobotPose.plus(moveDelta);
+
+        if (alliance == Alliance.Blue) {
+            futureAngleToSpeaker = calcAngleToSpeakerForBlue(futureRobotPose.getX(), futureRobotPose.getY());             
+        } else {
+            futureAngleToSpeaker = calcAngleToSpeakerForRed(futureRobotPose.getX(), futureRobotPose.getY());    
+        }
+        correctionAngle = currentAngleToSpeaker - futureAngleToSpeaker;
+
+        return correctionAngle;
+    }
+
+
 
     /*
      * SysID robot drive characterization routines

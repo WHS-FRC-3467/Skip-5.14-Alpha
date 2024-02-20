@@ -137,6 +137,7 @@ public class RobotContainer {
 
         // Sets autoAim Rot PID
         m_head.HeadingController.setPID(10, 0, 0);
+        m_head.HeadingController.enableContinuousInput(-Math.PI, Math.PI);
 
         // Sets Cardinal Rotation PID
         m_cardinal.HeadingController.enableContinuousInput(-Math.PI, Math.PI);
