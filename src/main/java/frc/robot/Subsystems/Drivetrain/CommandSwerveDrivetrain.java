@@ -46,6 +46,7 @@ public class CommandSwerveDrivetrain extends SwerveDrivetrain implements Subsyst
     private Pose2d _speakerPosition;
     public Field2d _field = new Field2d();
     public PhotonVision _vision = new PhotonVision();
+    
 
 
     public CommandSwerveDrivetrain(SwerveDrivetrainConstants driveTrainConstants, double OdometryUpdateFrequency,
@@ -53,6 +54,7 @@ public class CommandSwerveDrivetrain extends SwerveDrivetrain implements Subsyst
         super(driveTrainConstants, OdometryUpdateFrequency, modules);
         configNeutralMode(NeutralModeValue.Coast);
         configurePathPlanner();
+        
     }
 
     public CommandSwerveDrivetrain(SwerveDrivetrainConstants driveTrainConstants, SwerveModuleConstants... modules) {
@@ -117,8 +119,10 @@ public class CommandSwerveDrivetrain extends SwerveDrivetrain implements Subsyst
     public Command getAutoPath(String pathName) {
         return new PathPlannerAuto(pathName);
     }
+
     @Override
     public void periodic(){
+        //this.setOperatorPerspectiveForward(Rotation2d.fromDegrees(0));
         
         if (RobotConstants.kIsDriveTuningMode) {
             SmartDashboard.putNumber("Robot Angle To Speaker",calcAngleToSpeaker());
@@ -214,7 +218,7 @@ public class CommandSwerveDrivetrain extends SwerveDrivetrain implements Subsyst
         Pose2d robotPose = m_odometry.getEstimatedPosition();
         Pose2d speakerPos = Constants.BLUE_SPEAKER;
         double xDiff = robotPose.getX() - speakerPos.getX();
-        double yDiff = robotPose.getY() - speakerPos.getY();
+        double yDiff = speakerPos.getY() - robotPose.getY();
         //System.out.print(xDiff);
         //System.out.print(yDiff);
         //System.out.println(180 - Math.toDegrees(Math.atan(yDiff / xDiff)));

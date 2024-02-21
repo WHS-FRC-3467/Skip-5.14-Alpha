@@ -102,18 +102,15 @@ public class LEDSubsystem extends SubsystemBase {
         }
 
         public void setFlowAnimation(Color color, double speed) {
-            setAnimation(new ColorFlowAnimation(
-                    color.red, color.green, color.blue, 0, speed, segmentSize, Direction.Forward, startIndex));
+            setAnimation(new ColorFlowAnimation(color.red, color.green, color.blue, 0, speed, segmentSize, Direction.Forward, startIndex));
         }
 
         public void setFadeAnimation(Color color, double speed) {
-            setAnimation(
-                    new SingleFadeAnimation(color.red, color.green, color.blue, 0, speed, segmentSize, startIndex));
+            setAnimation(new SingleFadeAnimation(color.red, color.green, color.blue, 0, speed, segmentSize, startIndex));
         }
 
         public void setBandAnimation(Color color, double speed) {
-            setAnimation(new LarsonAnimation(
-                    color.red, color.green, color.blue, 0, speed, segmentSize, BounceMode.Front, 3, startIndex));
+            setAnimation(new LarsonAnimation(color.red, color.green, color.blue, 0, speed, segmentSize, BounceMode.Front, 3, startIndex));
         }
 
         public void setStrobeAnimation(Color color, double speed) {
