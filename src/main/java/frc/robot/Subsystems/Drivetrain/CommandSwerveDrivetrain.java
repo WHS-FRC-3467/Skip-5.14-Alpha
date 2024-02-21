@@ -1,5 +1,6 @@
 package frc.robot.Subsystems.Drivetrain;
 
+import java.util.function.DoubleSupplier;
 import java.util.function.Supplier;
 
 import javax.sql.rowset.spi.TransactionalWriter;
@@ -132,6 +133,7 @@ public class CommandSwerveDrivetrain extends SwerveDrivetrain implements Subsyst
 
         _field.setRobotPose(m_odometry.getEstimatedPosition());
         SmartDashboard.putData("Field Test",_field);
+        //this.setOperatorPerspectiveForward(Rotation2d.fromDegrees(0));
         
         var visionEst = _vision.getEstimatedGlobalPose();
         visionEst.ifPresent(
@@ -210,7 +212,7 @@ public class CommandSwerveDrivetrain extends SwerveDrivetrain implements Subsyst
         }
     }
 
-    public Rotation2d RotToSpeaker() {
+    public Rotation2d   RotToSpeaker() {
         return Rotation2d.fromDegrees(calcAngleToSpeaker());
     }
 
@@ -279,7 +281,7 @@ public class CommandSwerveDrivetrain extends SwerveDrivetrain implements Subsyst
                 getCurrentRobotChassisSpeeds().omegaRadiansPerSecond);
     }
 
-    public double getAngularOffset() {
+    public Rotation2d getAngularOffset() {
         Pose2d robotPose = m_odometry.getEstimatedPosition();
         Translation2d currentPos = robotPose.getTranslation();
         Double currentAngleToSpeaker = calcAngleToSpeaker();
@@ -302,7 +304,7 @@ public class CommandSwerveDrivetrain extends SwerveDrivetrain implements Subsyst
         }
         correctionAngle = currentAngleToSpeaker - futureAngleToSpeaker;
 
-        return correctionAngle;
+        return Rotation2d.fromDegrees(correctionAngle);
     }
 
 
