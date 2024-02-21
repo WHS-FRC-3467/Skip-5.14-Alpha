@@ -30,7 +30,7 @@ public final class Constants {
 
     public static final class RobotConstants {
 
-        public static final boolean kIsTuningMode = true;
+        public static final boolean kIsTuningMode = false;
         public static final boolean kIsDriveTuningMode = true;
         public static final boolean kIsArmTuningMode = false;
         public static final boolean kIsIntakeTuningMode = false;
@@ -101,7 +101,7 @@ public final class Constants {
         // Shooter speeds are set in the individual position Setpoints at the top of this file
         
         public static final double kShooterTolerance = 10.0;
-        public static final double timeToShoot = 1.5; //Time it takes before note leave the shooter
+        public static final double timeToShoot = .2; //Time it takes before note leave the shooter
     }
 
     public static final Pose2d BLUE_SPEAKER = new Pose2d(Units.inchesToMeters(-1.5), Units.inchesToMeters(218.42), new Rotation2d(0));

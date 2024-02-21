@@ -26,10 +26,14 @@ public class StageSubsystem extends SubsystemBase {
     TalonSRX m_stageMotor = new WPI_TalonSRX(CanConstants.ID_StageMotor);
     DigitalInput m_stageBeamBreak = new DigitalInput(DIOConstants.kStageBeamBreak);
     boolean m_noteInStage = false;
+    long startShootTime;
+    boolean hasStarted = false;
+    boolean hasRun = false;
 
     /** Creates a new StageSubsystem. */
     public StageSubsystem() {
 
+        startShootTime = 0;
         // Set motor to factory defaults
         m_stageMotor.configFactoryDefault();
 
@@ -61,7 +65,9 @@ public class StageSubsystem extends SubsystemBase {
 
     @Override
     public void periodic() {
-   
+        hasStarted = true;
+        SmartDashboard.putBoolean("hasStarted", hasStarted);
+        SmartDashboard.putBoolean("hasRun", hasRun);
         // Default action is to hold the note in place if sensor detects note
         m_noteInStage = m_stageBeamBreak.get() ? false : true;
 
@@ -90,11 +96,20 @@ public class StageSubsystem extends SubsystemBase {
     }
 
     public void stopStage() {
+        this.startShootTime = 0;
+        this.hasRun = false;
         m_stageMotor.set(ControlMode.PercentOutput, 0.0);
     }
 
     // Do not use if the shooter's target velocity is zero.
     public void ejectFront(double speed) {
+        System.out.println("CHECKING FOR TIME");
+        if (this.hasStarted && !this.hasRun) {
+            this.startShootTime = System.currentTimeMillis();
+            System.out.println("STARTING TIMER");
+            System.out.println(startShootTime);
+            this.hasRun = true;
+        } 
         if (m_noteInStage) {
             this.runStage(speed);
         }
@@ -122,13 +137,17 @@ public class StageSubsystem extends SubsystemBase {
     }
     
     // Pass the Note to the Shooter
-    public Command feedNote2ShooterCommand() {
+    public Command feedNote2ShooterCommand() {        
         if (true) {
             return new RunCommand(() -> this.ejectFront(StageConstants.kFeedToShooterSpeed), this)
                 .withTimeout(StageConstants.kFeedToShooterTime)
                 .andThen(()->this.stopStage());
         }
         return new RunCommand(()->this.stopStage());
+    }
+
+    public long getTimeAtStartOfShot() {
+        return this.startShootTime;
     }
 
     // Feed the Note to the Amp
@@ -154,6 +173,7 @@ public class StageSubsystem extends SubsystemBase {
 
     // Command to just stop the Stage
     public Command stopStageCommand() {
+        
         return new InstantCommand(() -> this.stopStage());
     }
 
