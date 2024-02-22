@@ -18,7 +18,7 @@
               {
                 "type": "named",
                 "data": {
-                  "name": "RunShooter"
+                  "name": "LookUpShot"
                 }
               },
               {
@@ -56,25 +56,13 @@
           }
         },
         {
-          "type": "wait",
-          "data": {
-            "waitTime": 1.5
-          }
-        },
-        {
-          "type": "named",
-          "data": {
-            "name": "WingShot"
-          }
-        },
-        {
           "type": "race",
           "data": {
             "commands": [
               {
                 "type": "named",
                 "data": {
-                  "name": "RunShooter2"
+                  "name": "LookUpShot"
                 }
               },
               {
@@ -112,27 +100,9 @@
           }
         },
         {
-          "type": "wait",
-          "data": {
-            "waitTime": 0.5
-          }
-        },
-        {
           "type": "path",
           "data": {
-            "pathName": "Second Shot Wing"
-          }
-        },
-        {
-          "type": "wait",
-          "data": {
-            "waitTime": 1.5
-          }
-        },
-        {
-          "type": "named",
-          "data": {
-            "name": "WingShot"
+            "pathName": "Go From First Center"
           }
         },
         {
@@ -142,7 +112,7 @@
               {
                 "type": "named",
                 "data": {
-                  "name": "RunShooter2"
+                  "name": "LookUpShot"
                 }
               },
               {

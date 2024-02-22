@@ -5,7 +5,11 @@
 package frc.robot.Commands;
 
 import edu.wpi.first.wpilibj2.command.Command;
+import com.ctre.phoenix.led.CANdle;
+
+import frc.robot.Constants;
 import frc.robot.Constants.IntakeConstants;
+import frc.robot.Constants.CanConstants;
 import frc.robot.Subsystems.Intake.IntakeSubsystem;
 import frc.robot.Subsystems.Stage.StageSubsystem;
 /**
@@ -18,6 +22,7 @@ public class intakeNote extends Command {
     IntakeSubsystem m_intakeSubsystem;
     StageSubsystem m_stageSubsystem;
     boolean m_isDone;
+    CANdle m_blinker = new CANdle(Constants.CanConstants.LED_CANDLE);
 
     /** Constructor - Creates a new intakeNote */
     public intakeNote(IntakeSubsystem intakeSub, StageSubsystem stageSub) {
@@ -43,9 +48,11 @@ public class intakeNote extends Command {
         // Run the Stage until a Note is inside
         if (!m_stageSubsystem.isNoteInStage()) {
             m_stageSubsystem.runStage();
+            m_blinker.setLEDs(107,107,199);
         } else {
             m_stageSubsystem.stopStage();
             m_isDone = true;
+            m_blinker.setLEDs(255,251,0);
         }
     }
 

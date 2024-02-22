@@ -2,7 +2,7 @@
 // Open Source Software; you can modify and/or share it under the terms of
 // the WPILib BSD license file in the root directory of this project.
 
-package frc.robot.Commands;
+package frc.robot.AutoCommands;
 
 import java.util.function.DoubleSupplier;
 
@@ -15,7 +15,7 @@ import frc.robot.Util.Setpoints;
 import frc.robot.Util.ShooterPreset;
 import frc.robot.Util.VisionLookUpTable;
 
-public class LookUpShot extends Command {
+public class AutoLookUpShot extends Command {
 
     Setpoints m_setpoints;
     ArmSubsystem m_armSubsystem;
@@ -26,7 +26,7 @@ public class LookUpShot extends Command {
     
 
     /** Constructor - Creates a new prepareToShoot. */
-    public LookUpShot(ArmSubsystem armSub, ShooterSubsystem shootSub, DoubleSupplier distance) {
+    public AutoLookUpShot(ArmSubsystem armSub, ShooterSubsystem shootSub, DoubleSupplier distance) {
         
         m_armSubsystem = armSub;
         m_shooterSubsystem = shootSub;
@@ -70,7 +70,7 @@ public class LookUpShot extends Command {
     @Override
     public void end(boolean interrupted) {
         // Stop the Shooter but keep the Arm control going
-        m_shooterSubsystem.stopShooter();
+        //m_shooterSubsystem.stopShooter();
         // Don't stop the shooter in auto - copy this file for auto
     }
 
