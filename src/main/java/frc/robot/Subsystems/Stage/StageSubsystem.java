@@ -10,11 +10,13 @@ import com.ctre.phoenix.motorcontrol.can.TalonSRX;
 import com.ctre.phoenix.motorcontrol.can.WPI_TalonSRX;
 
 import edu.wpi.first.wpilibj.DigitalInput;
+import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.robot.Constants;
 import frc.robot.Constants.CanConstants;
 import frc.robot.Constants.DIOConstants;
 import frc.robot.Constants.RobotConstants;
@@ -29,6 +31,8 @@ public class StageSubsystem extends SubsystemBase {
     long startShootTime;
     boolean hasStarted = false;
     boolean hasRun = false;
+    /* Timer */
+    Timer m_timer = new Timer();
 
     /** Creates a new StageSubsystem. */
     public StageSubsystem() {
@@ -96,18 +100,21 @@ public class StageSubsystem extends SubsystemBase {
     }
 
     public void stopStage() {
-        this.startShootTime = 0;
+        m_timer.stop();
+        m_timer.reset();
+        //this.startShootTime = 0;
         this.hasRun = false;
         m_stageMotor.set(ControlMode.PercentOutput, 0.0);
     }
 
     // Do not use if the shooter's target velocity is zero.
     public void ejectFront(double speed) {
-        System.out.println("CHECKING FOR TIME");
+        //System.out.println("CHECKING FOR TIME");
         if (this.hasStarted && !this.hasRun) {
-            this.startShootTime = System.currentTimeMillis();
-            System.out.println("STARTING TIMER");
-            System.out.println(startShootTime);
+            //this.startShootTime = System.currentTimeMillis();
+            m_timer.start();
+            //System.out.println("STARTING TIMER");
+            //System.out.println(startShootTime);
             this.hasRun = true;
         } 
         if (m_noteInStage) {
@@ -146,8 +153,8 @@ public class StageSubsystem extends SubsystemBase {
         return new RunCommand(()->this.stopStage());
     }
 
-    public long getTimeAtStartOfShot() {
-        return this.startShootTime;
+    public double getTimeOfShot() {
+        return Constants.ShooterConstants.timeToShoot - m_timer.get();
     }
 
     // Feed the Note to the Amp

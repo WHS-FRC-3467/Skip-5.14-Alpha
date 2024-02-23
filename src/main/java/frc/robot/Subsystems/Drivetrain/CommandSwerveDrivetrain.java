@@ -284,7 +284,7 @@ public class CommandSwerveDrivetrain extends SwerveDrivetrain implements Subsyst
                 getCurrentRobotChassisSpeeds().omegaRadiansPerSecond);
     }
 
-    public Rotation2d getAngularOffset(LongSupplier timeAtStartOfShot) {
+    public Rotation2d getAngularOffset(DoubleSupplier timeOfShot) {
         Pose2d robotPose = m_odometry.getEstimatedPosition();
         Translation2d currentPos = robotPose.getTranslation();
         Double currentAngleToSpeaker = calcAngleToSpeaker();
@@ -295,13 +295,13 @@ public class CommandSwerveDrivetrain extends SwerveDrivetrain implements Subsyst
         Double correctionAngle;
         double timeUntilShot;
         
-        if (timeAtStartOfShot.getAsLong() != 0) {
+        /*if (timeAtStartOfShot.getAsLong() != 0) {
             timeUntilShot = Constants.ShooterConstants.timeToShoot - (System.currentTimeMillis() - timeAtStartOfShot.getAsLong())/1000;
             System.out.println("CALCULATING DYNAMIC TIMING");
             System.out.println(timeUntilShot);
-        } else {
-            timeUntilShot =  Constants.ShooterConstants.timeToShoot;
-        }
+        } else { */
+        timeUntilShot =  timeOfShot.getAsDouble();
+        //}
         
         //double timeUntilShot = Constants.ShooterConstants.timeToShoot;
         //futureRobotPose = currentPos;
@@ -323,7 +323,6 @@ public class CommandSwerveDrivetrain extends SwerveDrivetrain implements Subsyst
         SmartDashboard.putNumber("Correction Angle", correctionAngle);
         //martDashboard.putNumber("test", currentAngleToSpeaker-futureAngleToSpeaker);
         SmartDashboard.putNumber("timeUntilShot", timeUntilShot);
-        SmartDashboard.putNumber("startTime", timeAtStartOfShot.getAsLong());
 
         return Rotation2d.fromDegrees(-correctionAngle).plus(RotToSpeaker());
     }
