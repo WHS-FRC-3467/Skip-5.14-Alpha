@@ -100,8 +100,8 @@ public class StageSubsystem extends SubsystemBase {
     }
 
     public void stopStage() {
-        m_timer.stop();
-        m_timer.reset();
+        //m_timer.stop();
+        //m_timer.reset();
         //this.startShootTime = 0;
         this.hasRun = false;
         m_stageMotor.set(ControlMode.PercentOutput, 0.0);
@@ -112,7 +112,8 @@ public class StageSubsystem extends SubsystemBase {
         //System.out.println("CHECKING FOR TIME");
         if (this.hasStarted && !this.hasRun) {
             //this.startShootTime = System.currentTimeMillis();
-            m_timer.start();
+            this.m_timer.start();
+
             //System.out.println("STARTING TIMER");
             //System.out.println(startShootTime);
             this.hasRun = true;
@@ -154,6 +155,8 @@ public class StageSubsystem extends SubsystemBase {
     }
 
     public double getTimeOfShot() {
+        System.out.println("BBBBBBBBBBBBB");
+        System.out.printf("%.3f",this.m_timer.get());
         return Constants.ShooterConstants.timeToShoot - m_timer.get();
     }
 

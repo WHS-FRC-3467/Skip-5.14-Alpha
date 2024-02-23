@@ -322,7 +322,7 @@ public class RobotContainer {
             m_drivetrain.applyRequest(
                 () -> m_head.withVelocityX(-m_driverCtrl.getLeftY() * m_MaxSpeed)
                         .withVelocityY(-m_driverCtrl.getLeftX() * m_MaxSpeed)
-                        .withTargetDirection(m_drivetrain.getAngularOffset(() -> m_stageSubsystem.getTimeAtStartOfShot()))
+                        .withTargetDirection(m_drivetrain.getAngularOffset(() -> m_stageSubsystem.getTimeOfShot()))
                         .withDeadband(m_MaxSpeed * 0.1)
                         .withRotationalDeadband(m_AngularRate * 0.1)
             ),

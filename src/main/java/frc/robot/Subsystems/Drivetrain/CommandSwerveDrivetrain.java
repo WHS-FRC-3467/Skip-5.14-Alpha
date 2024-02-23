@@ -300,7 +300,11 @@ public class CommandSwerveDrivetrain extends SwerveDrivetrain implements Subsyst
             System.out.println("CALCULATING DYNAMIC TIMING");
             System.out.println(timeUntilShot);
         } else { */
-        timeUntilShot =  timeOfShot.getAsDouble();
+        //timeUntilShot =  timeOfShot.getAsDouble();
+        timeUntilShot = Constants.ShooterConstants.timeToShoot;
+        if (timeUntilShot < 0.2) {
+            System.out.println("AAAAAAAAAAAAAAAAAAAAAA");
+        }
         //}
         
         //double timeUntilShot = Constants.ShooterConstants.timeToShoot;
