@@ -126,17 +126,8 @@ public class CommandSwerveDrivetrain extends SwerveDrivetrain implements Subsyst
     @Override
     public void periodic(){
         
-        if (true) {
-            SmartDashboard.putNumber("Robot Angle To Speaker",calcAngleToSpeaker());
-            SmartDashboard.putNumber("Robot Dist To Speaker",calcDistToSpeaker());
-            SmartDashboard.putNumber("Robot Dist To Speaker",RotToSpeaker().getDegrees());
-            
-            
-        }
-
         _field.setRobotPose(m_odometry.getEstimatedPosition());
         SmartDashboard.putData("Field Test",_field);
-        //this.setOperatorPerspectiveForward(Rotation2d.fromDegrees(0));
         
         var visionEst = _vision.getEstimatedGlobalPose();
         visionEst.ifPresent(
@@ -215,7 +206,15 @@ public class CommandSwerveDrivetrain extends SwerveDrivetrain implements Subsyst
         }
     }
 
-    public Rotation2d   RotToSpeaker() {
+    public double calcAngleToSpeaker(Translation2d pose) {
+        if (getAlliance() == Alliance.Blue) {
+            return calcAngleToSpeakerForBlue(pose);
+        } else {
+            return calcAngleToSpeakerForRed(pose);
+        }
+    }
+
+    public Rotation2d RotToSpeaker() {
         return Rotation2d.fromDegrees(calcAngleToSpeaker());
     }
 
@@ -254,26 +253,26 @@ public class CommandSwerveDrivetrain extends SwerveDrivetrain implements Subsyst
         
     }
 
-    private double calcAngleToSpeakerForRed(double X, double Y) {
+    private double calcAngleToSpeakerForRed(Translation2d pose) {
         Pose2d speakerPos = Constants.RED_SPEAKER;
-        double xDiff = speakerPos.getX() - X;
-        double yDiff = speakerPos.getY() - Y;
+        double xDiff = speakerPos.getX() - pose.getX();
+        double yDiff = speakerPos.getY() - pose.getY();
         // System.out.print(xDiff);
         // System.out.print(yDiff);
         // System.out.println(Math.toDegrees(Math.atan(yDiff / xDiff)));
         return Math.toDegrees(Math.atan(yDiff / xDiff));
     }
 
-    private double calcAngleToSpeakerForBlue(double X, double Y) {
+    private double calcAngleToSpeakerForBlue(Translation2d pose) {
         Pose2d speakerPos = Constants.BLUE_SPEAKER;
-        double xDiff = X - speakerPos.getX();
-        double yDiff = speakerPos.getY() - Y;
+        double xDiff = pose.getX() - speakerPos.getX();
+        double yDiff = speakerPos.getY() - pose.getY();
         // System.out.print(xDiff);
         // System.out.print(yDiff);
         // System.out.println(180 - Math.toDegrees(Math.atan(yDiff / xDiff)));
         return 180 - Math.toDegrees(Math.atan(yDiff / xDiff));
     }
-
+    
     
     public ChassisSpeeds getFieldRelativeChassisSpeeds() {
         return new ChassisSpeeds(
@@ -282,53 +281,6 @@ public class CommandSwerveDrivetrain extends SwerveDrivetrain implements Subsyst
                 getCurrentRobotChassisSpeeds().vyMetersPerSecond * this.getState().Pose.getRotation().getCos()
                         + getCurrentRobotChassisSpeeds().vxMetersPerSecond * this.getState().Pose.getRotation().getSin(),
                 getCurrentRobotChassisSpeeds().omegaRadiansPerSecond);
-    }
-
-    public Rotation2d getAngularOffset(DoubleSupplier timeOfShot) {
-        Pose2d robotPose = m_odometry.getEstimatedPosition();
-        Translation2d currentPos = robotPose.getTranslation();
-        Double currentAngleToSpeaker = calcAngleToSpeaker();
-        Translation2d futureRobotPose;
-        Double futureAngleToSpeaker;
-        ChassisSpeeds speeds = this.getFieldRelativeChassisSpeeds();
-        Alliance alliance = this.getAlliance();
-        Double correctionAngle;
-        double timeUntilShot;
-        
-        /*if (timeAtStartOfShot.getAsLong() != 0) {
-            timeUntilShot = Constants.ShooterConstants.timeToShoot - (System.currentTimeMillis() - timeAtStartOfShot.getAsLong())/1000;
-            System.out.println("CALCULATING DYNAMIC TIMING");
-            System.out.println(timeUntilShot);
-        } else { */
-        //timeUntilShot =  timeOfShot.getAsDouble();
-        timeUntilShot = Constants.ShooterConstants.timeToShoot;
-        if (timeUntilShot < 0.2) {
-            System.out.println("AAAAAAAAAAAAAAAAAAAAAA");
-        }
-        //}
-        
-        //double timeUntilShot = Constants.ShooterConstants.timeToShoot;
-        //futureRobotPose = currentPos;
-        double xDelta = timeUntilShot*(speeds.vxMetersPerSecond);
-        double yDelta = timeUntilShot*(speeds.vyMetersPerSecond);
-        Translation2d moveDelta = new Translation2d(xDelta,yDelta);
-        futureRobotPose = currentPos.plus(moveDelta);
-
-        if (alliance == Alliance.Blue) {
-            futureAngleToSpeaker = calcAngleToSpeakerForBlue(futureRobotPose.getX(), futureRobotPose.getY());             
-        } else {
-            futureAngleToSpeaker = calcAngleToSpeakerForRed(futureRobotPose.getX(), futureRobotPose.getY());    
-        }
-        correctionAngle = currentAngleToSpeaker - futureAngleToSpeaker;
-
-        SmartDashboard.putNumber("xDelta", xDelta);
-        SmartDashboard.putNumber("yDelta", yDelta);
-        SmartDashboard.putNumber("futureang", futureAngleToSpeaker);
-        SmartDashboard.putNumber("Correction Angle", correctionAngle);
-        //martDashboard.putNumber("test", currentAngleToSpeaker-futureAngleToSpeaker);
-        SmartDashboard.putNumber("timeUntilShot", timeUntilShot);
-
-        return Rotation2d.fromDegrees(-correctionAngle).plus(RotToSpeaker());
     }
 
 
