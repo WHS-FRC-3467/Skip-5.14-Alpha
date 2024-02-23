@@ -65,10 +65,10 @@ public class prepareToShoot extends Command {
 
         // Exit once Arm is at setpoint and Shooter setpoint is != 0 and Shooter is up to speed 
         if (m_armSubsystem.isArmJointAtSetpoint() && (m_runShooter && m_shooterSubsystem.areWheelsAtSpeed())) {
-            LEDSegment.MainStrip.setStrobeAnimation(m_blinker.green, 0.7);  // Strobe Green
+            LEDSegment.MainStrip.ready2Shoot(0);  // Strobe Green
             m_isDone = true;
         } else {
-            LEDSegment.MainStrip.setStrobeAnimation(m_blinker.red, 0.7);  // Strobe Red
+            LEDSegment.MainStrip.notReady2Sheet(0);  // Strobe Red
         }
     }
 

@@ -35,6 +35,14 @@ public class LEDSubsystem extends SubsystemBase {
   public static final Color blue = new Color(8, 32, 255);       // Blue
   public static final Color purple = new Color(184, 0, 185);    // Purple
 
+  /* Animations */
+
+  //public static final Animation ColorFlow = new ColorFlowAnimation(color.red, color.green, color.blue, 0, speed, segmentSize, Direction.Forward, startIndex)
+  public static final Animation m_ready2Shoot = new StrobeAnimation(green.red, green.green, green.blue, 0, 0.7, 300, 0);  // Flash Green
+  public static final Animation m_notReady2Shoot = new StrobeAnimation(red.red, red.green, red.blue, 0, 0.7, 300, 0);  // Flash Red
+
+
+
   public LEDSubsystem() {
     CANdleConfiguration candleConfiguration = new CANdleConfiguration();
     candleConfiguration.statusLedOffWhenActive = true;
@@ -88,6 +96,14 @@ public class LEDSubsystem extends SubsystemBase {
             m_candle.animate(animation, animationSlot);
         }
 
+        public void ready2Shoot(int slotNum) {
+            m_candle.animate(m_ready2Shoot, slotNum);
+        }
+
+        public void notReady2Sheet(int slotNum) {
+            m_candle.animate(m_notReady2Shoot, slotNum);
+        }
+
         public void fullClear() {
             clearAnimation();
             disableLEDs();
@@ -101,7 +117,7 @@ public class LEDSubsystem extends SubsystemBase {
             setColor(black);
         }
 
-        public void setFlowAnimation(Color color, double speed) {
+        /*public void setFlowAnimation(Color color, double speed) {
             setAnimation(new ColorFlowAnimation(color.red, color.green, color.blue, 0, speed, segmentSize, Direction.Forward, startIndex));
         }
 
@@ -120,6 +136,7 @@ public class LEDSubsystem extends SubsystemBase {
         public void setRainbowAnimation(double speed) {
             setAnimation(new RainbowAnimation(1, speed, segmentSize, false, startIndex));
         }
+        */
     }
 
   public static class Color {

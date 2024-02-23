@@ -68,9 +68,9 @@ public class LookUpShot extends Command {
         // Bring Shooter to requested speed
         m_shooterSubsystem.runShooter(m_setpoints.shooterLeft, m_setpoints.shooterRight);
         if(m_shooterSubsystem.areWheelsAtSpeed()) {
-            LEDSegment.MainStrip.setStrobeAnimation(m_blinker.green, 0.7);  // Strobe Green
+            LEDSegment.MainStrip.ready2Shoot(0);  // Strobe Green
         } else {
-            LEDSegment.MainStrip.setStrobeAnimation(m_blinker.red, 0.7);  // Strobe Red
+            LEDSegment.MainStrip.notReady2Sheet(0);  // Strobe Red
         }
 
     }
