@@ -142,6 +142,8 @@ public class RobotContainer {
         m_head.HeadingController.setPID(10, 0, 0);
         m_head.HeadingController.enableContinuousInput(-Math.PI, Math.PI);
 
+        
+
         // Sets Cardinal Rotation PID
         m_cardinal.HeadingController.enableContinuousInput(-Math.PI, Math.PI);
         m_cardinal.HeadingController.setPID(6.0, 0, 0.6);
@@ -321,18 +323,16 @@ public class RobotContainer {
 
         // Driver: While Right Stick button is pressed, drive while pointing to alliance speaker
         // AND adjusting Arm angle AND running Shooter
-        m_driverCtrl.rightStick().whileTrue(Commands.parallel(
+         m_driverCtrl.rightStick().whileTrue(Commands.parallel(
             m_drivetrain.applyRequest(
                 () -> m_head.withVelocityX(-m_driverCtrl.getLeftY() * m_MaxSpeed)
                         .withVelocityY(-m_driverCtrl.getLeftX() * m_MaxSpeed)
-                        .withTargetDirection(m_drivetrain.RotToSpeaker())
+                        .withTargetDirection(m_drivetrain.getAngularOffset(() -> m_stageSubsystem.getTimeOfShot()))
                         .withDeadband(m_MaxSpeed * 0.1)
                         .withRotationalDeadband(m_AngularRate * 0.1)
             ),
             new LookUpShot(m_armSubsystem, m_shooterSubsystem, () -> m_drivetrain.calcDistToSpeaker(), m_LedSubsystem)
-        ));
-
-        m_driverCtrl.start().onTrue(new LookUpShot(m_armSubsystem, m_shooterSubsystem, () -> m_drivetrain.calcDistToSpeaker(), m_LedSubsystem));
+        )); 
 
          // Driver: DPad Left: put swerve modules in Brake mode (modules make an 'X') (while pressed)
         m_driverCtrl.povLeft().whileTrue(m_drivetrain.applyRequest(() -> m_brake));
@@ -359,8 +359,18 @@ public class RobotContainer {
         m_driverCtrl.rightTrigger(0.4).onTrue(m_stageSubsystem.feedNote2ShooterCommand()
             .andThen(m_armSubsystem.prepareForIntakeCommand()));
 
+
         // Driver: While start button held, adjust Arm elevation based on goal
         //m_driverCtrl.start().onTrue(Commands.parallel(m_shooterSubsystem.runShooterCommand(),m_armSubsystem.moveToDegreeCommand()));
+
+/*         m_driverCtrl.start().whileTrue(
+            m_drivetrain.applyRequest(
+                () -> m_head.withVelocityX(-m_driverCtrl.getLeftY() * m_MaxSpeed)
+                        .withVelocityY(-m_driverCtrl.getLeftX() * m_MaxSpeed)
+                        .withTargetDirection(m_drivetrain.getAngularOffset(m_stageSubsystem.getTimeAtStartOfShot()))
+                        .withDeadband(m_MaxSpeed * 0.1)
+                        .withRotationalDeadband(m_AngularRate * 0.1)
+        )); */
 
         /*
          * OPERATOR Controls

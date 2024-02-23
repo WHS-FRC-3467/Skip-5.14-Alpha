@@ -10,11 +10,13 @@ import com.ctre.phoenix.motorcontrol.can.TalonSRX;
 import com.ctre.phoenix.motorcontrol.can.WPI_TalonSRX;
 
 import edu.wpi.first.wpilibj.DigitalInput;
+import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.robot.Constants;
 import frc.robot.Constants.CanConstants;
 import frc.robot.Constants.DIOConstants;
 import frc.robot.Constants.RobotConstants;
@@ -26,10 +28,16 @@ public class StageSubsystem extends SubsystemBase {
     TalonSRX m_stageMotor = new WPI_TalonSRX(CanConstants.ID_StageMotor);
     DigitalInput m_stageBeamBreak = new DigitalInput(DIOConstants.kStageBeamBreak);
     boolean m_noteInStage = false;
+    long startShootTime;
+    boolean hasStarted = false;
+    boolean hasRun = false;
+    /* Timer */
+    Timer m_timer = new Timer();
 
     /** Creates a new StageSubsystem. */
     public StageSubsystem() {
 
+        startShootTime = 0;
         // Set motor to factory defaults
         m_stageMotor.configFactoryDefault();
 
@@ -61,7 +69,9 @@ public class StageSubsystem extends SubsystemBase {
 
     @Override
     public void periodic() {
-   
+        hasStarted = true;
+        SmartDashboard.putBoolean("hasStarted", hasStarted);
+        SmartDashboard.putBoolean("hasRun", hasRun);
         // Default action is to hold the note in place if sensor detects note
         m_noteInStage = m_stageBeamBreak.get() ? false : true;
 
@@ -90,11 +100,24 @@ public class StageSubsystem extends SubsystemBase {
     }
 
     public void stopStage() {
+        //m_timer.stop();
+        //m_timer.reset();
+        //this.startShootTime = 0;
+        this.hasRun = false;
         m_stageMotor.set(ControlMode.PercentOutput, 0.0);
     }
 
     // Do not use if the shooter's target velocity is zero.
     public void ejectFront(double speed) {
+        //System.out.println("CHECKING FOR TIME");
+        if (this.hasStarted && !this.hasRun) {
+            //this.startShootTime = System.currentTimeMillis();
+            this.m_timer.start();
+
+            //System.out.println("STARTING TIMER");
+            //System.out.println(startShootTime);
+            this.hasRun = true;
+        } 
         if (m_noteInStage) {
             this.runStage(speed);
         }
@@ -130,13 +153,19 @@ public class StageSubsystem extends SubsystemBase {
     }
     
     // Pass the Note to the Shooter
-    public Command feedNote2ShooterCommand() {
+    public Command feedNote2ShooterCommand() {        
         if (true) {
             return new RunCommand(() -> this.ejectFront(StageConstants.kFeedToShooterSpeed), this)
                 .withTimeout(StageConstants.kFeedToShooterTime)
                 .andThen(()->this.stopStage());
         }
         return new RunCommand(()->this.stopStage());
+    }
+
+    public double getTimeOfShot() {
+        System.out.println("BBBBBBBBBBBBB");
+        System.out.printf("%.3f",this.m_timer.get());
+        return Constants.ShooterConstants.timeToShoot - m_timer.get();
     }
 
     // Feed the Note to the Amp
@@ -162,6 +191,7 @@ public class StageSubsystem extends SubsystemBase {
 
     // Command to just stop the Stage
     public Command stopStageCommand() {
+        
         return new InstantCommand(() -> this.stopStage());
     }
 
