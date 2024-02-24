@@ -44,6 +44,7 @@ import frc.robot.Util.CommandXboxPS5Controller;
 //import frc.robot.Vision.Limelight;
 //import frc.robot.Vision.PhotonVision;
 import frc.robot.generated.TunerConstants;
+import frc.robot.Util.shootTimer;
 
 public class RobotContainer {
 
@@ -119,7 +120,8 @@ public class RobotContainer {
     // Instantiate other Subsystems
     ShooterSubsystem m_shooterSubsystem = new ShooterSubsystem();
     IntakeSubsystem m_intakeSubsystem = new IntakeSubsystem();
-    StageSubsystem m_stageSubsystem = new StageSubsystem();
+    shootTimer m_shootTimer = new shootTimer();
+    StageSubsystem m_stageSubsystem = new StageSubsystem(m_shootTimer);
     ArmSubsystem m_armSubsystem = new ArmSubsystem();
     //PhotonVision m_PhotonVision = new PhotonVision();
 
@@ -320,10 +322,11 @@ public class RobotContainer {
         // Driver: While Right Stick button is pressed, drive while pointing to alliance speaker
         // AND adjusting Arm angle AND running Shooter
          m_driverCtrl.rightStick().whileTrue(Commands.parallel(
+            new velocityOffset(m_drivetrain, () -> m_driverCtrl.getRightTriggerAxis()),
             m_drivetrain.applyRequest(
                 () -> m_head.withVelocityX(-m_driverCtrl.getLeftY() * m_MaxSpeed)
                         .withVelocityY(-m_driverCtrl.getLeftX() * m_MaxSpeed)
-                        .withTargetDirection(new velocityOffset(m_drivetrain, m_stageSubsystem).getCorrectedTarget())
+                        .withTargetDirection(m_drivetrain.getVelocityOffset())
                         .withDeadband(m_MaxSpeed * 0.1)
                         .withRotationalDeadband(m_AngularRate * 0.1)
             ),
@@ -353,8 +356,8 @@ public class RobotContainer {
             .andThen(new intakeNote(m_intakeSubsystem, m_stageSubsystem)));
 
         // Driver: When RightTrigger is pressed, release Note to shooter, then lower Arm
-        m_driverCtrl.rightTrigger(0.4).onTrue(m_stageSubsystem.feedNote2ShooterCommand()
-            .andThen(m_armSubsystem.prepareForIntakeCommand()));
+        m_driverCtrl.rightTrigger(0.4).onTrue(m_stageSubsystem.feedNote2ShooterCommand());
+            //.andThen(m_armSubsystem.prepareForIntakeCommand()));
 
 
         // Driver: While start button held, adjust Arm elevation based on goal
