@@ -52,7 +52,7 @@ public class CommandSwerveDrivetrain extends SwerveDrivetrain implements Subsyst
     private Pose2d _speakerPosition;
     public Field2d _field = new Field2d();
     public PhotonVision _vision = new PhotonVision();
-    
+    private Rotation2d velocityOffset;
 
 
     public CommandSwerveDrivetrain(SwerveDrivetrainConstants driveTrainConstants, double OdometryUpdateFrequency,
@@ -132,6 +132,7 @@ public class CommandSwerveDrivetrain extends SwerveDrivetrain implements Subsyst
         
         _field.setRobotPose(m_odometry.getEstimatedPosition());
         SmartDashboard.putData("Field Test",_field);
+        SmartDashboard.putNumber("Distance2Speaker", calcDistToSpeaker());
         
         var visionEst = _vision.getEstimatedGlobalPose();
         visionEst.ifPresent(
@@ -285,6 +286,14 @@ public class CommandSwerveDrivetrain extends SwerveDrivetrain implements Subsyst
                 getCurrentRobotChassisSpeeds().vyMetersPerSecond * this.getState().Pose.getRotation().getCos()
                         + getCurrentRobotChassisSpeeds().vxMetersPerSecond * this.getState().Pose.getRotation().getSin(),
                 getCurrentRobotChassisSpeeds().omegaRadiansPerSecond);
+    }
+
+    public void setVelOffset(Rotation2d angle) {
+        velocityOffset = angle;
+    }
+
+    public Rotation2d getVelocityOffset() {
+        return velocityOffset;
     }
 
 

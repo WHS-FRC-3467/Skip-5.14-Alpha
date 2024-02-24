@@ -10,7 +10,7 @@ import com.ctre.phoenix.motorcontrol.can.TalonSRX;
 import com.ctre.phoenix.motorcontrol.can.WPI_TalonSRX;
 
 import edu.wpi.first.wpilibj.DigitalInput;
-import edu.wpi.first.wpilibj.Timer;
+//import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
@@ -22,21 +22,24 @@ import frc.robot.Constants.DIOConstants;
 import frc.robot.Constants.RobotConstants;
 import frc.robot.Constants.StageConstants;
 import frc.robot.sim.PhysicsSim;
+
+import frc.robot.Util.shootTimer;
 public class StageSubsystem extends SubsystemBase {
 
     // Initialize devices
     TalonSRX m_stageMotor = new WPI_TalonSRX(CanConstants.ID_StageMotor);
     DigitalInput m_stageBeamBreak = new DigitalInput(DIOConstants.kStageBeamBreak);
+    shootTimer m_timer;
     boolean m_noteInStage = false;
     long startShootTime;
     boolean hasStarted = false;
     boolean hasRun = false;
     /* Timer */
-    Timer m_timer = new Timer();
+    //Timer m_timer = new Timer();
 
     /** Creates a new StageSubsystem. */
-    public StageSubsystem() {
-
+    public StageSubsystem(shootTimer shootTimer) {
+        m_timer = shootTimer;
         startShootTime = 0;
         // Set motor to factory defaults
         m_stageMotor.configFactoryDefault();
@@ -100,8 +103,10 @@ public class StageSubsystem extends SubsystemBase {
     }
 
     public void stopStage() {
-        //m_timer.stop();
-        //m_timer.reset();
+        //System.out.println(m_timer.get());
+        System.out.println(m_timer.giveTime());
+        m_timer.timerState(false);
+        m_timer.resetTimer();
         //this.startShootTime = 0;
         this.hasRun = false;
         m_stageMotor.set(ControlMode.PercentOutput, 0.0);
@@ -112,10 +117,11 @@ public class StageSubsystem extends SubsystemBase {
         //System.out.println("CHECKING FOR TIME");
         if (this.hasStarted && !this.hasRun) {
             //this.startShootTime = System.currentTimeMillis();
-            this.m_timer.start();
+            //m_timer.start();
+            m_timer.timerState(true);
 
-            //System.out.println("STARTING TIMER");
-            //System.out.println(startShootTime);
+            System.out.println("STARTING TIMER");
+            System.out.println(m_timer.giveTime());
             this.hasRun = true;
         } 
         if (m_noteInStage) {
@@ -164,8 +170,8 @@ public class StageSubsystem extends SubsystemBase {
 
     public double getTimeOfShot() {
         System.out.println("BBBBBBBBBBBBB");
-        System.out.printf("%.3f",this.m_timer.get());
-        return Constants.ShooterConstants.timeToShoot - m_timer.get();
+        System.out.printf("%.3f",m_timer.giveTime());
+        return Constants.ShooterConstants.timeToShoot - m_timer.giveTime();
     }
 
     // Feed the Note to the Amp
