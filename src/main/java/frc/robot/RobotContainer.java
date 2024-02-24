@@ -29,6 +29,7 @@ import frc.robot.AutoCommands.AutoLookUpShot;
 import frc.robot.Commands.LookUpShot;
 import frc.robot.Commands.intakeNote;
 import frc.robot.Commands.prepareToShoot;
+import frc.robot.Commands.velocityOffset;
 import frc.robot.Constants.RobotConstants;
 import frc.robot.Subsystems.Arm.ArmDefault;
 import frc.robot.Subsystems.Arm.ArmSubsystem;
@@ -140,7 +141,7 @@ public class RobotContainer {
 
         // Sets autoAim Rot PID
         m_head.HeadingController.setPID(10, 0, 0);
-        m_head.HeadingController.enableContinuousInput(-Math.PI, Math.PI);
+        //m_head.HeadingController.enableContinuousInput(-Math.PI, Math.PI);
 
         
 
@@ -327,7 +328,7 @@ public class RobotContainer {
             m_drivetrain.applyRequest(
                 () -> m_head.withVelocityX(-m_driverCtrl.getLeftY() * m_MaxSpeed)
                         .withVelocityY(-m_driverCtrl.getLeftX() * m_MaxSpeed)
-                        .withTargetDirection(m_drivetrain.getAngularOffset(() -> m_stageSubsystem.getTimeOfShot()))
+                        .withTargetDirection(new velocityOffset(m_drivetrain, m_stageSubsystem).getCorrectedTarget())
                         .withDeadband(m_MaxSpeed * 0.1)
                         .withRotationalDeadband(m_AngularRate * 0.1)
             ),
