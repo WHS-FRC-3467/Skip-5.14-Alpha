@@ -26,6 +26,7 @@ import edu.wpi.first.wpilibj2.command.button.Trigger;
 //import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
 
 /* Local */
+import frc.robot.AutoCommands.AutoLookUpShot;
 import frc.robot.Commands.LookUpShot;
 import frc.robot.Commands.intakeNote;
 import frc.robot.Commands.prepareToShoot;
@@ -188,12 +189,14 @@ public class RobotContainer {
         NamedCommands.registerCommand("RunShooter", m_shooterSubsystem.runShooterCommand(30, 35));
         NamedCommands.registerCommand("RunShooter2", m_shooterSubsystem.runShooterCommand());
         NamedCommands.registerCommand("StopShooter", m_shooterSubsystem.stopShooterCommand());
-        NamedCommands.registerCommand("ShootNote", m_stageSubsystem.feedNote2ShooterCommand());
-        NamedCommands.registerCommand("WingShot", new prepareToShoot(RobotConstants.WING, ()->m_stageSubsystem.isNoteInStage(),
-                m_armSubsystem, m_shooterSubsystem));
-        NamedCommands.registerCommand("LookUpShot", new LookUpShot(m_armSubsystem, m_shooterSubsystem, () -> m_drivetrain.calcDistToSpeaker()));
-)
-        
+        NamedCommands.registerCommand("ShootNote",
+                m_stageSubsystem.feedNote2ShooterCommand().andThen(m_armSubsystem.prepareForIntakeCommand()));
+        NamedCommands.registerCommand("WingShot",
+                new prepareToShoot(RobotConstants.WING, () -> m_stageSubsystem.isNoteInStage(),
+                        m_armSubsystem, m_shooterSubsystem));
+        NamedCommands.registerCommand("LookUpShot",
+                new AutoLookUpShot(m_armSubsystem, m_shooterSubsystem, () -> m_drivetrain.calcDistToSpeaker()));
+
     }
 
     /**
@@ -365,8 +368,8 @@ public class RobotContainer {
                 .andThen(new intakeNote(m_intakeSubsystem, m_stageSubsystem)));
 
         // Driver: When RightTrigger is pressed, release Note to shooter, then lower Arm
-        m_driverCtrl.rightTrigger(0.4).onTrue(m_stageSubsystem.feedNote2ShooterCommand());
-        // .andThen(m_armSubsystem.prepareForIntakeCommand()));
+        m_driverCtrl.rightTrigger(0.4)
+                .onTrue((m_stageSubsystem.feedNote2ShooterCommand()).andThen(m_armSubsystem.prepareForIntakeCommand()));
 
         // Driver: While start button held, adjust Arm elevation based on goal
         // m_driverCtrl.start().onTrue(Commands.parallel(m_shooterSubsystem.runShooterCommand(),m_armSubsystem.moveToDegreeCommand()));

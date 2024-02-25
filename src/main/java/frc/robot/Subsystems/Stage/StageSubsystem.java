@@ -24,6 +24,7 @@ import frc.robot.Constants.StageConstants;
 import frc.robot.sim.PhysicsSim;
 
 import frc.robot.Util.shootTimer;
+
 public class StageSubsystem extends SubsystemBase {
 
     // Initialize devices
@@ -35,7 +36,7 @@ public class StageSubsystem extends SubsystemBase {
     boolean hasStarted = false;
     boolean hasRun = false;
     /* Timer */
-    //Timer m_timer = new Timer();
+    // Timer m_timer = new Timer();
 
     /** Creates a new StageSubsystem. */
     public StageSubsystem(shootTimer shootTimer) {
@@ -51,7 +52,8 @@ public class StageSubsystem extends SubsystemBase {
         m_stageMotor.setNeutralMode(NeutralMode.Brake);
 
         // Config current limit
-        //m_stageMotor.configSupplyCurrentLimit(new SupplyCurrentLimitConfiguration(true, 15, 20, 0.10));
+        // m_stageMotor.configSupplyCurrentLimit(new
+        // SupplyCurrentLimitConfiguration(true, 15, 20, 0.10));
 
         /* Config the peak and nominal outputs */
         m_stageMotor.configNominalOutputForward(0.0, 30);
@@ -65,6 +67,7 @@ public class StageSubsystem extends SubsystemBase {
         m_stageMotor.setStatusFramePeriod(StatusFrame.Status_9_MotProfBuffer, 255);
 
     }
+
     public void simulationInit() {
         /* If running in Simulation, setup simulated Falcons */
         PhysicsSim.getInstance().addTalonSRX(m_stageMotor, 1.0, 89975.0);
@@ -103,27 +106,18 @@ public class StageSubsystem extends SubsystemBase {
     }
 
     public void stopStage() {
-        //System.out.println(m_timer.get());
+        // System.out.println(m_timer.get());
         System.out.println(m_timer.giveTime());
         m_timer.timerState(false);
         m_timer.resetTimer();
-        //this.startShootTime = 0;
+        // this.startShootTime = 0;
         this.hasRun = false;
         m_stageMotor.set(ControlMode.PercentOutput, 0.0);
     }
 
     // Do not use if the shooter's target velocity is zero.
     public void ejectFront(double speed) {
-        //System.out.println("CHECKING FOR TIME");
-        if (this.hasStarted && !this.hasRun) {
-            //this.startShootTime = System.currentTimeMillis();
-            //m_timer.start();
-            m_timer.timerState(true);
 
-            System.out.println("STARTING TIMER");
-            System.out.println(m_timer.giveTime());
-            this.hasRun = true;
-        } 
         if (m_noteInStage) {
             this.runStage(speed);
         }
@@ -145,51 +139,51 @@ public class StageSubsystem extends SubsystemBase {
 
     // To Intake a Note, drive the Stage until the sensor says we have a Note
     public Command intakeNoteCommand() {
-        return new RunCommand(()-> this.runStage(StageConstants.kIntakeSpeed), this)
-            .until(()->this.isNoteInStage())
-            .andThen(()->this.stopStage());
+        return new RunCommand(() -> this.runStage(StageConstants.kIntakeSpeed), this)
+                .until(() -> this.isNoteInStage())
+                .andThen(() -> this.stopStage());
     }
-    
+
     // Pass the Note to the Shooter
-    public Command feedNote2ShooterCommand() {        
+    public Command feedNote2ShooterCommand() {
         if (true) {
             return new RunCommand(() -> this.ejectFront(StageConstants.kFeedToShooterSpeed), this)
-                .withTimeout(StageConstants.kFeedToShooterTime)
-                .andThen(()->this.stopStage());
+                    .withTimeout(StageConstants.kFeedToShooterTime)
+                    .andThen(() -> this.stopStage());
         }
-        return new RunCommand(()->this.stopStage());
+        return new RunCommand(() -> this.stopStage());
     }
 
     public double getTimeOfShot() {
         System.out.println("BBBBBBBBBBBBB");
-        System.out.printf("%.3f",m_timer.giveTime());
+        System.out.printf("%.3f", m_timer.giveTime());
         return Constants.ShooterConstants.timeToShoot - m_timer.giveTime();
     }
 
     // Feed the Note to the Amp
     public Command feedNote2AmpCommand() {
         return new RunCommand(() -> this.ejectFront(StageConstants.kFeedToAmpSpeed), this)
-            .withTimeout(StageConstants.kFeedToAmpTime)
-            .andThen(()->this.stopStage());
+                .withTimeout(StageConstants.kFeedToAmpTime)
+                .andThen(() -> this.stopStage());
     }
 
     // Feed the Note backwards to the Amp
     public Command ejectNote2AmpCommand() {
         return new RunCommand(() -> this.ejectBack(StageConstants.kFeedToAmpSpeed), this)
-            .withTimeout(StageConstants.kFeedToAmpTime)
-            .andThen(()->this.stopStage());
+                .withTimeout(StageConstants.kFeedToAmpTime)
+                .andThen(() -> this.stopStage());
     }
 
     // Feed the Note to the Trap
     public Command feedNote2TrapCommand() {
         return new RunCommand(() -> this.ejectFront(StageConstants.kFeedToTrapSpeed), this)
-            .withTimeout(StageConstants.kFeedToTrapTime)
-            .andThen(()->this.stopStage());
+                .withTimeout(StageConstants.kFeedToTrapTime)
+                .andThen(() -> this.stopStage());
     }
 
     // Command to just stop the Stage
     public Command stopStageCommand() {
-        
+
         return new InstantCommand(() -> this.stopStage());
     }
 

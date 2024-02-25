@@ -52,8 +52,7 @@ public class CommandSwerveDrivetrain extends SwerveDrivetrain implements Subsyst
     private Pose2d _speakerPosition;
     public Field2d _field = new Field2d();
     public PhotonVision _vision = new PhotonVision();
-    private Rotation2d velocityOffset;
-
+    private Rotation2d velocityOffset = new Rotation2d(0);
 
     public CommandSwerveDrivetrain(SwerveDrivetrainConstants driveTrainConstants, double OdometryUpdateFrequency,
             SwerveModuleConstants... modules) {
@@ -98,7 +97,7 @@ public class CommandSwerveDrivetrain extends SwerveDrivetrain implements Subsyst
                 (speeds) -> this.setControl(autoRequest.withSpeeds(speeds)),
 
                 // Method for configuring the path following commands
-                new HolonomicPathFollowerConfig(new PIDConstants(.6, 0, .08), new PIDConstants(5, 0, 0),
+                new HolonomicPathFollowerConfig(new PIDConstants(.6, 0, .02), new PIDConstants(5, 0, 0),
                         TunerConstants.kSpeedAt12VoltsMps,
                         driveBaseRadius, new ReplanningConfig()),
 
@@ -124,30 +123,28 @@ public class CommandSwerveDrivetrain extends SwerveDrivetrain implements Subsyst
     public Command getAutoPath(String pathName) {
         return new PathPlannerAuto(pathName);
     }
+
     @Override
-    public void periodic(){
-        
+    public void periodic() {
+
         _field.setRobotPose(m_odometry.getEstimatedPosition());
-        SmartDashboard.putData("Field Test",_field);
+        SmartDashboard.putData("Field Test", _field);
         SmartDashboard.putNumber("Distance2Speaker", calcDistToSpeaker());
-        
+
         var visionEst = _vision.getEstimatedGlobalPose();
         visionEst.ifPresent(
                 est -> {
                     var estPose = est.estimatedPose.toPose2d();
                     // Change our trust in the measurement based on the tags we can see
                     var estStdDevs = _vision.getEstimationStdDevs(estPose);
-                    //System.out.println("Adding to vision");
+                    // System.out.println("Adding to vision");
 
                     this.addVisionMeasurement(
                             est.estimatedPose.toPose2d(), est.timestampSeconds, estStdDevs);
                 });
-        
-        
-
-
 
     }
+
     @Override
     public void simulationPeriodic() {
         /* Assume 20ms update rate, get battery voltage from WPILib */
@@ -158,8 +155,8 @@ public class CommandSwerveDrivetrain extends SwerveDrivetrain implements Subsyst
         return m_kinematics.toChassisSpeeds(getState().ModuleStates);
     }
 
-    //Gets current rotation in from Pidgeon 
-    public Rotation2d getGyroscopeRotation(){
+    // Gets current rotation in from Pidgeon
+    public Rotation2d getGyroscopeRotation() {
         return m_odometry.getEstimatedPosition().getRotation();
     }
 
@@ -173,7 +170,7 @@ public class CommandSwerveDrivetrain extends SwerveDrivetrain implements Subsyst
         return _alliance;
     }
 
-    //Gets coordinates for appriopriate speaker
+    // Gets coordinates for appriopriate speaker
     private Pose2d getSpeakerPos() {
         if (_speakerPosition == null) {
             if (getAlliance() != null) {
@@ -189,8 +186,9 @@ public class CommandSwerveDrivetrain extends SwerveDrivetrain implements Subsyst
     // have to give a pose estimator
     public static double getRadiusToSpeakerInMeters(Pose2d robotPose, Pose2d speakerPos) {
 
-        if (speakerPos == null) return 0;
-        
+        if (speakerPos == null)
+            return 0;
+
         double xDiff = robotPose.getX() - speakerPos.getX();
         double yDiff = robotPose.getY() - speakerPos.getY();
         double xPow = Math.pow(xDiff, 2);
@@ -199,7 +197,6 @@ public class CommandSwerveDrivetrain extends SwerveDrivetrain implements Subsyst
         return Math.sqrt(xPow + yPow);
     }
 
-    
     public double calcAngleToSpeaker() {
         if (getAlliance() == Alliance.Blue) {
             return calcAngleToSpeakerForBlue();
@@ -225,34 +222,30 @@ public class CommandSwerveDrivetrain extends SwerveDrivetrain implements Subsyst
         Pose2d speakerPos = Constants.BLUE_SPEAKER;
         double xDiff = robotPose.getX() - speakerPos.getX();
         double yDiff = speakerPos.getY() - robotPose.getY();
-        //System.out.print(xDiff);
-        //System.out.print(yDiff);
-        //System.out.println(180 - Math.toDegrees(Math.atan(yDiff / xDiff)));
+        // System.out.print(xDiff);
+        // System.out.print(yDiff);
+        // System.out.println(180 - Math.toDegrees(Math.atan(yDiff / xDiff)));
         return 180 - Math.toDegrees(Math.atan(yDiff / xDiff));
     }
-
-
 
     private double calcAngleToSpeakerForRed() {
         Pose2d robotPose = m_odometry.getEstimatedPosition();
         Pose2d speakerPos = Constants.RED_SPEAKER;
         double xDiff = speakerPos.getX() - robotPose.getX();
         double yDiff = speakerPos.getY() - robotPose.getY();
-        //System.out.print(xDiff);
-        //System.out.print(yDiff);
-        //System.out.println(Math.toDegrees(Math.atan(yDiff / xDiff)));
+        // System.out.print(xDiff);
+        // System.out.print(yDiff);
+        // System.out.println(Math.toDegrees(Math.atan(yDiff / xDiff)));
         return Math.toDegrees(Math.atan(yDiff / xDiff));
     }
 
-
-
     public double calcDistToSpeaker() {
-        if(getSpeakerPos()!=null) {
-            return getRadiusToSpeakerInMeters(m_odometry.getEstimatedPosition(),getSpeakerPos());
+        if (getSpeakerPos() != null) {
+            return getRadiusToSpeakerInMeters(m_odometry.getEstimatedPosition(), getSpeakerPos());
         } else {
             return 999;
         }
-        
+
     }
 
     private double calcAngleToSpeakerForRed(Translation2d pose) {
@@ -274,14 +267,15 @@ public class CommandSwerveDrivetrain extends SwerveDrivetrain implements Subsyst
         // System.out.println(180 - Math.toDegrees(Math.atan(yDiff / xDiff)));
         return 180 - Math.toDegrees(Math.atan(yDiff / xDiff));
     }
-    
-    
+
     public ChassisSpeeds getFieldRelativeChassisSpeeds() {
         return new ChassisSpeeds(
                 getCurrentRobotChassisSpeeds().vxMetersPerSecond * this.getState().Pose.getRotation().getCos()
-                        - getCurrentRobotChassisSpeeds().vyMetersPerSecond * this.getState().Pose.getRotation().getSin(),
+                        - getCurrentRobotChassisSpeeds().vyMetersPerSecond
+                                * this.getState().Pose.getRotation().getSin(),
                 getCurrentRobotChassisSpeeds().vyMetersPerSecond * this.getState().Pose.getRotation().getCos()
-                        + getCurrentRobotChassisSpeeds().vxMetersPerSecond * this.getState().Pose.getRotation().getSin(),
+                        + getCurrentRobotChassisSpeeds().vxMetersPerSecond
+                                * this.getState().Pose.getRotation().getSin(),
                 getCurrentRobotChassisSpeeds().omegaRadiansPerSecond);
     }
 
@@ -292,8 +286,6 @@ public class CommandSwerveDrivetrain extends SwerveDrivetrain implements Subsyst
     public Rotation2d getVelocityOffset() {
         return velocityOffset;
     }
-
-
 
     /*
      * SysID robot drive characterization routines
