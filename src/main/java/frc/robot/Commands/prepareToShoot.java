@@ -6,9 +6,13 @@ package frc.robot.Commands;
 
 import java.util.function.BooleanSupplier;
 
+import com.ctre.phoenix6.signals.Led1OffColorValue;
+
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.Subsystems.Arm.ArmSubsystem;
 import frc.robot.Subsystems.Shooter.ShooterSubsystem;
+import frc.robot.Subsystems.LED.LEDSubsystem;
+import frc.robot.Subsystems.LED.LEDSubsystem.LEDSegment;
 import frc.robot.Util.Setpoints;
 import frc.robot.Util.Setpoints.GameState;
 
@@ -17,19 +21,21 @@ public class prepareToShoot extends Command {
     Setpoints m_setpoints;
     ArmSubsystem m_armSubsystem;
     ShooterSubsystem m_shooterSubsystem;
+    LEDSubsystem m_blinker;
     BooleanSupplier m_haveNote;
     boolean m_isDone;
     boolean m_runShooter;
 
     /** Constructor - Creates a new prepareToShoot. */
-    public prepareToShoot(Setpoints setpoints, BooleanSupplier haveNote, ArmSubsystem armSub, ShooterSubsystem shootSub) {
+    public prepareToShoot(Setpoints setpoints, BooleanSupplier haveNote, ArmSubsystem armSub, ShooterSubsystem shootSub, LEDSubsystem blinker) {
     
         m_setpoints = setpoints;
         m_armSubsystem = armSub;
         m_shooterSubsystem = shootSub;
         m_haveNote = haveNote;
+        m_blinker = blinker;
 
-        addRequirements(armSub, shootSub);
+        addRequirements(armSub, shootSub, blinker);
     }
 
     // Called when the command is initially scheduled.
@@ -59,7 +65,10 @@ public class prepareToShoot extends Command {
 
         // Exit once Arm is at setpoint and Shooter setpoint is != 0 and Shooter is up to speed 
         if (m_armSubsystem.isArmJointAtSetpoint() && (m_runShooter && m_shooterSubsystem.areWheelsAtSpeed())) {
+            LEDSegment.MainStrip.ready2Shoot(0);  // Strobe Green
             m_isDone = true;
+        } else {
+            LEDSegment.MainStrip.notReady2Sheet(0);  // Strobe Red
         }
     }
 
@@ -71,6 +80,7 @@ public class prepareToShoot extends Command {
             m_armSubsystem.disable();
             m_shooterSubsystem.stopShooter();
         }
+        LEDSegment.MainStrip.setColor(m_blinker.white);
 
     }
 

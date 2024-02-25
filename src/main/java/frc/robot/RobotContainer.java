@@ -38,6 +38,7 @@ import frc.robot.Subsystems.Intake.IntakeDefault;
 import frc.robot.Subsystems.Intake.IntakeSubsystem;
 import frc.robot.Subsystems.Shooter.ShooterSubsystem;
 import frc.robot.Subsystems.Stage.StageSubsystem;
+import frc.robot.Subsystems.LED.LEDSubsystem;
 import frc.robot.Util.CommandXboxPS5Controller;
 import frc.robot.Vision.PhotonVision;
 //import frc.robot.Util.VisionLookUpTable;
@@ -121,6 +122,7 @@ public class RobotContainer {
     IntakeSubsystem m_intakeSubsystem = new IntakeSubsystem();
     StageSubsystem m_stageSubsystem = new StageSubsystem();
     ArmSubsystem m_armSubsystem = new ArmSubsystem();
+    LEDSubsystem m_LedSubsystem = new LEDSubsystem();
     //PhotonVision m_PhotonVision = new PhotonVision();
 
     // Setup Limelight periodic query (defaults to disabled)
@@ -138,7 +140,7 @@ public class RobotContainer {
 
         // Sets autoAim Rot PID
         m_head.HeadingController.setPID(10, 0, 0);
-        m_head.HeadingController.enableContinuousInput(-180, 180);
+        m_head.HeadingController.enableContinuousInput(-Math.PI, Math.PI);
 
         // Sets Cardinal Rotation PID
         m_cardinal.HeadingController.enableContinuousInput(-Math.PI, Math.PI);
@@ -174,7 +176,7 @@ public class RobotContainer {
     private void registerNamedCommands() {
 
         // Register Named Commands for use in PathPlanner autos
-        NamedCommands.registerCommand("RunIntake", (new intakeNote(m_intakeSubsystem, m_stageSubsystem)));
+        NamedCommands.registerCommand("RunIntake", (new intakeNote(m_intakeSubsystem, m_stageSubsystem, m_armSubsystem, m_LedSubsystem)));
         NamedCommands.registerCommand("DownIntake", m_armSubsystem.prepareForIntakeCommand());
         NamedCommands.registerCommand("StopIntake", m_intakeSubsystem.stopIntakeCommand());
         NamedCommands.registerCommand("RunShooter", m_shooterSubsystem.runShooterCommand(30, 35));
@@ -183,7 +185,7 @@ public class RobotContainer {
         NamedCommands.registerCommand("ShootNote", m_stageSubsystem.feedNote2ShooterCommand()
             .andThen(m_armSubsystem.prepareForIntakeCommand()));
         NamedCommands.registerCommand("WingShot", new prepareToShoot(RobotConstants.WING, ()->m_stageSubsystem.isNoteInStage(),
-                m_armSubsystem, m_shooterSubsystem));
+                m_armSubsystem, m_shooterSubsystem, m_LedSubsystem));
         NamedCommands.registerCommand("LookUpShot",new AutoLookUpShot(m_armSubsystem, m_shooterSubsystem, () -> m_drivetrain.calcDistToSpeaker()));
 
         
@@ -327,10 +329,10 @@ public class RobotContainer {
                         .withDeadband(m_MaxSpeed * 0.1)
                         .withRotationalDeadband(m_AngularRate * 0.1)
             ),
-            new LookUpShot(m_armSubsystem, m_shooterSubsystem, () -> m_drivetrain.calcDistToSpeaker())
+            new LookUpShot(m_armSubsystem, m_shooterSubsystem, () -> m_drivetrain.calcDistToSpeaker(), m_LedSubsystem)
         ));
 
-        m_driverCtrl.start().onTrue(new LookUpShot(m_armSubsystem, m_shooterSubsystem, () -> m_drivetrain.calcDistToSpeaker()));
+        m_driverCtrl.start().onTrue(new LookUpShot(m_armSubsystem, m_shooterSubsystem, () -> m_drivetrain.calcDistToSpeaker(), m_LedSubsystem));
 
          // Driver: DPad Left: put swerve modules in Brake mode (modules make an 'X') (while pressed)
         m_driverCtrl.povLeft().whileTrue(m_drivetrain.applyRequest(() -> m_brake));
@@ -351,8 +353,7 @@ public class RobotContainer {
                 .andThen(() -> m_AngularRate = m_MaxAngularRate));
         
         // Driver: When LeftTrigger is pressed, lower the Arm and then run the Intake and Stage until a Note is found
-        m_driverCtrl.leftTrigger(0.4).onTrue(m_armSubsystem.prepareForIntakeCommand()
-            .andThen(new intakeNote(m_intakeSubsystem, m_stageSubsystem)));
+        m_driverCtrl.leftTrigger(0.4).whileTrue(new intakeNote(m_intakeSubsystem, m_stageSubsystem, m_armSubsystem, m_LedSubsystem));
 
         // Driver: When RightTrigger is pressed, release Note to shooter, then lower Arm
         m_driverCtrl.rightTrigger(0.4).onTrue(m_stageSubsystem.feedNote2ShooterCommand()
@@ -372,7 +373,7 @@ public class RobotContainer {
 
          // Operator: X Button: Arm to Stowed Position (when pressed)
          m_operatorCtrl.x().onTrue(new prepareToShoot(RobotConstants.STOWED, ()->m_stageSubsystem.isNoteInStage(),
-                m_armSubsystem, m_shooterSubsystem));
+                m_armSubsystem, m_shooterSubsystem, m_LedSubsystem));
 
         // Operator: Use Left Bumper and Left Stick Y-Axis to manually control Arm
         m_armSubsystem.setDefaultCommand(
@@ -381,19 +382,19 @@ public class RobotContainer {
 
          // Operator: DPad Left: Arm to Podium position (when pressed)
          m_operatorCtrl.povLeft().onTrue(new prepareToShoot(RobotConstants.PODIUM, ()->m_stageSubsystem.isNoteInStage(),
-                m_armSubsystem, m_shooterSubsystem));
+                m_armSubsystem, m_shooterSubsystem, m_LedSubsystem));
 
          // Operator: DPad Up: Shooter/Arm to AMP Position & Speed (when pressed)
         m_operatorCtrl.povUp().onTrue(new prepareToShoot(RobotConstants.AMP, ()->m_stageSubsystem.isNoteInStage(),
-                m_armSubsystem, m_shooterSubsystem));
+                m_armSubsystem, m_shooterSubsystem, m_LedSubsystem));
 
          // Operator: DPad Right: Arm to Wing Position (when pressed)
          m_operatorCtrl.povRight().onTrue(new prepareToShoot(RobotConstants.WING, ()->m_stageSubsystem.isNoteInStage(),
-                m_armSubsystem, m_shooterSubsystem));
+                m_armSubsystem, m_shooterSubsystem, m_LedSubsystem));
 
          // Operator: DPad Down: Arm to Subwoofer Position (when pressed)
          m_operatorCtrl.povDown().onTrue(new prepareToShoot(RobotConstants.SUBWOOFER, ()->m_stageSubsystem.isNoteInStage(),
-                m_armSubsystem, m_shooterSubsystem));
+                m_armSubsystem, m_shooterSubsystem, m_LedSubsystem));
 
         // Operator: Use Left and Right Triggers to run Intake at variable speed (left = in, right = out)
         m_intakeSubsystem.setDefaultCommand(new IntakeDefault(m_intakeSubsystem, m_stageSubsystem,
