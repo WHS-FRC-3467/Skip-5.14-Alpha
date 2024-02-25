@@ -125,7 +125,7 @@ public class velocityOffset extends Command {
         shootTimer.stop();
         shootTimer.reset();
         ranOnce = false;
-        //m_isDone = true;
+        m_isDone = true;
     }
 
     // Returns true when the command should end.

@@ -38,8 +38,9 @@ public class LEDSubsystem extends SubsystemBase {
   /* Animations */
 
   //public static final Animation ColorFlow = new ColorFlowAnimation(color.red, color.green, color.blue, 0, speed, segmentSize, Direction.Forward, startIndex)
-  public static final Animation m_ready2Shoot = new StrobeAnimation(green.red, green.green, green.blue, 0, 0.7, 300, 0);  // Flash Green
-  public static final Animation m_notReady2Shoot = new StrobeAnimation(red.red, red.green, red.blue, 0, 0.7, 300, 0);  // Flash Red
+  public static final Animation m_ready2Shoot = new StrobeAnimation(green.red, green.green, green.blue, 0, 0.09, 300, 0);  // Flash Green
+  public static final Animation m_notReady2Shoot = new StrobeAnimation(red.red, red.green, red.blue, 0, .09, 300, 0);  // Flash Red
+
 
 
 
@@ -110,7 +111,7 @@ public class LEDSubsystem extends SubsystemBase {
         }
 
         public void clearAnimation() {
-            m_candle.clearAnimation(animationSlot);
+            m_candle.clearAnimation(0);
         }
 
         public void disableLEDs() {
