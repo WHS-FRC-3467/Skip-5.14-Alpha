@@ -3,29 +3,29 @@
   "waypoints": [
     {
       "anchor": {
-        "x": 0.8539869673657066,
-        "y": 6.858213644870939
+        "x": 0.7626093884666401,
+        "y": 4.432084533684738
       },
       "prevControl": null,
       "nextControl": {
-        "x": 1.6176424481650402,
-        "y": 6.990384785778516
+        "x": 1.9086365238257539,
+        "y": 3.519940487174422
       },
       "isLocked": false,
       "linkedName": null
     },
     {
       "anchor": {
-        "x": 2.9246681749120707,
-        "y": 7.6365548079979675
+        "x": 3.557512300209785,
+        "y": 2.2569718073909093
       },
       "prevControl": {
-        "x": 1.8085563183591982,
-        "y": 7.754040266582481
+        "x": 2.388096855965791,
+        "y": 2.9586210739373047
       },
       "nextControl": null,
       "isLocked": false,
-      "linkedName": null
+      "linkedName": "FA FirstShot"
     }
   ],
   "rotationTargets": [],
@@ -39,13 +39,13 @@
   },
   "goalEndState": {
     "velocity": 0,
-    "rotation": -137.79447450047556,
+    "rotation": 128.94759285433528,
     "rotateFast": false
   },
   "reversed": false,
-  "folder": "Amp Side",
+  "folder": "Far Side",
   "previewStartingState": {
-    "rotation": -127.23483398248415,
+    "rotation": 120.579226872489,
     "velocity": 0
   },
   "useDefaultConstraints": true

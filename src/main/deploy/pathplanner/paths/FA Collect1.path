@@ -3,16 +3,16 @@
   "waypoints": [
     {
       "anchor": {
-        "x": 0.7139723370355832,
-        "y": 4.3751818412727745
+        "x": 3.557512300209785,
+        "y": 2.2569718073909093
       },
       "prevControl": null,
       "nextControl": {
-        "x": 0.9285334934306233,
-        "y": 3.321033551158012
+        "x": 5.019281605514777,
+        "y": 0.39760125104295896
       },
       "isLocked": false,
-      "linkedName": null
+      "linkedName": "FA FirstShot"
     },
     {
       "anchor": {
@@ -45,7 +45,7 @@
   "reversed": false,
   "folder": "Far Side",
   "previewStartingState": {
-    "rotation": 119.98163936884934,
+    "rotation": 129.74358505855477,
     "velocity": 0
   },
   "useDefaultConstraints": true
