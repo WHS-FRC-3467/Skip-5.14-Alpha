@@ -97,7 +97,7 @@ public class CommandSwerveDrivetrain extends SwerveDrivetrain implements Subsyst
                 (speeds) -> this.setControl(autoRequest.withSpeeds(speeds)),
 
                 // Method for configuring the path following commands
-                new HolonomicPathFollowerConfig(new PIDConstants(.6, 0, .02), new PIDConstants(5, 0, 0),
+                new HolonomicPathFollowerConfig(new PIDConstants(.8, 0, .02), new PIDConstants(5, 0, 0),
                         TunerConstants.kSpeedAt12VoltsMps,
                         driveBaseRadius, new ReplanningConfig()),
 

@@ -372,7 +372,8 @@ public class RobotContainer {
                 .onTrue((m_stageSubsystem.feedNote2ShooterCommand()).andThen(m_armSubsystem.prepareForIntakeCommand()));
 
         // Driver: While start button held, adjust Arm elevation based on goal
-        // m_driverCtrl.start().onTrue(Commands.parallel(m_shooterSubsystem.runShooterCommand(),m_armSubsystem.moveToDegreeCommand()));
+        m_driverCtrl.start()
+                .onTrue(new LookUpShot(m_armSubsystem, m_shooterSubsystem, () -> m_drivetrain.calcDistToSpeaker()));
 
         /*
          * m_driverCtrl.start().whileTrue(
