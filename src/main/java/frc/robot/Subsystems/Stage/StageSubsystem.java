@@ -118,9 +118,9 @@ public class StageSubsystem extends SubsystemBase {
     // Do not use if the shooter's target velocity is zero.
     public void ejectFront(double speed) {
 
-        if (m_noteInStage) {
+        //if (m_noteInStage) {
             this.runStage(speed);
-        }
+        //}
     }
 
     public void ejectBack(double speed) {
@@ -146,12 +146,12 @@ public class StageSubsystem extends SubsystemBase {
 
     // Pass the Note to the Shooter
     public Command feedNote2ShooterCommand() {
-        if (true) {
-            return new RunCommand(() -> this.ejectFront(StageConstants.kFeedToShooterSpeed), this)
+        //if (true) {
+            return new RunCommand(() -> this.ejectFront(StageConstants.kFeedToShooterSpeed))
                     .withTimeout(StageConstants.kFeedToShooterTime)
                     .andThen(() -> this.stopStage());
-        }
-        return new RunCommand(() -> this.stopStage());
+        //}
+        //return new RunCommand(() -> this.stopStage());
     }
 
     public double getTimeOfShot() {

@@ -2,10 +2,10 @@
   "version": 1.0,
   "startingPose": {
     "position": {
-      "x": 0.7626093884666401,
-      "y": 4.432084533684738
+      "x": 0.7275269251393202,
+      "y": 6.653973877748326
     },
-    "rotation": 180.0
+    "rotation": -122.2279359431205
   },
   "command": {
     "type": "sequential",
@@ -18,13 +18,13 @@
               {
                 "type": "named",
                 "data": {
-                  "name": "LookUpShot"
+                  "name": "RunShooter"
                 }
               },
               {
-                "type": "path",
+                "type": "wait",
                 "data": {
-                  "pathName": "Get2Side"
+                  "waitTime": 0.6
                 }
               }
             ]
@@ -34,6 +34,12 @@
           "type": "named",
           "data": {
             "name": "ShootNote"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "Get2Side"
           }
         },
         {
@@ -56,28 +62,28 @@
           }
         },
         {
-          "type": "path",
-          "data": {
-            "pathName": "Back2Wing"
-          }
-        },
-        {
           "type": "race",
           "data": {
             "commands": [
+              {
+                "type": "path",
+                "data": {
+                  "pathName": "Back2Wing"
+                }
+              },
               {
                 "type": "named",
                 "data": {
                   "name": "LookUpShot"
                 }
-              },
-              {
-                "type": "wait",
-                "data": {
-                  "waitTime": 0.4
-                }
               }
             ]
+          }
+        },
+        {
+          "type": "wait",
+          "data": {
+            "waitTime": 0.5
           }
         },
         {
@@ -106,13 +112,7 @@
           }
         },
         {
-          "type": "path",
-          "data": {
-            "pathName": "Back2WingAgain"
-          }
-        },
-        {
-          "type": "parallel",
+          "type": "race",
           "data": {
             "commands": [
               {
@@ -122,18 +122,30 @@
                 }
               },
               {
-                "type": "wait",
+                "type": "path",
                 "data": {
-                  "waitTime": 0.4
+                  "pathName": "Back2WingAgain"
                 }
               }
             ]
           }
         },
         {
+          "type": "wait",
+          "data": {
+            "waitTime": 0.3
+          }
+        },
+        {
           "type": "named",
           "data": {
             "name": "ShootNote"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "AS Random"
           }
         }
       ]
