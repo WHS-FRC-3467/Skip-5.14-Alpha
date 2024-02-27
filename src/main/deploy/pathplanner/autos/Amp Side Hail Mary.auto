@@ -1,0 +1,170 @@
+{
+  "version": 1.0,
+  "startingPose": {
+    "position": {
+      "x": 0.7275269251393202,
+      "y": 6.653973877748326
+    },
+    "rotation": -122.2279359431205
+  },
+  "command": {
+    "type": "sequential",
+    "data": {
+      "commands": [
+        {
+          "type": "parallel",
+          "data": {
+            "commands": [
+              {
+                "type": "sequential",
+                "data": {
+                  "commands": [
+                    {
+                      "type": "path",
+                      "data": {
+                        "pathName": "Get2Side"
+                      }
+                    },
+                    {
+                      "type": "path",
+                      "data": {
+                        "pathName": "AS Go Far"
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "type": "sequential",
+                "data": {
+                  "commands": [
+                    {
+                      "type": "race",
+                      "data": {
+                        "commands": [
+                          {
+                            "type": "named",
+                            "data": {
+                              "name": "LookUpShot"
+                            }
+                          },
+                          {
+                            "type": "wait",
+                            "data": {
+                              "waitTime": 1.2
+                            }
+                          }
+                        ]
+                      }
+                    },
+                    {
+                      "type": "named",
+                      "data": {
+                        "name": "ShootNote"
+                      }
+                    },
+                    {
+                      "type": "named",
+                      "data": {
+                        "name": "RunIntake"
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        },
+        {
+          "type": "race",
+          "data": {
+            "commands": [
+              {
+                "type": "path",
+                "data": {
+                  "pathName": "Back2Wing"
+                }
+              },
+              {
+                "type": "named",
+                "data": {
+                  "name": "LookUpShot"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "type": "wait",
+          "data": {
+            "waitTime": 0.5
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "ShootNote"
+          }
+        },
+        {
+          "type": "parallel",
+          "data": {
+            "commands": [
+              {
+                "type": "named",
+                "data": {
+                  "name": "RunIntake"
+                }
+              },
+              {
+                "type": "path",
+                "data": {
+                  "pathName": "3rd Piece"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "type": "race",
+          "data": {
+            "commands": [
+              {
+                "type": "named",
+                "data": {
+                  "name": "LookUpShot"
+                }
+              },
+              {
+                "type": "path",
+                "data": {
+                  "pathName": "Back2WingAgain"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "type": "wait",
+          "data": {
+            "waitTime": 0.3
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "ShootNote"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "AS Random"
+          }
+        }
+      ]
+    }
+  },
+  "folder": "Week1",
+  "choreoAuto": false
+}
