@@ -3,13 +3,13 @@
   "waypoints": [
     {
       "anchor": {
-        "x": 8.52752793824676,
-        "y": 5.74182983123801
+        "x": 8.702940254883359,
+        "y": 5.823688912335091
       },
       "prevControl": null,
       "nextControl": {
-        "x": 7.124229405153967,
-        "y": 6.922939429924444
+        "x": 7.299641721790566,
+        "y": 7.004798511021525
       },
       "isLocked": false,
       "linkedName": "AS Collect3"
@@ -39,7 +39,7 @@
   },
   "goalEndState": {
     "velocity": 0,
-    "rotation": -168.9062769884422,
+    "rotation": -172.12299724280447,
     "rotateFast": true
   },
   "reversed": false,

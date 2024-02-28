@@ -375,7 +375,10 @@ public class RobotContainer {
         m_driverCtrl.start()
                 .onTrue(new LookUpShot(m_armSubsystem, m_shooterSubsystem, () -> m_drivetrain.calcDistToSpeaker()));
 
-        /*
+        // Driver: Temporary Press Left Stick to stop shooter
+        m_driverCtrl.leftStick().whileTrue(m_shooterSubsystem.stopShooterCommand());
+        
+                /*
          * m_driverCtrl.start().whileTrue(
          * m_drivetrain.applyRequest(
          * () -> m_head.withVelocityX(-m_driverCtrl.getLeftY() * m_MaxSpeed)

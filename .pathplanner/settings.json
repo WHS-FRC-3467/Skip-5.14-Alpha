@@ -4,8 +4,9 @@
   "holonomicMode": true,
   "pathFolders": [
     "Amp Side",
+    "Far Side",
     "Mid Auto",
-    "Far Side"
+    "Center Line"
   ],
   "autoFolders": [
     "Week1"

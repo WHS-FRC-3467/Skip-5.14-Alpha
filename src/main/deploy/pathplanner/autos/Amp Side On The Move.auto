@@ -2,74 +2,67 @@
   "version": 1.0,
   "startingPose": {
     "position": {
-      "x": 0.7275269251393202,
-      "y": 6.653973877748326
+      "x": 1.3005404928188775,
+      "y": 7.203599136543003
     },
-    "rotation": -122.2279359431205
+    "rotation": 180.0
   },
   "command": {
     "type": "sequential",
     "data": {
       "commands": [
         {
+          "type": "race",
+          "data": {
+            "commands": [
+              {
+                "type": "named",
+                "data": {
+                  "name": "RunShooter"
+                }
+              },
+              {
+                "type": "wait",
+                "data": {
+                  "waitTime": 0.1
+                }
+              }
+            ]
+          }
+        },
+        {
+          "type": "race",
+          "data": {
+            "commands": [
+              {
+                "type": "named",
+                "data": {
+                  "name": "ShootNote"
+                }
+              },
+              {
+                "type": "path",
+                "data": {
+                  "pathName": "From Autoline"
+                }
+              }
+            ]
+          }
+        },
+        {
           "type": "parallel",
           "data": {
             "commands": [
               {
-                "type": "sequential",
+                "type": "named",
                 "data": {
-                  "commands": [
-                    {
-                      "type": "path",
-                      "data": {
-                        "pathName": "Get2Side"
-                      }
-                    },
-                    {
-                      "type": "path",
-                      "data": {
-                        "pathName": "AS Go Far"
-                      }
-                    }
-                  ]
+                  "name": "RunIntake"
                 }
               },
               {
-                "type": "sequential",
+                "type": "path",
                 "data": {
-                  "commands": [
-                    {
-                      "type": "race",
-                      "data": {
-                        "commands": [
-                          {
-                            "type": "named",
-                            "data": {
-                              "name": "LookUpShot"
-                            }
-                          },
-                          {
-                            "type": "wait",
-                            "data": {
-                              "waitTime": 1.2
-                            }
-                          }
-                        ]
-                      }
-                    },
-                    {
-                      "type": "named",
-                      "data": {
-                        "name": "ShootNote"
-                      }
-                    },
-                    {
-                      "type": "named",
-                      "data": {
-                        "name": "RunIntake"
-                      }
-                    }
-                  ]
+                  "pathName": "Go Far"
                 }
               }
             ]
@@ -82,7 +75,7 @@
               {
                 "type": "path",
                 "data": {
-                  "pathName": "Back2Wing"
+                  "pathName": "LetsGoToPlaces"
                 }
               },
               {
@@ -147,7 +140,7 @@
         {
           "type": "wait",
           "data": {
-            "waitTime": 0.3
+            "waitTime": 0.23
           }
         },
         {
@@ -157,9 +150,28 @@
           }
         },
         {
+          "type": "parallel",
+          "data": {
+            "commands": [
+              {
+                "type": "named",
+                "data": {
+                  "name": "RunIntake"
+                }
+              },
+              {
+                "type": "path",
+                "data": {
+                  "pathName": "AS Random"
+                }
+              }
+            ]
+          }
+        },
+        {
           "type": "path",
           "data": {
-            "pathName": "AS Random"
+            "pathName": "AS BackUnderStage"
           }
         }
       ]

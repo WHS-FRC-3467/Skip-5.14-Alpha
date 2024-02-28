@@ -16,23 +16,23 @@
     },
     {
       "anchor": {
-        "x": 8.165009150531121,
-        "y": 4.128036518181299
+        "x": 8.515833783804318,
+        "y": 3.8941534293325004
       },
       "prevControl": {
-        "x": 7.165009150531121,
-        "y": 4.128036518181299
+        "x": 7.171006022923725,
+        "y": 3.92923589265982
       },
       "nextControl": null,
       "isLocked": false,
-      "linkedName": null
+      "linkedName": "AS Collect4"
     }
   ],
   "rotationTargets": [],
   "constraintZones": [],
   "eventMarkers": [],
   "globalConstraints": {
-    "maxVelocity": 7.0,
+    "maxVelocity": 3.5,
     "maxAcceleration": 7.0,
     "maxAngularVelocity": 540.0,
     "maxAngularAcceleration": 720.0
@@ -48,5 +48,5 @@
     "rotation": -166.72742790000018,
     "velocity": 0
   },
-  "useDefaultConstraints": true
+  "useDefaultConstraints": false
 }

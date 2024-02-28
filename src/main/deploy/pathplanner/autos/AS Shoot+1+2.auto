@@ -2,8 +2,8 @@
   "version": 1.0,
   "startingPose": {
     "position": {
-      "x": 0.7509152340242001,
-      "y": 6.689056341075646
+      "x": 0.77430354290908,
+      "y": 6.747527113287845
     },
     "rotation": -122.2279359431205
   },
@@ -37,9 +37,47 @@
           }
         },
         {
-          "type": "path",
+          "type": "parallel",
           "data": {
-            "pathName": "Get2Side"
+            "commands": [
+              {
+                "type": "path",
+                "data": {
+                  "pathName": "AS +1"
+                }
+              },
+              {
+                "type": "named",
+                "data": {
+                  "name": "RunIntake"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "type": "race",
+          "data": {
+            "commands": [
+              {
+                "type": "named",
+                "data": {
+                  "name": "LookUpShot"
+                }
+              },
+              {
+                "type": "wait",
+                "data": {
+                  "waitTime": 0.25
+                }
+              }
+            ]
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "ShootNote"
           }
         },
         {
@@ -49,7 +87,7 @@
               {
                 "type": "path",
                 "data": {
-                  "pathName": "Go Far"
+                  "pathName": "GoBack2Wing"
                 }
               },
               {
@@ -140,12 +178,6 @@
           "type": "named",
           "data": {
             "name": "ShootNote"
-          }
-        },
-        {
-          "type": "path",
-          "data": {
-            "pathName": "AS Random"
           }
         }
       ]
