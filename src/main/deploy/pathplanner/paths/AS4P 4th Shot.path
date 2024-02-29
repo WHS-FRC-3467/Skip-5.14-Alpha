@@ -4,28 +4,28 @@
     {
       "anchor": {
         "x": 8.165009150531121,
-        "y": 5.800300603450209
+        "y": 4.116342363738859
       },
       "prevControl": null,
       "nextControl": {
-        "x": 6.539521683031971,
-        "y": 6.607197259978566
+        "x": 7.6153838917364425,
+        "y": 5.975712920086808
       },
       "isLocked": false,
-      "linkedName": "AS4P Collect2"
+      "linkedName": "AS4P Collect3"
     },
     {
       "anchor": {
-        "x": 3.9901960145800635,
-        "y": 5.800300603450209
+        "x": 4.294244030083502,
+        "y": 6.373314171129768
       },
       "prevControl": {
-        "x": 4.680151126684019,
-        "y": 6.385008325572207
+        "x": 6.188697049758772,
+        "y": 6.922939429924444
       },
       "nextControl": null,
       "isLocked": false,
-      "linkedName": "AS4P 3Shot"
+      "linkedName": "AS4P 4Shot"
     }
   ],
   "rotationTargets": [],
@@ -39,13 +39,13 @@
   },
   "goalEndState": {
     "velocity": 0,
-    "rotation": -174.50310749426447,
+    "rotation": -170.97768061394413,
     "rotateFast": true
   },
   "reversed": false,
   "folder": "Amp Side",
   "previewStartingState": {
-    "rotation": 180.0,
+    "rotation": -178.85423716182493,
     "velocity": 0
   },
   "useDefaultConstraints": true
